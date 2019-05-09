@@ -647,7 +647,6 @@ def 订餐扫核销码2(request):
     if 核销码 == '123456':
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         当前小时 = time.strftime('%H', time.localtime(time.time()))
-        当前小时 = '07'
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
         payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
