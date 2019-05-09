@@ -647,6 +647,7 @@ def 订餐扫核销码2(request):
     if 核销码 == '123456':
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         当前小时 = time.strftime('%H', time.localtime(time.time()))
+        当前小时 = '07'
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
         payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
@@ -673,7 +674,7 @@ def 订餐扫核销码2(request):
         else:
             if 子菜单page_name == '' or 子菜单page_name == None:
                 子菜单page_name = 订餐结果表_first.子菜单page_name
-            if 当前小时>'5'and 当前小时<'9':
+            if 当前小时>'05'and 当前小时<'09':
                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(早餐食堂就餐签到=吃过)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
