@@ -1,11 +1,56 @@
-# Build and Release Folders
-bin/
-bin-debug/
-bin-release/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+.idea
 
-# Other files and folders
-.settings/
+# C extensions
+*.so
+myConfig.py
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+*.zip
+*.txt
+*.csv
+*.xlsx
+*.xls
+*.docx
+*.doc
+*.jpg
+*.jpeg
+*.png
