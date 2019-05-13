@@ -13,7 +13,6 @@ from mysite.chou_jiang_mongo import 采集模版表, 抽奖主界面表, 采集�
 from mysite.demo_sms_send import send_sms
 from mysite.ding_can_mongo import 订餐结果表, 订餐主界面表, 订餐提醒短信锁
 
-
 def deprecated_async(f):
     def wrapper(*args, **kwargs):
         from threading import Thread
@@ -66,7 +65,6 @@ def 订餐提醒任务():
     except:
         print(traceback.format_exc())
         return False
-
 
 def 发邮件(邮箱, 文件名, 姓名, 附件):
     import smtplib
@@ -168,7 +166,7 @@ def 订餐没吃统计发邮件(mail_addr):
 def 启动订餐提醒定时器():
     mail_addr = ['15305669601@189.cn','15305669706@189.cn','15305666002@189.cn','18905667300@189.cn']
     # mail_addr = ['buckwmm@qq.com']
-    schedule.every().monday.do(订餐没吃统计发邮件,mail_addr)
+    # schedule.every().monday.do(订餐没吃统计发邮件,mail_addr)
     # schedule.every().day.at("17:14").do(订餐没吃统计发邮件,mail_addr)
 
     # schedule.every(10).seconds.do(job)
