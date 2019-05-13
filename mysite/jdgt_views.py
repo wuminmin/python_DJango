@@ -75,7 +75,6 @@ def 订餐下载主界面数据(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         else:
-            手机号 = 用户.手机号
             主界面 = 结对共拓主界面表.objects(手机号=用户.手机号).first()
             if 主界面 == None:
                 if 订餐微信小程序审核开关:

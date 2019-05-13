@@ -134,8 +134,8 @@ STATICFILES_DIRS = [
 
 
 
-订餐微信小程序审核开关 = True
-# 订餐微信小程序审核开关 = False
+# 订餐微信小程序审核开关 = True
+订餐微信小程序审核开关 = False
 订餐新界面开关 = True
 # 订餐新界面开关 = False
 
