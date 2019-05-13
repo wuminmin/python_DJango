@@ -16,22 +16,25 @@ from myConfig import appid, secret, grant_type, django_root_path, jdgt_appid, jd
     template_code
 from mysite.ding_can_mongo import 订餐登录状态表
 from mysite.jdgt_mongo import 结对共拓食堂模版表, 结对共拓结果表, 结对共拓主界面表, 结对共拓用户表, 结对共拓登录状态表, 结对共拓验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 结对共拓核销码表, \
-    取消, 结对共拓部门表, 结对共拓统计结果, 结对共拓菜单分页, 结对共拓菜单表, 菜单分隔符, 结对共拓菜单模版表, 结对共拓菜单评价表, 结对共拓客户经理表
+    取消, 结对共拓部门表, 结对共拓统计结果, 结对共拓菜单分页, 结对共拓菜单表, 菜单分隔符, 结对共拓菜单模版表, 结对共拓菜单评价表, 结对共拓客户经理表, 结对共拓客户经理上传单位信息
 import sys
 
 from mysite.schedule_tool import 启动订餐提醒定时器
 from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关
 
 
-#异步函数
+# 异步函数
 def deprecated_async(f):
     def wrapper(*args, **kwargs):
         from threading import Thread
-        thr = Thread(target = f, args = args, kwargs = kwargs)
+        thr = Thread(target=f, args=args, kwargs=kwargs)
         thr.start()
+
     return wrapper
 
+
 启动订餐提醒定时器()
+
 
 def 订餐登录检查(request):
     try:
@@ -127,9 +130,9 @@ def 订餐下载主界面数据(request):
                         }
                     ]
                     结对共拓主界面表_save = 结对共拓主界面表(手机号=str(用户.手机号), 描述=str(描述), 创建时间=str(创建时间),
-                           主页标题=str(主页标题),主页描述=str(主页描述), 验证码标题=str(验证码标题),
-                           验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
-                           主界内容=主界内容).save()
+                                             主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题),
+                                             验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
+                                             主界内容=主界内容).save()
                     自定义登录状态 = 结对共拓主界面表_save.to_json().encode('utf-8').decode('unicode_escape')
                     return HttpResponse(自定义登录状态)
                 自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
@@ -161,15 +164,15 @@ def 下载订餐模版(request):
         else:
             手机号 = 用户.手机号
             # 结对共拓主界面表.objects(手机号=手机号,主菜单name=主菜单name,子菜单page_name=子菜单page_name,子菜单page_desc=子菜单page_desc)
-            订餐模版表_one = 结对共拓食堂模版表.objects( 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
+            订餐模版表_one = 结对共拓食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 订餐模版表_one == None:
                 自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + r_json['session_key'] + "\"}"
                 return HttpResponse(自定义登录状态)
             else:
                 食堂地址 = 订餐模版表_one.食堂地址
                 主菜单name = 订餐模版表_one.主菜单name
-                用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() ))
-                预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() ))
+                用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
                 会话 = r_json['session_key']
                 描述 = '下载成功'
@@ -227,9 +230,9 @@ def 上传订餐结果(request):
                 return HttpResponse(自定义登录状态)
             手机号 = 结对共拓用户表_one.手机号
             结对共拓食堂模版表_one = 结对共拓食堂模版表.objects(主菜单name=主菜单name
-                                          , 子菜单page_name=子菜单page_name
-                                          , 子菜单page_desc=子菜单page_desc
-                                          ).first()
+                                              , 子菜单page_name=子菜单page_name
+                                              , 子菜单page_desc=子菜单page_desc
+                                              ).first()
             if 结对共拓食堂模版表_one == None:
                 描述 = '没有食堂数据'
                 自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']
@@ -251,7 +254,7 @@ def 上传订餐结果(request):
                 预定晚餐提前截止时间 = time.mktime(time.strptime(晚餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定晚餐提前秒
 
                 结对共拓结果表_one = 结对共拓结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name
-                                          , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+                                              , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
                 # if 结对共拓结果表_one == None:
                 中餐食堂就餐预订数 = 0
                 中餐食堂外带预订数 = 0
@@ -318,7 +321,7 @@ def 上传订餐结果(request):
                             晚餐订餐时间=晚餐订餐时间
                         ).save()
                         结对共拓结果表_first = 结对共拓结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name
-                                                    , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+                                                        , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
                         描述 = '上传成功'
                         订餐结果描述 = '中餐食堂就餐预订数' + str(结对共拓结果表_first.中餐食堂就餐预订数) \
                                  + ',晚餐食堂就餐预订数' + str(结对共拓结果表_first.晚餐食堂就餐预订数) \
@@ -328,7 +331,7 @@ def 上传订餐结果(request):
                             , '订餐结果描述': 订餐结果描述}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
-                        异步计算订餐结果(子菜单page_name,结对共拓主界面表_first.二级部门)
+                        异步计算订餐结果(子菜单page_name, 结对共拓主界面表_first.二级部门)
                         return HttpResponse(自定义登录状态)
                     else:
                         if 中餐食堂就餐预订数 == 1:
@@ -355,7 +358,7 @@ def 上传订餐结果(request):
                                 )
 
                         结对共拓结果表_first = 结对共拓结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name
-                                                    , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+                                                        , 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
                         描述 = '上传成功'
                         订餐结果描述 = '中餐食堂就餐预订数' + str(结对共拓结果表_first.中餐食堂就餐预订数) \
                                  + ',晚餐食堂就餐预订数' + str(结对共拓结果表_first.晚餐食堂就餐预订数) \
@@ -365,7 +368,7 @@ def 上传订餐结果(request):
                             , '订餐结果描述': 订餐结果描述}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
-                        异步计算订餐结果(子菜单page_name,结对共拓主界面表_first.二级部门)
+                        异步计算订餐结果(子菜单page_name, 结对共拓主界面表_first.二级部门)
                         return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -411,14 +414,14 @@ def 订餐发送验证码(request):
 
 
 @deprecated_async
-def 异步计算订餐结果(子菜单page_name,二级部门):
+def 异步计算订餐结果(子菜单page_name, 二级部门):
     第一天 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
-    日期_list = [第一天,第二天]
+    日期_list = [第一天, 第二天]
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
         子菜单page_name = 子菜单page_name
-        子菜单page_desc_list = ['中餐统计','晚餐统计']
+        子菜单page_desc_list = ['中餐统计', '晚餐统计']
         for 子菜单page_desc_list_one in 子菜单page_desc_list:
             子菜单page_desc = 子菜单page_desc_list_one
             结对共拓部门表_first = 结对共拓部门表.objects(二级部门=二级部门).first()
@@ -472,14 +475,15 @@ def 异步计算订餐结果(子菜单page_name,二级部门):
             start_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
             end_date = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
             自定义登录状态 = {'描述': 描述, '会话': '23456', 'list': r_list, 'app_tittle': app_tittle, 'app_des': app_des
-                , 'app_code_des': app_code_des, 'app_code': app_code, 'date': 日期, 'start_date': start_date, 'end_date': end_date
+                , 'app_code_des': app_code_des, 'app_code': app_code, 'date': 日期, 'start_date': start_date,
+                       'end_date': end_date
                        }
-            结对共拓统计结果_first = 结对共拓统计结果.objects(日期=日期,子菜单page_name=子菜单page_name,子菜单page_desc=子菜单page_desc).first()
+            结对共拓统计结果_first = 结对共拓统计结果.objects(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 结对共拓统计结果_first == None:
-                结对共拓统计结果(日期=日期,子菜单page_name=子菜单page_name,子菜单page_desc=子菜单page_desc,订餐结果=自定义登录状态).save()
+                结对共拓统计结果(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 订餐结果=自定义登录状态).save()
             else:
                 结对共拓统计结果_first.update(订餐结果=自定义登录状态)
-    print('异步计算完成',time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+    print('异步计算完成', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
 
 def 订餐统计中餐(request):
@@ -488,7 +492,7 @@ def 订餐统计中餐(request):
     子菜单page_desc = str(request.GET['page_desc'])
     if 日期 == '':
         日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-    结对共拓统计结果_first = 结对共拓统计结果.objects(日期=日期,子菜单page_name=子菜单page_name,子菜单page_desc=子菜单page_desc).first()
+    结对共拓统计结果_first = 结对共拓统计结果.objects(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
     if 结对共拓统计结果_first == None:
         start_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         end_date = time.strftime('%Y-%m-%d', time.localtime(time.time() + 259200))
@@ -504,6 +508,7 @@ def 订餐统计中餐(request):
     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
     自定义登录状态 = str(自定义登录状态)
     return HttpResponse(自定义登录状态)
+
 
 # def 订餐统计晚餐(request):
 #     return None
@@ -528,6 +533,7 @@ def 订餐下载核销码(request):
         自定义登录状态 = 订餐中餐核销码表_first.to_json().encode('utf-8').decode('unicode_escape')
     自定义登录状态 = str(自定义登录状态)
     return HttpResponse(自定义登录状态)
+
 
 def 订餐扫核销码2(request):
     核销码 = str(request.GET['er_wei_ma'])
@@ -563,13 +569,13 @@ def 订餐扫核销码2(request):
         else:
             if 子菜单page_name == '' or 子菜单page_name == None:
                 子菜单page_name = 结对共拓结果表_first.子菜单page_name
-            if 当前小时>'10'and 当前小时<'15':
+            if 当前小时 > '10' and 当前小时 < '15':
                 if 结对共拓结果表_first.中餐食堂就餐签到 == 没吃:
                     结对共拓结果表_first.update(中餐食堂就餐签到=吃过)
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
-                    异步计算订餐结果(子菜单page_name,结对共拓主界面表_first.二级部门)
+                    异步计算订餐结果(子菜单page_name, 结对共拓主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 结对共拓结果表_first.中餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
@@ -581,13 +587,13 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
-            elif  当前小时>'16'and 当前小时<'20':
+            elif 当前小时 > '16' and 当前小时 < '20':
                 if 结对共拓结果表_first.晚餐食堂就餐签到 == 没吃:
                     结对共拓结果表_first.update(晚餐食堂就餐签到=吃过)
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
-                    异步计算订餐结果(子菜单page_name,结对共拓主界面表_first.二级部门)
+                    异步计算订餐结果(子菜单page_name, 结对共拓主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 结对共拓结果表_first.晚餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
@@ -647,10 +653,10 @@ def 订餐扫核销码(request):
                 if 结对共拓结果表_first.中餐食堂就餐签到 == 没吃:
                     结对共拓结果表_first.update(中餐食堂就餐签到=吃过)
                     结对共拓核销码表_first.update(核销码=session_key
-                                        , 手机号=手机号, 二级部门=结对共拓主界面表_first.二级部门
-                                        , 三级部门=结对共拓主界面表_first.三级部门, 四级部门=结对共拓主界面表_first.四级部门
-                                        , 姓名=结对共拓主界面表_first.姓名
-                                        )
+                                          , 手机号=手机号, 二级部门=结对共拓主界面表_first.二级部门
+                                          , 三级部门=结对共拓主界面表_first.三级部门, 四级部门=结对共拓主界面表_first.四级部门
+                                          , 姓名=结对共拓主界面表_first.姓名
+                                          )
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -664,9 +670,9 @@ def 订餐扫核销码(request):
                 if 结对共拓结果表_first.晚餐食堂就餐签到 == 没吃:
                     结对共拓结果表_first.update(晚餐食堂就餐签到=吃过)
                     结对共拓核销码表_first.update(核销码=session_key
-                                        , 手机号=手机号, 二级部门=结对共拓主界面表_first.二级部门
-                                        , 三级部门=结对共拓主界面表_first.三级部门, 四级部门=结对共拓主界面表_first.四级部门
-                                        , 姓名=结对共拓主界面表_first.姓名)
+                                          , 手机号=手机号, 二级部门=结对共拓主界面表_first.二级部门
+                                          , 三级部门=结对共拓主界面表_first.三级部门, 四级部门=结对共拓主界面表_first.四级部门
+                                          , 姓名=结对共拓主界面表_first.姓名)
                     自定义登录状态 = {'描述': '成功', '姓名': 结对共拓主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -858,7 +864,7 @@ def 订餐取消(request):
                             if 当前时间戳 < 取消中餐提前截止时间:
                                 if 结对共拓结果表_first.中餐食堂就餐签到 == 没吃:
                                     结对共拓结果表_first.update(中餐食堂就餐预订数=0, 中餐食堂就餐签到=取消, 中餐取消时间=当前时间)
-                                    异步计算订餐结果(page_name,结对共拓主界面表_first.二级部门)
+                                    异步计算订餐结果(page_name, 结对共拓主界面表_first.二级部门)
                                     描述 = '中餐取消成功'
                                 else:
                                     描述 = '中餐已吃过，不能取消'
@@ -874,7 +880,7 @@ def 订餐取消(request):
                             if 当前时间戳 < 取消晚餐提前截止时间:
                                 if 结对共拓结果表_first.晚餐食堂就餐签到 == 没吃:
                                     结对共拓结果表_first.update(晚餐食堂就餐预订数=0, 晚餐食堂就餐签到=取消, 晚餐取消时间=当前时间)
-                                    异步计算订餐结果(page_name,结对共拓主界面表_first.二级部门)
+                                    异步计算订餐结果(page_name, 结对共拓主界面表_first.二级部门)
                                     描述 = '晚餐取消成功'
                                 else:
                                     描述 = '晚餐已吃过，不能取消'
@@ -912,9 +918,11 @@ def 订餐取消(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+
 @deprecated_async
 def 异步计算菜单(page_name):
     pass
+
 
 def 订餐菜单初始化(request):
     try:
@@ -956,19 +964,19 @@ def 订餐菜单初始化(request):
         结对共拓菜单表first = 结对共拓菜单表.objects(
             食堂名称=page_name
         ).first()
-        if     结对共拓菜单表first == None:
+        if 结对共拓菜单表first == None:
             分工list = [
                 {
-                    'dan_yuan_id':0,
-                    'dan_yuan_name':'2019-03-31_市公司食堂_中餐',
-                    'dan_yuan':[
+                    'dan_yuan_id': 0,
+                    'dan_yuan_name': '2019-03-31_市公司食堂_中餐',
+                    'dan_yuan': [
                         {
-                            'lou_ceng_id':0,
-                            'ceng':[
+                            'lou_ceng_id': 0,
+                            'ceng': [
                                 {
-                                    'men_pai_id':'2019-03-31_市公司食堂_中餐_青菜',
-                                    'men_pai_hao':'青菜',
-                                    'zhuang_tai':'placeholder_grey'
+                                    'men_pai_id': '2019-03-31_市公司食堂_中餐_青菜',
+                                    'men_pai_hao': '青菜',
+                                    'zhuang_tai': 'placeholder_grey'
                                 },
                                 {
                                     'men_pai_id': '2019-03-31_市公司食堂_中餐_白菜',
@@ -1055,16 +1063,16 @@ def 订餐菜单初始化(request):
             分工list = 结对共拓菜单表first.菜单列表
         分工list_len = len(分工list)
         分工list_len_取整除 = 分工list_len // 结对共拓菜单分页
-        分工list_len_取整除 = 分工list_len_取整除 +1
-        countries = list( range(0,分工list_len_取整除) )
+        分工list_len_取整除 = 分工list_len_取整除 + 1
+        countries = list(range(0, 分工list_len_取整除))
         countries_val = 0
         分工list_slice = 分工list[countries_val * 结对共拓菜单分页: (countries_val + 1) * 结对共拓菜单分页]
         自定义登录状态 = {
             '描述': '成功',
             'name': name,
-            'page_name':page_name,
-            'page_desc':page_desc,
-            'countries':countries,
+            'page_name': page_name,
+            'page_desc': page_desc,
+            'countries': countries,
             'lou_yu_list': 分工list_slice,
         }
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -1074,13 +1082,14 @@ def 订餐菜单初始化(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+
 def 订餐菜单点击分页(request):
     try:
         js_code = request.GET['code']
         name = request.GET['name']
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
-        countries_val = int( request.GET['countries_val'] )
+        countries_val = int(request.GET['countries_val'])
 
         url = 'https://api.weixin.qq.com/sns/jscode2session'
         payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
@@ -1217,12 +1226,12 @@ def 订餐菜单点击分页(request):
             ]
         else:
             分工list = 录入分工表first.录入分工
-        分工list_slice = 分工list[ countries_val*结对共拓菜单分页 : (countries_val+1)*结对共拓菜单分页 ]
+        分工list_slice = 分工list[countries_val * 结对共拓菜单分页: (countries_val + 1) * 结对共拓菜单分页]
         自定义登录状态 = {
             '描述': '成功',
             'name': name,
-            'page_name':page_name,
-            'page_desc':page_desc,
+            'page_name': page_name,
+            'page_desc': page_desc,
             'lou_yu_list': 分工list_slice,
         }
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -1231,6 +1240,7 @@ def 订餐菜单点击分页(request):
     except:
         print(traceback.format_exc())
         return HttpResponse('500')
+
 
 def 订餐采集初始化(request):
     try:
@@ -1336,6 +1346,7 @@ def 订餐采集初始化(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+
 def 订餐评价初始化(request):
     try:
         js_code = request.GET['code']
@@ -1346,7 +1357,7 @@ def 订餐评价初始化(request):
         r_json = json.loads(r.text)
         用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
         自定义登录状态 = {
-            'ping_jia_list':[
+            'ping_jia_list': [
                 {
                     'ping_jia_id': '0',
                     'biao_ti': '张三',
@@ -1369,6 +1380,7 @@ def 订餐评价初始化(request):
         return HttpResponse(自定义登录状态)
     except:
         return HttpResponse('500')
+
 
 def 订餐上传评价(request):
     try:
@@ -1380,7 +1392,7 @@ def 订餐上传评价(request):
         r_json = json.loads(r.text)
         用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
         自定义登录状态 = {
-            'ping_jia_list':[
+            'ping_jia_list': [
                 {
                     'ping_jia_id': '0',
                     'biao_ti': '张三',
@@ -1404,8 +1416,9 @@ def 订餐上传评价(request):
     except:
         return HttpResponse('500')
 
+
 if __name__ == '__main__':
-    异步计算订餐结果(' ','')
+    异步计算订餐结果(' ', '')
 
 
 def 结对共拓客户经理初始化(request):
@@ -1418,13 +1431,13 @@ def 结对共拓客户经理初始化(request):
         r_json = json.loads(r.text)
         用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
         客户经理表 = 结对共拓客户经理表.objects(手机号=用户.手机号).first()
-        if 客户经理表==None:
-            countries=['没有记录']
-        else :
-            countries=[客户经理表.姓名]
+        if 客户经理表 == None:
+            countries = ['没有记录']
+        else:
+            countries = [客户经理表.姓名]
         结果表 = {
-            'countries':countries,
-            'countries2':[
+            'countries': countries,
+            'countries2': [
 
             ],
             'countries3': [
@@ -1435,4 +1448,61 @@ def 结对共拓客户经理初始化(request):
         结果表 = str(结果表)
         return HttpResponse(结果表)
     except:
+        print(traceback.format_exc())
+        return HttpResponse('500')
+
+
+def 客户经理上报单位信息(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
+                   'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {
+                '描述': '该用户未注册'
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            print(用户.手机号)
+            print(request.GET['dan_wei_ming_cheng'])
+            print(request.GET['ke_hu_bian_ma'])
+            print(request.GET['ke_hu_jing_li'])
+            print(request.GET['shou_ji_hao_ma'])
+            dan_wei_ming_cheng = request.GET['dan_wei_ming_cheng']
+            ke_hu_bian_ma = request.GET['ke_hu_bian_ma']
+            ke_hu_jing_li = request.GET['ke_hu_jing_li']
+            shou_ji_hao_ma = request.GET['shou_ji_hao_ma']
+            结对共拓客户经理上传单位信息first = 结对共拓客户经理上传单位信息.objects(
+                客户编码=ke_hu_bian_ma
+            ).first()
+            if 结对共拓客户经理上传单位信息first == None:
+                结对共拓客户经理上传单位信息(
+                    单位名称=dan_wei_ming_cheng,
+                    客户编码=ke_hu_bian_ma,
+                    客户经理=ke_hu_jing_li,
+                    手机号码=shou_ji_hao_ma,
+                ).save()
+            else:
+                结对共拓客户经理上传单位信息first.update(
+                    单位名称=dan_wei_ming_cheng,
+                    客户编码=ke_hu_bian_ma,
+                    客户经理=ke_hu_jing_li,
+                    手机号码=shou_ji_hao_ma,
+                )
+
+            结果表 = {
+                '描述': '上传成功',
+            }
+            结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+            结果表 = str(结果表)
+            return HttpResponse(结果表)
+    except:
+        print(traceback.format_exc())
         return HttpResponse('500')

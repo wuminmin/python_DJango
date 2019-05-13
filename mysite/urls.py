@@ -111,8 +111,9 @@ urlpatterns = [
     url(r'^jdgt_ding_dan', jdgt_views.订餐订单),
     url(r'^jdgt_cai_dan_init', jdgt_views.订餐菜单初始化),
     url(r'^jdgt_cai_dan_fen_ye', jdgt_views.订餐菜单点击分页),
-    url(r'^jdgt_cai_ji_init', jdgt_views.订餐采集初始化),
+    url(r'^jdgt_cai_ji_init/$', jdgt_views.订餐采集初始化),
     url(r'^jdgt_ping_jia_init', jdgt_views.订餐评价初始化),
     url(r'^jdgt_upload_ping_jia', jdgt_views.订餐上传评价),
+    url(r'^jdgt_dwmc/$', jdgt_views.客户经理上报单位信息),
     url(r'^jdgt_cust_manager', jdgt_views.结对共拓客户经理初始化),
 ]

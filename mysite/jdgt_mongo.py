@@ -148,6 +148,13 @@ class 结对共拓单位名称(Document):
     客户经理 = StringField()
     客户经理工号 = StringField()
 
+class 结对共拓客户经理上传单位信息(Document):
+    单位名称 = StringField()
+    客户编码 = StringField()
+    客户经理 = StringField()
+    手机号码 = StringField()
+
+
 
 if __name__ == '__main__':
     结对共拓客户经理表(
