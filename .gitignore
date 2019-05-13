@@ -51,6 +51,7 @@ docs/_build/
 *.xls
 *.docx
 *.doc
+*.pdf
 *.jpg
 *.jpeg
 *.png
