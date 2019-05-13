@@ -148,6 +148,10 @@ STATICFILES_DIRS = [
 两高楼宇采集template_id = '-_slWEWDujVWCQJ7kPoC5nuEWRFIn6_kKatgyHA1bfU'
 
 
+结对共拓微信小程序审核开关 = True
+# 结对共拓微信小程序审核开关 = False
+
+
 
 
 

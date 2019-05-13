@@ -20,7 +20,7 @@ from mysite.jdgt_mongo import 结对共拓食堂模版表, 结对共拓结果表
 import sys
 
 from mysite.schedule_tool import 启动订餐提醒定时器
-from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关
+from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关, 结对共拓微信小程序审核开关
 
 
 # 异步函数
@@ -77,21 +77,21 @@ def 订餐下载主界面数据(request):
         else:
             主界面 = 结对共拓主界面表.objects(手机号=用户.手机号).first()
             if 主界面 == None:
-                if 订餐微信小程序审核开关:
+                if 结对共拓微信小程序审核开关:
                     创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     描述 = '下载成功'
-                    主页标题 = '食堂订餐'
-                    主页描述 = '食堂订餐'
-                    验证码标题 = ''
-                    验证码描述 = ''
+                    主页标题 = '客户走访助手'
+                    主页描述 = '客户走访助手'
+                    验证码标题 = '测试'
+                    验证码描述 = '测试'
                     二级部门 = '测试'
                     三级部门 = '测试'
                     四级部门 = '测试'
-                    姓名 = '测试用户'
+                    姓名 = '测试'
                     主界内容 = [
                         {
-                            'id': 'dingcan',
-                            'name': '积分管理',
+                            'id': 'fqrw',
+                            'name': '发起任务',
                             'open': False,
                             'pages': [
                                 {
@@ -100,32 +100,37 @@ def 订餐下载主界面数据(request):
                                     'page_desc': '走访客户'
                                 },
                                 {
-                                    'url': 'sao_ma',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '扫码'
+                                    'url': 'sbkhdw',
+                                    'page_name': '客户经理',
+                                    'page_desc': '上报客户单位'
                                 },
-                                {
-                                    'url': 'ding_dan',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '订单'
-                                }
                             ]
                         },
                         {
-                            'id': 'shi_tang_guan_li',
-                            'name': '食堂管理',
+                            'id': 'dbrw',
+                            'name': '代办任务',
                             'open': False,
                             'pages': [
                                 {
-                                    'url': 'shi_tang_guan_li_url',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '晚餐统计'
+                                    'url': 'slzffwwt',
+                                    'page_name': '党群部',
+                                    'page_desc': '受理走访服务问题'
                                 },
                                 {
-                                    'url': 'shi_tang_guan_li_url',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '中餐统计'
-                                }
+                                    'url': 'hszf',
+                                    'page_name': '客户经理',
+                                    'page_desc': '核实走访'
+                                },
+                                {
+                                    'url': 'lrjf',
+                                    'page_name': '政企校园中心',
+                                    'page_desc': '录入积分'
+                                },
+                                {
+                                    'url': 'shjf',
+                                    'page_name': '党群部',
+                                    'page_desc': '审核积分'
+                                },
                             ]
                         }
                     ]
