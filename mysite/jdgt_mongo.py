@@ -158,6 +158,9 @@ class 结对共拓部门主任客户经理对应表(Document):
     客户经理手机号码 = StringField()
     部门主任手机号码 = StringField()
 
+
+未核实 = '未核实'
+已核实 = '已核实'
 class 结对共拓部门主任走访客户结果表(Document):
     走访日期 = StringField()
     部门主任姓名 = StringField()
@@ -168,8 +171,9 @@ class 结对共拓部门主任走访客户结果表(Document):
     商机信息 = DictField()
     竞争信息 = DictField()
     服务问题 = DictField()
-    是否有服务问题 = StringField()
-    是否提交云方案 = StringField()
+    是否有服务问题 = BooleanField()
+    是否提交云方案 = BooleanField()
+    状态 = StringField(default=未核实)
 
 class 结对共拓部门主任走访客户图片表(Document):
     走访日期 = StringField()
@@ -177,6 +181,8 @@ class 结对共拓部门主任走访客户图片表(Document):
     客户经理姓名 = StringField()
     单位名称 = StringField()
     大门照片 = ImageField()
+
+
 
 if __name__ == '__main__':
     # 结对共拓客户经理表(
