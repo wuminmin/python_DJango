@@ -1515,7 +1515,6 @@ def 订餐评价初始化(request):
                 'biao_ti': 订餐评论表obj.手机号,
                 'nei_rong':订餐评论表obj.评论内容,
                 'image_url':'https://wx.wuminmin.top/ding_can_image/?obj_id='+str(订餐评论表obj.id)
-                # 'image_url':'http://127.0.0.1:8000/ding_can_image/?obj_id='+str(订餐评论表obj.id)
             }
             ping_jia_list.append(ping_jia_dict)
         自定义登录状态 = {
@@ -1545,15 +1544,11 @@ def 订餐上传评价(request):
             if 订餐主界面表first == None:
                 return HttpResponse('用户未授权')
             ping_jia_txt = request.GET['ping_jia_txt']
-            print(ping_jia_txt)
-            # tu_pian = request.FILES.get('file')
-            # print(tu_pian)
             path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
             outfile = open(path, 'rb')
-            手机号 = 用户.手机号
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             订餐评论表(
-                手机号=手机号,
+                手机号=订餐主界面表first.姓名,
                 创建时间=创建时间,
                 评论内容=ping_jia_txt,
                 评论图片=outfile
@@ -1574,15 +1569,14 @@ def 订餐上传评价(request):
                 return HttpResponse('用户未授权')
             ping_jia_txt =  request.POST['ping_jia_txt']
             tu_pian = request.FILES.get('file')
-            手机号 = 用户.手机号
             订餐评论表first = 订餐评论表.objects(
-                手机号=手机号,
+                手机号=订餐主界面表first.姓名,
                 评论内容=ping_jia_txt,
             ).first()
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             if 订餐评论表first == None:
                 订餐评论表(
-                    手机号=手机号,
+                    手机号=订餐主界面表first.姓名,
                     创建时间=创建时间,
                     评论内容=ping_jia_txt,
                     评论图片=tu_pian
