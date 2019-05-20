@@ -8,8 +8,9 @@ import os
 import pandas
 import requests
 import time
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 
+import myConfig
 from mysite.chou_jiang_mongo import 建筑物主键分隔符
 from mysite.demo_sms_send import send_sms
 from myConfig import appid, secret, grant_type, django_root_path, jdgt_appid, jdgt_secret, jdgt_grant_type, sign_name, \
@@ -1857,6 +1858,8 @@ def 客户经理核实走访内容(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
+                # 'src': 'https://wx.wuminmin.top/jdgt_hszf_imge/?riqi='+riqi+'&zhu_ren='+zhu_ren+'&dan_wei='+dan_wei,
+                'src': 'http://127.0.0.1:8000/jdgt_hszf_imge/?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -1869,3 +1872,36 @@ def 客户经理核实走访内容(request):
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
         return HttpResponse(结果表)
+
+
+def 客户经理核实走访下载图片(request):
+    try:
+        riqi = request.GET['riqi']
+        zhu_ren = request.GET['zhu_ren']
+        dan_wei = request.GET['dan_wei']
+        结对共拓部门主任走访客户图片表first = 结对共拓部门主任走访客户图片表.objects(
+            走访日期 = riqi,
+            部门主任姓名=zhu_ren,
+            单位名称=dan_wei
+        ).first()
+        if 结对共拓部门主任走访客户图片表first == None:
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            outfile = open(path, 'rb')
+            response = FileResponse(outfile)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
+            return response
+        else:
+            image = 结对共拓部门主任走访客户图片表first.大门照片.read()
+            response = HttpResponse(image)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="ano.jpg"'
+            return response
+    except:
+        print(traceback.format_exc())
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        outfile = open(path, 'rb')
+        response = FileResponse(outfile)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
+        return response

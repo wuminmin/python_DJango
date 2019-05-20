@@ -121,5 +121,6 @@ urlpatterns = [
     url(r'^jdgt_bmzr_upload_imge/$', jdgt_views.部门主任上传图片),
     url(r'^jdgt_hszf_init/$', jdgt_views.客户经理核实走访初始化),
     url(r'^jdgt_hszf_detail/$', jdgt_views.客户经理核实走访内容),
+    url(r'^jdgt_hszf_imge/$', jdgt_views.客户经理核实走访下载图片),
     url(r'^jdgt_cust_manager', jdgt_views.结对共拓客户经理初始化),
 ]
