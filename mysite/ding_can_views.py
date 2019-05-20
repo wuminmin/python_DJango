@@ -1506,7 +1506,6 @@ def 订餐评价初始化(request):
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
-        手机号 = 用户.手机号
         订餐评论表objs = 订餐评论表.objects
         ping_jia_list = []
         for 订餐评论表obj in 订餐评论表objs:
