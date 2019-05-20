@@ -132,14 +132,10 @@ STATICFILES_DIRS = [
 易查微信小程序审核开关 = False
 易查政策宣传开关 = True
 
-
-
 # 订餐微信小程序审核开关 = True
 订餐微信小程序审核开关 = False
 订餐新界面开关 = True
 # 订餐新界面开关 = False
-
-
 
 两高楼宇采集审核开关 = False
 # 两高楼宇采集审核开关 = False
