@@ -159,9 +159,12 @@ class 结对共拓部门主任客户经理对应表(Document):
     部门主任手机号码 = StringField()
 
 
-客户经理未核实 = '未核实'
-客户经理已核实 = '已核实'
+客户经理未核实 = '客户经理未核实'
+客户经理已核实 = '客户经理已核实'
 客户经理不通过 = '客户经理不通过'
+政企校园完成打分 = '政企校园完成打分'
+党群部审核通过 = '党群部审核通过'
+党群部审核不通过 = '党群部审核不通过'
 class 结对共拓部门主任走访客户结果表(Document):
     走访日期 = StringField()
     部门主任姓名 = StringField()
@@ -175,6 +178,7 @@ class 结对共拓部门主任走访客户结果表(Document):
     是否有服务问题 = BooleanField()
     是否提交云方案 = BooleanField()
     状态 = StringField(default=客户经理未核实)
+    得分 = DictField(default={})
 
 class 结对共拓部门主任走访客户图片表(Document):
     走访日期 = StringField()

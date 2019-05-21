@@ -17,12 +17,12 @@ from django.conf.urls import url
 
 from mysite import views, ding_can_views, yi_cha_views, chou_jiang_views, cai_ji_views, xiao_shou_views, jdgt_views
 
-urlpatterns = [
-    #验证码---------------------
+urlpatterns = {
+    # 验证码---------------------
     url(r'^$', views.index),
     url(r'^jian_cha_jing_wei_du', views.检查经纬度),
 
-    #易查199----------------------
+    # 易查199----------------------
     url(r'^yi_cha_login_check/$', yi_cha_views.登录检查),
     url(r'^yi_cha_send_sms_code/$', yi_cha_views.发送验证码),
     url(r'^yi_cha_check_sms_code/$', yi_cha_views.校验验证码),
@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^yi_cha_send_page_data/$', yi_cha_views.交卷),
     url(r'^yi_cha_get_toast_data/$', yi_cha_views.下载toast数据),
 
-    #食堂订餐123--------------
+    # 食堂订餐123--------------
     url(r'^ding_can_login_check', ding_can_views.订餐登录检查),
     url(r'^ding_can_send_sms_code', ding_can_views.订餐发送验证码),
     url(r'^ding_can_check_sms_code', ding_can_views.订餐校验验证码),
@@ -73,7 +73,7 @@ urlpatterns = [
     url(r'^chou_jiang_fen_ye', chou_jiang_views.录入分页),
     url(r'^chou_jiang_mail', chou_jiang_views.两高采集表发邮件),
 
-    #采集
+    # 采集
     url(r'^cai_ji_tui_song', cai_ji_views.采集推送微信验证),
     url(r'^cai_ji_login_check', cai_ji_views.采集登录检查),
     url(r'^cai_ji_send_sms_code', cai_ji_views.采集发送验证码),
@@ -96,7 +96,7 @@ urlpatterns = [
     url(r'^xiao_shou_shang_chuang_tu_pian', xiao_shou_views.上传图片),
     url(r'^xiao_shou_xia_zai_tu_pian', xiao_shou_views.下载图片),
 
-    #结对共拓支撑平台
+    # 结对共拓支撑平台
     url(r'^jdgt_login_check', jdgt_views.订餐登录检查),
     url(r'^jdgt_send_sms_code', jdgt_views.订餐发送验证码),
     url(r'^jdgt_check_sms_code', jdgt_views.订餐校验验证码),
@@ -120,10 +120,14 @@ urlpatterns = [
     url(r'^jdgt_bmzr_upload_data/$', jdgt_views.部门主任上传数据),
     url(r'^jdgt_bmzr_upload_imge/$', jdgt_views.部门主任上传图片),
     url(r'^jdgt_hszf_init/$', jdgt_views.客户经理核实走访初始化),
-    url(r'^jdgt_hszf_detail/$', jdgt_views.客户经理核实走访内容),
+    url(r'^jdgt_hszf_detail/$', jdgt_views.客户经理政企校园查询详情),
     url(r'^jdgt_hszf_imge/$', jdgt_views.客户经理核实走访下载图片),
     url(r'^jdgt_hszf_agree/$', jdgt_views.客户经理同意走访任务),
     url(r'^jdgt_hszf_refuse/$', jdgt_views.客户经理不同意走访任务),
     url(r'^jdgt_zqxy_init/$', jdgt_views.政企校园录入积分初始化),
-    url(r'^jdgt_cust_manager', jdgt_views.结对共拓客户经理初始化),
-]
+    url(r'^jdgt_zqxy_upload/$', jdgt_views.政企校园录打分),
+    url(r'^jdgt_dqb_init/$', jdgt_views.党群部审核初始化),
+    url(r'^jdgt_dqb_detail/$', jdgt_views.党群部查询详情),
+    url(r'^jdgt_dqb_agree/$', jdgt_views.党群部同意走访任务),
+    url(r'^jdgt_dqb_refuse/$', jdgt_views.党群部不同意走访任务),
+}
