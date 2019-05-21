@@ -18,7 +18,7 @@ from myConfig import appid, secret, grant_type, django_root_path, jdgt_appid, jd
 from mysite.ding_can_mongo import 订餐登录状态表
 from mysite.jdgt_mongo import 结对共拓食堂模版表, 结对共拓结果表, 结对共拓主界面表, 结对共拓用户表, 结对共拓登录状态表, 结对共拓验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 结对共拓核销码表, \
     取消, 结对共拓部门表, 结对共拓统计结果, 结对共拓菜单分页, 结对共拓菜单表, 菜单分隔符, 结对共拓菜单模版表, 结对共拓菜单评价表, 结对共拓客户经理表, 结对共拓客户经理上传单位信息, 结对共拓部门主任客户经理对应表, \
-    结对共拓部门主任走访客户结果表, 结对共拓部门主任走访客户图片表, 未核实
+    结对共拓部门主任走访客户结果表, 结对共拓部门主任走访客户图片表, 客户经理未核实, 客户经理已核实, 客户经理不通过
 
 from mysite.schedule_tool import 启动订餐提醒定时器
 from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关, 结对共拓微信小程序审核开关
@@ -1559,7 +1559,7 @@ def 部门主任选择客户经理初始化(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1608,7 +1608,7 @@ def 部门主任选择单位初始化(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1697,7 +1697,7 @@ def 部门主任上传数据(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1761,7 +1761,7 @@ def 部门主任上传图片(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1787,16 +1787,19 @@ def 客户经理核实走访初始化(request):
         else:
             list = []
             结对共拓部门主任走访客户结果表objs = 结对共拓部门主任走访客户结果表.objects(
-                状态 = 未核实
+                状态 = 客户经理未核实
             )
+            i = 0
             for 结对共拓部门主任走访客户结果表obj in 结对共拓部门主任走访客户结果表objs:
                 list.append(
                     {
                         'riqi': 结对共拓部门主任走访客户结果表obj.走访日期,
                         'zhu_ren': 结对共拓部门主任走访客户结果表obj.部门主任姓名,
                         'dan_wei': 结对共拓部门主任走访客户结果表obj.单位名称,
+                        'value':i
                     }
                 )
+                i = i+1
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
@@ -1808,7 +1811,7 @@ def 客户经理核实走访初始化(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1839,7 +1842,7 @@ def 客户经理核实走访内容(request):
                 走访日期=riqi,
                 部门主任姓名=zhu_ren,
                 单位名称=dan_wei,
-                状态=未核实
+                # 状态=客户经理未核实
             ).first()
             if 结对共拓部门主任走访客户结果表first == None:
                 自定义登录状态 = {
@@ -1867,7 +1870,7 @@ def 客户经理核实走访内容(request):
     except:
         print(traceback.format_exc())
         结果表 = {
-            '描述': '内部错误',
+            '描述': '系统错误',
         }
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
@@ -1905,3 +1908,192 @@ def 客户经理核实走访下载图片(request):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
         return response
+
+
+def 客户经理同意走访任务(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
+                   'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {
+                '描述': '该用户未注册'
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            riqi = request.GET['riqi']
+            zhu_ren = request.GET['zhu_ren']
+            dan_wei = request.GET['dan_wei']
+            结对共拓部门主任走访客户结果表first = 结对共拓部门主任走访客户结果表.objects(
+                走访日期=riqi,
+                部门主任姓名=zhu_ren,
+                单位名称=dan_wei,
+            ).first()
+            if 结对共拓部门主任走访客户结果表first == None:
+                自定义登录状态 = {
+                    '描述': '无效记录',
+                }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                if 结对共拓部门主任走访客户结果表first.状态 == 客户经理未核实:
+                    结对共拓部门主任走访客户结果表first.update(
+                        状态=客户经理已核实
+                    )
+                    自定义登录状态 = {
+                        '描述': '成功',
+                        '会话': '',
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                elif 结对共拓部门主任走访客户结果表first.状态 == 客户经理未核实:
+                    自定义登录状态 = {
+                        '描述': '不能重复核实',
+                        '会话': ''
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                elif 结对共拓部门主任走访客户结果表first.状态 == 客户经理不通过:
+                    自定义登录状态 = {
+                        '描述': '客户经理不通过',
+                        '会话': ''
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                else:
+                    自定义登录状态 = {
+                        '描述': '系统错误',
+                        '会话': ''
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {
+            '描述': '系统错误',
+        }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
+
+def 客户经理不同意走访任务(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
+                   'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {
+                '描述': '该用户未注册'
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            riqi = request.GET['riqi']
+            zhu_ren = request.GET['zhu_ren']
+            dan_wei = request.GET['dan_wei']
+            结对共拓部门主任走访客户结果表first = 结对共拓部门主任走访客户结果表.objects(
+                走访日期=riqi,
+                部门主任姓名=zhu_ren,
+                单位名称=dan_wei,
+            ).first()
+            if 结对共拓部门主任走访客户结果表first == None:
+                自定义登录状态 = {
+                    '描述': '无效记录',
+                }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                if 结对共拓部门主任走访客户结果表first.状态 == 客户经理未核实:
+                    结对共拓部门主任走访客户结果表first.update(
+                        状态=客户经理不通过
+                    )
+                    自定义登录状态 = {
+                        '描述': '成功',
+                        '会话': '',
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                else:
+                    自定义登录状态 = {
+                        '描述': '无效选项',
+                        '会话': ''
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {
+            '描述': '系统错误',
+        }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
+
+
+def 政企校园录入积分初始化(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
+                   'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {
+                '描述': '该用户未注册'
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            list = []
+            结对共拓部门主任走访客户结果表objs = 结对共拓部门主任走访客户结果表.objects(
+                状态 = 客户经理已核实
+            )
+            i = 0
+            for 结对共拓部门主任走访客户结果表obj in 结对共拓部门主任走访客户结果表objs:
+                list.append(
+                    {
+                        'riqi': 结对共拓部门主任走访客户结果表obj.走访日期,
+                        'zhu_ren': 结对共拓部门主任走访客户结果表obj.部门主任姓名,
+                        'dan_wei': 结对共拓部门主任走访客户结果表obj.单位名称,
+                        'value': i
+                    }
+                )
+                i = i +1
+            自定义登录状态 = {
+                '描述': '成功',
+                '会话': '',
+                'list': list
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {
+            '描述': '系统错误',
+        }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)

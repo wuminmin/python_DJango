@@ -122,5 +122,8 @@ urlpatterns = [
     url(r'^jdgt_hszf_init/$', jdgt_views.客户经理核实走访初始化),
     url(r'^jdgt_hszf_detail/$', jdgt_views.客户经理核实走访内容),
     url(r'^jdgt_hszf_imge/$', jdgt_views.客户经理核实走访下载图片),
+    url(r'^jdgt_hszf_agree/$', jdgt_views.客户经理同意走访任务),
+    url(r'^jdgt_hszf_refuse/$', jdgt_views.客户经理不同意走访任务),
+    url(r'^jdgt_zqxy_init/$', jdgt_views.政企校园录入积分初始化),
     url(r'^jdgt_cust_manager', jdgt_views.结对共拓客户经理初始化),
 ]
