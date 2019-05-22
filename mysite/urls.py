@@ -127,7 +127,9 @@ urlpatterns = {
     url(r'^jdgt_zqxy_init/$', jdgt_views.政企校园录入积分初始化),
     url(r'^jdgt_zqxy_upload/$', jdgt_views.政企校园录打分),
     url(r'^jdgt_dqb_init/$', jdgt_views.党群部审核初始化),
+    url(r'^jdgt_cxrw_init/$', jdgt_views.查询任务初始化),
     url(r'^jdgt_dqb_detail/$', jdgt_views.党群部查询详情),
     url(r'^jdgt_dqb_agree/$', jdgt_views.党群部同意走访任务),
+    url(r'^jdgt_cxrw_detail/$', jdgt_views.查询任务详情),
     url(r'^jdgt_dqb_refuse/$', jdgt_views.党群部不同意走访任务),
 }

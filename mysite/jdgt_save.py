@@ -2,51 +2,29 @@ import pandas
 import time
 
 from myConfig import django_root_path
-from mysite.jdgt_mongo import 结对共拓主界面表, 结对共拓食堂模版表, 结对共拓部门表
+from mysite.jdgt_mongo import 结对共拓主界面表, 结对共拓食堂模版表, 结对共拓部门表, 结对共拓部门主任客户经理对应表
 
 
-def 导入食堂模版(文件名):
+def 导入结对共拓部门主任客户经理对应表(文件名):
     df_main = pandas.read_excel(django_root_path + '/' + 文件名)
     for index_main, row in df_main.iterrows():
-        主菜单name = str(row['主菜单name'])
-        主菜单id = str(row['主菜单id'])
-        子菜单page_name = str(row['子菜单page_name'])
-        子菜单page_desc = str(row['子菜单page_desc'])
-        子菜单url = str(row['子菜单url'])
-        食堂地址 = str(row['食堂地址'])
-        早餐价格 = str(row['早餐价格'])
-        中餐价格 = str(row['中餐价格'])
-        晚餐价格 = str(row['晚餐价格'])
-        早餐就餐时间 = str(row['早餐就餐时间'])
-        中餐就餐时间 = str(row['中餐就餐时间'])
-        晚餐就餐时间 = str(row['晚餐就餐时间'])
-        预定早餐提前秒 = row['预定早餐提前秒']
-        预定中餐提前秒 = row['预定中餐提前秒']
-        预定晚餐提前秒 = row['预定晚餐提前秒']
-        取消早餐提前秒 = row['取消早餐提前秒']
-        取消中餐提前秒 = row['取消中餐提前秒']
-        取消晚餐提前秒 = row['取消晚餐提前秒']
-        # 手机号 = 结对共拓主界面表_one.手机号
-        创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        食堂模版表_one = 结对共拓食堂模版表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
-        if 食堂模版表_one == None:
-            结对共拓食堂模版表(主菜单name=主菜单name, 主菜单id=主菜单id,
-                    子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 子菜单url=子菜单url,
-                    食堂地址=食堂地址,
-                    早餐价格=早餐价格,中餐价格=中餐价格,晚餐价格=晚餐价格,
-                    早餐就餐时间=早餐就餐时间, 中餐就餐时间=中餐就餐时间, 晚餐就餐时间=晚餐就餐时间,
-                    预定早餐提前秒=预定早餐提前秒, 预定中餐提前秒=预定中餐提前秒, 预定晚餐提前秒=预定晚餐提前秒,
-                    取消早餐提前秒=取消早餐提前秒, 取消中餐提前秒=取消中餐提前秒, 取消晚餐提前秒=取消晚餐提前秒,
-                    创建时间=创建时间).save()
+        部门主任手机号 = str(row['部门主任手机号'])
+        客户经理手机号 = str(row['客户经理手机号'])
+        tmp_first1 = 结对共拓部门主任客户经理对应表.objects(
+            部门主任手机号码 = 部门主任手机号,
+            客户经理手机号码 = 客户经理手机号,
+        ).first()
+        if tmp_first1 == None:
+            结对共拓部门主任客户经理对应表(
+                部门主任手机号码=部门主任手机号,
+                客户经理手机号码=客户经理手机号,
+            ).save()
         else:
-            食堂模版表_one.update(主菜单name=主菜单name, 主菜单id=主菜单id,
-                    子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 子菜单url=子菜单url,
-                    食堂地址=食堂地址,
-                    早餐价格=早餐价格,中餐价格=中餐价格,晚餐价格=晚餐价格,
-                    早餐就餐时间=早餐就餐时间, 中餐就餐时间=中餐就餐时间, 晚餐就餐时间=晚餐就餐时间,
-                    预定早餐提前秒=预定早餐提前秒, 预定中餐提前秒=预定中餐提前秒, 预定晚餐提前秒=预定晚餐提前秒,
-                    取消早餐提前秒=取消早餐提前秒, 取消中餐提前秒=取消中餐提前秒, 取消晚餐提前秒=取消晚餐提前秒,
-                    创建时间=创建时间)
+            tmp_first1.update(
+                部门主任手机号码=部门主任手机号,
+                客户经理手机号码=客户经理手机号,
+            )
+
 
 def 导入主页数据(文件名):
     df_main = pandas.read_excel(django_root_path + '/' + 文件名)
@@ -188,15 +166,12 @@ def 根据三级部门删除主界面表(三级部门):
         one.delete()
 
 if __name__ == '__main__':
-    # 订餐食堂模版文件名列表 = ['食堂模版.xls']
-    # for 文件名 in 订餐食堂模版文件名列表:
-    #     导入食堂模版(文件名)
 
     结对共拓主页文件名列表 = [ '结对共拓人员清单.xls']
     for 文件名 in 结对共拓主页文件名列表:
         导入主页数据(文件名)
 
-    # 保存订餐部门列表()
+    导入结对共拓部门主任客户经理对应表('结对共拓部门主任和客户经理对应表.xls')
 
 
 

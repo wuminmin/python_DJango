@@ -165,28 +165,23 @@ class 结对共拓部门主任客户经理对应表(Document):
 政企校园完成打分 = '政企校园完成打分'
 党群部审核通过 = '党群部审核通过'
 党群部审核不通过 = '党群部审核不通过'
+path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+outfile = open(path, 'rb')
 class 结对共拓部门主任走访客户结果表(Document):
-    走访日期 = StringField()
-    部门主任姓名 = StringField()
-    客户经理姓名 = StringField()
-    单位名称 = StringField()
-    走访主题 = StringField()
-    走访对象 = DictField()
-    商机信息 = DictField()
-    竞争信息 = DictField()
-    服务问题 = DictField()
-    是否有服务问题 = BooleanField()
-    是否提交云方案 = BooleanField()
+    走访日期 = StringField(default='')
+    部门主任姓名 = StringField(default='')
+    客户经理姓名 = StringField(default='')
+    单位名称 = StringField(default='')
+    走访主题 = StringField(default='')
+    走访对象 = DictField(default={'走访对象':''})
+    商机信息 = DictField(default={'商机信息':''})
+    竞争信息 = DictField(default={'竞争信息':''})
+    服务问题 = DictField(default={'服务问题':''})
+    是否有服务问题 = BooleanField(default=True)
+    是否提交云方案 = BooleanField(default=True)
     状态 = StringField(default=客户经理未核实)
-    得分 = DictField(default={})
-
-class 结对共拓部门主任走访客户图片表(Document):
-    走访日期 = StringField()
-    部门主任姓名 = StringField()
-    客户经理姓名 = StringField()
-    单位名称 = StringField()
-    大门照片 = ImageField()
-
+    得分 = DictField(default={'积分':'0'})
+    大门照片 = ImageField(default=outfile)
 
 
 if __name__ == '__main__':
