@@ -1834,8 +1834,7 @@ def 客户经理政企校园查询详情(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
-                # 'src': 'https://wx.wuminmin.top/jdgt_hszf_imge/?riqi='+riqi+'&zhu_ren='+zhu_ren+'&dan_wei='+dan_wei,
-                'src': 'http://127.0.0.1:8000/jdgt_hszf_imge/?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
+                'src': myConfig.global_image_url+'?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -2245,8 +2244,7 @@ def 党群部查询详情(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
-                # 'src': 'https://wx.wuminmin.top/jdgt_hszf_imge/?riqi='+riqi+'&zhu_ren='+zhu_ren+'&dan_wei='+dan_wei,
-                'src': 'http://127.0.0.1:8000/jdgt_hszf_imge/?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
+                'src': myConfig.global_image_url+'?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -2523,8 +2521,7 @@ def 查询任务详情(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
-                # 'src': 'https://wx.wuminmin.top/jdgt_hszf_imge/?riqi='+riqi+'&zhu_ren='+zhu_ren+'&dan_wei='+dan_wei,
-                'src': 'http://127.0.0.1:8000/jdgt_hszf_imge/?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
+                'src': myConfig.global_image_url + '?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
