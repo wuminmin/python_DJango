@@ -513,8 +513,6 @@ def 分析扇区同方向导出结果():
     创建时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
     jie_guo_df.to_csv('分析扇区同方向导出结果' + 创建时间 + '.csv', encoding='gbk')
 
-
-
 def 分析三频同方向扇区(文件名):
     df = pandas.read_excel(django_root_path + '/cell_analyse' + '/' + 文件名)
     # df_columns_name_lsit = df.columns.tolist()
@@ -571,8 +569,8 @@ if __name__ == '__main__':
     # 分析扇区覆盖区域类型检查插花('LTE扇区导出_20190220_120220_02385.xlsx')
     # 分析扇区同方向('LTE扇区导出_20190220_120220_02385.xlsx')
 
-    分析扇区同方向计算分组('LTE扇区导出_20190506_152225_05858.xlsx')
-    分析扇区同方向计算是否同方向()
+    # 分析扇区同方向计算分组('LTE扇区导出_20190506_152225_05858.xlsx')
+    # 分析扇区同方向计算是否同方向()
     分析扇区同方向导出结果()
 
     # 分析三频同方向扇区('LTE扇区导出_20190220_120220_02385.xlsx')
