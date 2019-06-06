@@ -20,6 +20,7 @@ class 订餐主界面表(Document):
     姓名 = StringField()
     主界内容 = ListField()
 
+青阳食堂 = '青阳食堂'
 class 订餐食堂模版表(Document):
     主菜单name = StringField()
     主菜单id = StringField()
