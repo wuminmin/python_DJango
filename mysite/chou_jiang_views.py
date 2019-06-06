@@ -23,7 +23,7 @@ from myConfig import chou_jiang_appid, chou_jiang_secret, chou_jiang_grant_type,
 from mysite.chou_jiang_mongo import 抽奖用户表, 抽奖登录状态表, 抽奖验证码表, 抽奖主界面表, 没中奖, 抽奖开关, 中奖人数字典, 中奖金额字典, 抽奖状态表, 一等奖, \
     二等奖, 抽奖参与者, 全体奖, 三等奖, 四等奖, 未开始, 抽奖开始, 抽奖结束, 抽奖全体奖状态表, 抽奖按钮状态, 采集模版表, 采集分工表, 采集录入分工表, 建筑物主键分隔符, 可录入, 已录入, 新录入, 分页
 from mysite.demo_sms_send import send_sms
-from mysite.settings import 两高楼宇采集新界面开关, 两高楼宇采集审核开关, 两高楼宇采集template_id
+from mysite.settings import 两高楼宇采集template_id
 from myConfig import 两高楼宇采集host, 两高楼宇采集port, 两高楼宇采集username, 两高楼宇采集password
 
 #异步函数
@@ -47,12 +47,9 @@ def 抽奖登录检查(request):
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             # 自定义登录状态 = {"描述":"用户不存在","会话":""}
             return HttpResponse(自定义登录状态)
-        elif 两高楼宇采集新界面开关:
-            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"123456\"}"
-            return HttpResponse(自定义登录状态)
         else:
             r = 抽奖登录状态表(session_key=r_json['session_key'], openid=r_json['openid']).save()
-            自定义登录状态 = "{\"描述\":\"验证通过\",\"会话\":\"" + str(r.id) + "\"}"
+            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"" + str(r.id) + "\"}"
             return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -110,91 +107,6 @@ def 抽奖下载主界面数据(request):
         用户 = 抽奖用户表.objects(openid=r_json['openid']).first()
         主界面 = 抽奖主界面表.objects(手机号=用户.手机号).first()
         if 主界面 == None:
-            if 两高楼宇采集审核开关:
-                创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                描述 = '下载成功'
-                主页标题 = '楼宇采集'
-                主页描述 = '楼宇采集'
-                验证码标题 = '网优班'
-                验证码描述 = '测试用户'
-                二级部门 = '测试用户'
-                三级部门 = '池州市'
-                四级部门 = '网优班'
-                姓名 = '测试用户'
-                主界内容 = [
-                    {
-                        'id': 'ce_shi',
-                        'name': '测试用户',
-                        'open': False,
-                        'pages': [
-                            {
-                                'url': 'lu_ru',
-                                'page_name': '东至县',
-                                'page_desc': '楼宇采集'
-                            },
-                        ]
-                    }
-                ]
-                # 主界内容 = [
-                #     {
-                #         'id': 'ce_shi',
-                #         'name': '测试用户',
-                #         'open': False,
-                #         'pages': [
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '谢时乐',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '王皓',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '王名鑫',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '路斌',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '王宇',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '柯英杰',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '吴师诚',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '吴敏民',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #             {
-                #                 'url': 'lu_ru',
-                #                 'page_name': '皋亮亮',
-                #                 'page_desc': '楼宇采集'
-                #             },
-                #         ]
-                #     }
-                # ]
-                订餐主界面表_save = 抽奖主界面表(手机号=str(用户.手机号), 描述=str(描述), 创建时间=str(创建时间),
-                       主页标题=str(主页标题),主页描述=str(主页描述), 验证码标题=str(验证码标题),
-                       验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
-                       主界内容=主界内容).save()
-                自定义登录状态 = 订餐主界面表_save.to_json().encode('utf-8').decode('unicode_escape')
-                return HttpResponse(自定义登录状态)
             自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
             return HttpResponse(自定义登录状态)
         else:

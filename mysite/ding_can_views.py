@@ -20,8 +20,6 @@ from mysite.ding_can_mongo import 订餐食堂模版表, 订餐结果表, 订餐
 import sys
 
 from mysite.schedule_tool import 启动订餐提醒定时器
-from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关
-
 
 #异步函数
 def deprecated_async(f):
@@ -45,12 +43,9 @@ def 订餐登录检查(request):
         if 查询结果 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
-        elif 订餐新界面开关:
-            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"123456\"}"
-            return HttpResponse(自定义登录状态)
         else:
             r = 订餐登录状态表(session_key=r_json['session_key'], openid=r_json['openid']).save()
-            自定义登录状态 = "{\"描述\":\"验证通过\",\"会话\":\"" + str(r.id) + "\"}"
+            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"" + str(r.id) + "\"}"
             return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -75,64 +70,6 @@ def 订餐下载主界面数据(request):
             手机号 = 用户.手机号
             主界面 = 订餐主界面表.objects(手机号=用户.手机号).first()
             if 主界面 == None:
-                if 订餐微信小程序审核开关:
-                    创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    描述 = '下载成功'
-                    主页标题 = '食堂订餐'
-                    主页描述 = '食堂订餐'
-                    验证码标题 = ''
-                    验证码描述 = ''
-                    二级部门 = '测试'
-                    三级部门 = '测试'
-                    四级部门 = '测试'
-                    姓名 = '测试'
-                    主界内容 = [
-                        {
-                            'id': 'dingcan',
-                            'name': '食堂订餐',
-                            'open': False,
-                            'pages': [
-                                {
-                                    'url': 'dingcan',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '订餐'
-                                },
-                                {
-                                    'url': 'sao_ma',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '扫码'
-                                },
-                                {
-                                    'url': 'ding_dan',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '订单'
-                                }
-                            ]
-                        },
-                        {
-                            'id': 'shi_tang_guan_li',
-                            'name': '食堂管理',
-                            'open': False,
-                            'pages': [
-                                {
-                                    'url': 'shi_tang_guan_li_url',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '晚餐统计'
-                                },
-                                {
-                                    'url': 'shi_tang_guan_li_url',
-                                    'page_name': '市公司食堂',
-                                    'page_desc': '中餐统计'
-                                }
-                            ]
-                        }
-                    ]
-                    订餐主界面表_save = 订餐主界面表(手机号=str(用户.手机号), 描述=str(描述), 创建时间=str(创建时间),
-                           主页标题=str(主页标题),主页描述=str(主页描述), 验证码标题=str(验证码标题),
-                           验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
-                           主界内容=主界内容).save()
-                    自定义登录状态 = 订餐主界面表_save.to_json().encode('utf-8').decode('unicode_escape')
-                    return HttpResponse(自定义登录状态)
                 自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
                 return HttpResponse(自定义登录状态)
             else:
@@ -518,18 +455,18 @@ def 异步计算订餐结果(子菜单page_name,二级部门):
                 吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂就餐预订数')
             elif 子菜单page_desc == 晚餐统计:
                 订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)))
+                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)))
                 没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃)))
                 吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('晚餐食堂就餐预订数')
+                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('晚餐食堂就餐预订数')
                 没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃).sum('晚餐食堂就餐预订数')
                 吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过).sum('晚餐食堂就餐预订数')
             elif 子菜单page_desc == 早餐统计:
                 订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)))
+                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)))
                 没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃)))
                 吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('早餐食堂就餐预订数')
+                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('早餐食堂就餐预订数')
                 没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃).sum('早餐食堂就餐预订数')
                 吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过).sum('早餐食堂就餐预订数')
             else:

@@ -10,7 +10,6 @@ from django.http import HttpResponse
 
 from myConfig import appid, secret, grant_type, sign_name, template_code, django_root_path
 from mysite.demo_sms_send import send_sms
-from mysite.settings import 订餐微信小程序审核开关, 易查政策宣传开关, 易查微信小程序审核开关
 from mysite.yi_cha_mongo import 易查试卷结果表, 易查试卷模版表, 考试已结束, 考试进行中, 考试未开始, 易查主界面表, 易查试卷答案表, 易查验证码表, 易查用户表, 易查登录状态表, \
     易查政策宣传主界面, 易查套餐内容
 import sys
@@ -235,73 +234,6 @@ def 下载主界面数据(request):
         # 用户 = 用户表.objects(openid=open_id).first()
         主界面 = 易查主界面表.objects(手机号 = 用户.手机号).first()
         if 主界面 == None:
-            if 易查微信小程序审核开关:
-                创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                描述 = '下载成功'
-                主页标题 = '易查199'
-                主页描述 = '易查199'
-                验证码标题 = ''
-                验证码描述 = ''
-                二级部门 = '测试用户'
-                三级部门 = '测试用户'
-                四级部门 = '测试用户'
-                姓名 = '测试用户'
-                主界内容 = [
-                    {
-                        'id': 'form',
-                        'name': '自助考试',
-                        'open': False,
-                        'pages': [
-                            {
-                                'url': 'input',
-                                'page_name': '销售部',
-                                'page_desc': '两节政策'
-                            }
-                        ]
-                    },
-                    {
-                        'id': 'widget',
-                        'name': '酬金发放',
-                        'open': False,
-                        'pages': [
-                            {
-                                'url': 'toast',
-                                'page_name': '功能开发中',
-                                'page_desc': '敬请期待'
-                            }
-                        ]
-                    },
-                    {
-                        'id': 'feedback',
-                        'name': '政策宣传',
-                        'open': False,
-                        'pages': [
-                            {
-                                'url': 'zcxc',
-                                'page_name': '政策宣传',
-                                'page_desc': '政策宣传'
-                            }
-                        ]
-                    },
-                    {
-                        'id': 'nav',
-                        'name': '用户预约',
-                        'open': False,
-                        'pages': [
-                            {
-                                'url': 'toast',
-                                'page_name': '功能开发中',
-                                'page_desc': '敬请期待'
-                            }
-                        ]
-                    }
-                ]
-                主界面表_save = 易查主界面表(手机号=str(用户.手机号), 描述=str(描述), 创建时间=str(创建时间),
-                                   主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题),
-                                   验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
-                                   主界内容=主界内容).save()
-                自定义登录状态 = 主界面表_save.to_json().encode('utf-8').decode('unicode_escape')
-                return HttpResponse(自定义登录状态)
             自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
             return HttpResponse(自定义登录状态)
         else:

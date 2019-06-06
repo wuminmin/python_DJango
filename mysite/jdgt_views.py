@@ -21,7 +21,6 @@ from mysite.jdgt_mongo import 结对共拓食堂模版表, 结对共拓结果表
     结对共拓部门主任走访客户结果表,客户经理未核实, 客户经理已核实, 客户经理不通过, 政企校园完成打分, 党群部审核通过, 党群部审核不通过
 
 from mysite.schedule_tool import 启动订餐提醒定时器
-from mysite.settings import 订餐微信小程序审核开关, 订餐新界面开关, 结对共拓微信小程序审核开关
 
 
 # 异步函数
@@ -49,12 +48,9 @@ def 订餐登录检查(request):
         if 查询结果 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
-        elif 订餐新界面开关:
-            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"123456\"}"
-            return HttpResponse(自定义登录状态)
         else:
             r = 订餐登录状态表(session_key=r_json['session_key'], openid=r_json['openid']).save()
-            自定义登录状态 = "{\"描述\":\"验证通过\",\"会话\":\"" + str(r.id) + "\"}"
+            自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"" + str(r.id) + "\"}"
             return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -76,71 +72,10 @@ def 订餐下载主界面数据(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         else:
-            主界面 = 结对共拓主界面表.objects(手机号=用户.手机号).first()
+            手机号 = 用户.手机号
+            print(手机号)
+            主界面 = 结对共拓主界面表.objects(手机号=手机号).first()
             if 主界面 == None:
-                if 结对共拓微信小程序审核开关:
-                    创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    描述 = '下载成功'
-                    主页标题 = '客户走访助手'
-                    主页描述 = '客户走访助手'
-                    验证码标题 = '测试'
-                    验证码描述 = '测试'
-                    二级部门 = '测试'
-                    三级部门 = '测试'
-                    四级部门 = '测试'
-                    姓名 = '测试'
-                    主界内容 = [
-                        {
-                            'id': 'fqrw',
-                            'name': '发起任务',
-                            'open': False,
-                            'pages': [
-                                {
-                                    'url': 'zfkh',
-                                    'page_name': '部门主任',
-                                    'page_desc': '走访客户'
-                                },
-                                {
-                                    'url': 'sbkhdw',
-                                    'page_name': '客户经理',
-                                    'page_desc': '上报客户单位'
-                                },
-                            ]
-                        },
-                        {
-                            'id': 'dbrw',
-                            'name': '代办任务',
-                            'open': False,
-                            'pages': [
-                                {
-                                    'url': 'slzffwwt',
-                                    'page_name': '党群部',
-                                    'page_desc': '受理走访服务问题'
-                                },
-                                {
-                                    'url': 'hszf',
-                                    'page_name': '客户经理',
-                                    'page_desc': '核实走访'
-                                },
-                                {
-                                    'url': 'lrjf',
-                                    'page_name': '政企校园中心',
-                                    'page_desc': '录入积分'
-                                },
-                                {
-                                    'url': 'shjf',
-                                    'page_name': '党群部',
-                                    'page_desc': '审核积分'
-                                },
-                            ]
-                        }
-                    ]
-                    结对共拓主界面表_save = 结对共拓主界面表(手机号=str(用户.手机号), 描述=str(描述), 创建时间=str(创建时间),
-                                             主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题),
-                                             验证码描述=str(验证码描述), 二级部门=二级部门, 三级部门=三级部门, 四级部门=四级部门, 姓名=姓名,
-                                             主界内容=主界内容).save()
-                    自定义登录状态 = 结对共拓主界面表_save.to_json().encode('utf-8').decode('unicode_escape')
-                    return HttpResponse(自定义登录状态)
                 自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
                 return HttpResponse(自定义登录状态)
             else:

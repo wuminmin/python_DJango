@@ -127,25 +127,11 @@ STATICFILES_DIRS = [
 ]
 
 
-
 #自定义设置
-易查微信小程序审核开关 = False
-易查政策宣传开关 = True
-
-# 订餐微信小程序审核开关 = True
-订餐微信小程序审核开关 = False
-订餐新界面开关 = True
-# 订餐新界面开关 = False
-
-两高楼宇采集审核开关 = False
-# 两高楼宇采集审核开关 = False
-两高楼宇采集新界面开关 =  True
-# 两高楼宇采集新界面开关 =  False
 两高楼宇采集template_id = '-_slWEWDujVWCQJ7kPoC5nuEWRFIn6_kKatgyHA1bfU'
 
 
-结对共拓微信小程序审核开关 = True
-# 结对共拓微信小程序审核开关 = False
+
 
 
 
