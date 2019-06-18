@@ -2469,3 +2469,68 @@ def 查询任务详情(request):
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
         return HttpResponse(结果表)
+
+
+def 部门主任上传机房走访数据(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code,
+                   'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {
+                '描述': '该用户未注册'
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            自定义登录状态 = {
+                '描述': '成功',
+                '会话': '',
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {
+            '描述': '系统错误',
+        }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
+
+
+def 部门主任上传机房走访图片(request):
+    try:
+        print(request)
+        import os
+        from django.core.files.storage import default_storage
+        from django.core.files.base import ContentFile
+        from django.conf import settings
+        data = request.FILES['file']  # or self.files['image'] in your form
+        path = default_storage.save('tmp/somename.mp3', ContentFile(data.read()))
+        img_file2 = os.path.join(settings.MEDIA_ROOT, path)
+        img_file = open(img_file2, 'rb')
+        countries_val = request.POST['countries_val']
+        countries2_val = request.POST['countries2_val']
+        main_list_tittle = request.POST['main_list_tittle']
+        name = request.POST['name']
+        page_name = request.POST['page_name']
+        page_desc = request.POST['page_desc']
+        print(img_file,countries_val,countries2_val,main_list_tittle,name,page_name,page_desc)
+        描述 = '成功'
+        return HttpResponse(描述)
+    except:
+        描述 = '系统错误'
+        print(traceback.format_exc())
+        # 结果表 = {
+        #     '描述': 描述,
+        # }
+        # 结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        # 结果表 = str(结果表)
+        return HttpResponse(描述)

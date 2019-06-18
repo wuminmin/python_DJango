@@ -111,6 +111,7 @@ def 发邮件(邮箱, 文件名, 姓名, 附件):
 
 def 订餐没吃统计发邮件(mail_addr):
     try:
+
         dcjg = 订餐结果表.objects()
         l1 = []
         l2 = []
@@ -119,6 +120,11 @@ def 订餐没吃统计发邮件(mail_addr):
         l5 = []
         l6 = []
         l7 = []
+        l8 = []
+        市公司本部员工移动电话list = []
+        df1 = pandas.read_excel(myConfig.django_root_path + '/' + '市公司本部员工0610.xlsx', sheet_name=0)
+        for index_main, row_main in df1.iterrows():
+            市公司本部员工移动电话list.append(str(row_main['移动电话']))
         for dcjg_1 in dcjg:
             手机号 = dcjg_1.手机号
             用餐日期 = dcjg_1.用餐日期
@@ -139,14 +145,19 @@ def 订餐没吃统计发邮件(mail_addr):
             l5.append(二级部门)
             l6.append(四级部门)
             l7.append(姓名)
+            if 手机号 in 市公司本部员工移动电话list:
+                l8.append('本部员工')
+            else:
+                l8.append('非本部员工')
         jie_guo_df = pandas.DataFrame({
              '手机号': l1,
-        '用餐日期': l2,
-        '中餐食堂就餐签到': l3,
-        '晚餐食堂就餐签到': l4,
-        '二级部门': l5,
-        '四级部门': l6,
-        '姓名': l7,
+            '用餐日期': l2,
+            '中餐食堂就餐签到': l3,
+            '晚餐食堂就餐签到': l4,
+            '二级部门': l5,
+            '四级部门': l6,
+            '姓名': l7,
+            '是否本部':l8
         })
         创建时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
         file_name = '订餐没吃统计发邮件' + 创建时间 + '.xls'

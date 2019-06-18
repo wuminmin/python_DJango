@@ -132,4 +132,7 @@ urlpatterns = {
     url(r'^jdgt_dqb_agree/$', jdgt_views.党群部同意走访任务),
     url(r'^jdgt_cxrw_detail/$', jdgt_views.查询任务详情),
     url(r'^jdgt_dqb_refuse/$', jdgt_views.党群部不同意走访任务),
+
+    url(r'^jdgt_bmzr_upload_jfzf_data/$', jdgt_views.部门主任上传机房走访数据),
+    url(r'^jdgt_bmzr_upload_jfzf_images/$', jdgt_views.部门主任上传机房走访图片),
 }
