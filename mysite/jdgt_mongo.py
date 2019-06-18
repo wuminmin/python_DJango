@@ -5,7 +5,8 @@ import myConfig
 
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
-#食堂订餐123--------------------------------------
+
+# 食堂订餐123--------------------------------------
 class 结对共拓主界面表(Document):
     手机号 = StringField()
     描述 = StringField()
@@ -19,6 +20,7 @@ class 结对共拓主界面表(Document):
     四级部门 = StringField()
     姓名 = StringField()
     主界内容 = ListField()
+
 
 class 结对共拓食堂模版表(Document):
     主菜单name = StringField()
@@ -41,11 +43,14 @@ class 结对共拓食堂模版表(Document):
     取消晚餐提前秒 = IntField()
     创建时间 = StringField()
 
+
 没吃 = '没吃'
 吃过 = '吃过'
 取消 = '取消'
 中餐统计 = '中餐统计'
 晚餐统计 = '晚餐统计'
+
+
 class 结对共拓结果表(Document):
     手机号 = StringField()
     主菜单name = StringField()
@@ -68,17 +73,21 @@ class 结对共拓结果表(Document):
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
 
+
 class 结对共拓用户表(Document):
     openid = StringField()
     手机号 = StringField()
+
 
 class 结对共拓登录状态表(Document):
     session_key = StringField()
     openid = StringField()
 
+
 class 结对共拓验证码表(Document):
     验证码 = StringField()
     手机号 = StringField()
+
 
 class 结对共拓核销码表(Document):
     主菜单name = StringField()
@@ -91,9 +100,11 @@ class 结对共拓核销码表(Document):
     三级部门 = StringField(default='')
     四级部门 = StringField(default='')
 
+
 class 结对共拓部门表(Document):
     二级部门 = StringField(default='')
     三级部门列表 = ListField(default=[])
+
 
 class 结对共拓统计结果(Document):
     日期 = StringField()
@@ -101,9 +112,11 @@ class 结对共拓统计结果(Document):
     子菜单page_desc = StringField()
     订餐结果 = DictField()
 
+
 class 结对共拓提醒短信锁(Document):
     日期 = StringField()
     短信锁 = BooleanField(default=False)
+
 
 菜单分隔符 = '_'
 无评价 = 'placeholder_grey'
@@ -111,11 +124,14 @@ class 结对共拓提醒短信锁(Document):
 中评 = 'placeholder_blue'
 好评 = 'placeholder_green'
 结对共拓菜单分页 = 10
+
+
 class 结对共拓菜单表(Document):
     # 订餐日期 = StringField()
     # 订餐类型 = StringField()
     食堂名称 = StringField()
     菜单列表 = ListField()
+
 
 class 结对共拓菜单模版表(Document):
     订餐日期 = StringField()
@@ -125,6 +141,7 @@ class 结对共拓菜单模版表(Document):
     菜谱备注 = DictField(default={})
     手机号 = StringField()
     上传时间 = StringField()
+
 
 class 结对共拓菜单评价表(Document):
     订餐日期 = StringField()
@@ -136,11 +153,13 @@ class 结对共拓菜单评价表(Document):
     评价结果 = StringField()
     评价备注 = DictField(default={})
 
+
 class 结对共拓客户经理表(Document):
     客户经理工号 = StringField()
     姓名 = StringField()
     手机号 = StringField()
     部门 = StringField()
+
 
 class 结对共拓单位名称(Document):
     名称 = StringField()
@@ -148,11 +167,13 @@ class 结对共拓单位名称(Document):
     客户经理 = StringField()
     客户经理工号 = StringField()
 
+
 class 结对共拓客户经理上传单位信息(Document):
     单位名称 = StringField()
     客户编码 = StringField()
     客户经理 = StringField()
     手机号码 = StringField()
+
 
 class 结对共拓部门主任客户经理对应表(Document):
     客户经理手机号码 = StringField()
@@ -173,15 +194,48 @@ class 结对共拓部门主任走访客户结果表(Document):
     客户经理姓名 = StringField(default='')
     单位名称 = StringField(default='')
     走访主题 = StringField(default='')
-    走访对象 = DictField(default={'走访对象':''})
-    商机信息 = DictField(default={'商机信息':''})
-    竞争信息 = DictField(default={'竞争信息':''})
-    服务问题 = DictField(default={'服务问题':''})
+    走访对象 = DictField(default={'走访对象': ''})
+    商机信息 = DictField(default={'商机信息': ''})
+    竞争信息 = DictField(default={'竞争信息': ''})
+    服务问题 = DictField(default={'服务问题': ''})
     是否有服务问题 = BooleanField(default=True)
     是否提交云方案 = BooleanField(default=True)
     状态 = StringField(default=客户经理未核实)
-    得分 = DictField(default={'积分':'0'})
+    得分 = DictField(default={'积分': '0'})
     大门照片 = ImageField(default=outfile)
+
+
+main_list_default = [
+    {
+        'main_list_tittle': '第三方设备',
+        'files': [],
+        'main_body_tittle': '请输入服务器、路由器、防火墙等型号及年限',
+        'main_body_txt': '',
+        'main_body_placeholder': '路由器 华为S3200 2004年；防火墙 华为U2000 2006年；',
+    },
+    {
+        'main_list_tittle': '第三方应用平台清单',
+        'files': [],
+        'main_body_tittle': '请输入系统名称、开发公司、备注',
+        'main_body_txt': '',
+        'main_body_placeholder': 'OA办公系统 科大讯飞 2004年；财务管理系统 金蝶软件 2006年；',
+    },
+    {
+        'main_list_tittle': '第三方维保信息',
+        'files': [],
+        'main_body_tittle': '请输入维保方式、维保费用',
+        'main_body_txt': '',
+        'main_body_placeholder': 'OA办公系统 按年收费 每年2万；财务管理系统 按年收费 每年1万；',
+    },
+]
+class 结对共拓部门主任机房巡检结果表(Document):
+    走访日期 = StringField(default='')
+    部门主任姓名 = StringField(default='')
+    客户经理姓名 = StringField(default='')
+    单位名称 = StringField(default='')
+    状态 = StringField(default=客户经理未核实)
+    得分 = DictField(default={'积分': '0'})
+    main_list = ListField(default=main_list_default)
 
 
 if __name__ == '__main__':
@@ -193,6 +247,6 @@ if __name__ == '__main__':
     # ).save()
 
     结对共拓部门主任客户经理对应表(
-        客户经理手机号码 = '13355661100',
-        部门主任手机号码 = '15305668602'
+        客户经理手机号码='13355661100',
+        部门主任手机号码='15305668602'
     ).save()
