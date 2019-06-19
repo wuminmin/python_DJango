@@ -2544,10 +2544,13 @@ def 部门主任上传机房走访数据(request):
             当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
             countries_val = request.GET['countries_val']
             countries2_val = request.GET['countries2_val']
-            main_list_tittle = request.GET['main_list_tittle']
-            main_body_tittle = request.GET['main_body_tittle']
-            main_body_txt = request.GET['main_body_txt']
-            main_body_placeholder = request.GET['main_body_placeholder']
+            main_list = request.GET['main_list']
+            print(main_list)
+            main_list_list = json.loads(main_list)
+            # main_list_tittle = request.GET['main_list_tittle']
+            # main_body_tittle = request.GET['main_body_tittle']
+            # main_body_txt = request.GET['main_body_txt']
+            # main_body_placeholder = request.GET['main_body_placeholder']
             name = request.GET['name']
             page_name = request.GET['page_name']
             page_desc = request.GET['page_desc']
@@ -2560,43 +2563,43 @@ def 部门主任上传机房走访数据(request):
                 客户经理姓名=countries_val,
                 单位名称=countries2_val,
             ).first()
-            print(countries_val,countries2_val,main_list_tittle,main_body_tittle,main_body_txt,main_body_placeholder)
+            # print(countries_val,countries2_val,main_list_tittle,main_body_tittle,main_body_txt,main_body_placeholder)
             if queryset1 == None:
-                main_list = [
-                    {
-                        'main_list_tittle': main_list_tittle,
-                        'files': [],
-                        'main_body_tittle': main_body_tittle,
-                        'main_body_txt': main_body_txt,
-                        'main_body_placeholder': main_body_placeholder,
-                    }
-                ]
+                # main_list = [
+                #     {
+                #         'main_list_tittle': main_list_tittle,
+                #         'files': [],
+                #         'main_body_tittle': main_body_tittle,
+                #         'main_body_txt': main_body_txt,
+                #         'main_body_placeholder': main_body_placeholder,
+                #     }
+                # ]
                 结对共拓部门主任机房巡检结果表(
                     走访日期=当前日期,
                     部门主任姓名=queryset0.姓名,
                     客户经理姓名=countries_val,
                     单位名称=countries2_val,
-                    main_list=main_list
+                    main_list=main_list_list
                 ).save()
             else:
-                main_list_tmp = queryset1.main_list
-                for main_list_tmp_one in main_list_tmp:
-                    if main_list_tmp_one['main_list_tittle'] == main_list_tittle:
-                        main_list_tmp_one['files'] = []
-                        main_list_tmp_one['main_body_tittle'] = main_body_tittle
-                        main_list_tmp_one['main_body_txt'] = main_body_txt
-                        main_list_tmp_one['main_body_placeholder'] = main_body_placeholder
-                    else:
-                        main_list_dict = {
-                            'main_list_tittle': main_list_tittle,
-                            'files': [],
-                            'main_body_tittle': main_body_tittle,
-                            'main_body_txt': main_body_txt,
-                            'main_body_placeholder': main_body_placeholder,
-                        }
-                        main_list_tmp.append(main_list_dict)
+                # main_list_tmp = queryset1.main_list
+                # for main_list_tmp_one in main_list_tmp:
+                #     if main_list_tmp_one['main_list_tittle'] == main_list_tittle:
+                #         main_list_tmp_one['files'] = []
+                #         main_list_tmp_one['main_body_tittle'] = main_body_tittle
+                #         main_list_tmp_one['main_body_txt'] = main_body_txt
+                #         main_list_tmp_one['main_body_placeholder'] = main_body_placeholder
+                #     else:
+                #         main_list_dict = {
+                #             'main_list_tittle': main_list_tittle,
+                #             'files': [],
+                #             'main_body_tittle': main_body_tittle,
+                #             'main_body_txt': main_body_txt,
+                #             'main_body_placeholder': main_body_placeholder,
+                #         }
+                #         main_list_tmp.append(main_list_dict)
                 queryset1.update(
-                    main_list=main_list_tmp
+                    main_list=main_list_list
                 )
             自定义登录状态 = {
                 '描述': '成功',
