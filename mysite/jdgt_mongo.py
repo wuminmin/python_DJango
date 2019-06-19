@@ -213,6 +213,15 @@ class 结对共拓部门主任机房巡检结果表(Document):
     得分 = DictField(default={'积分': '0'})
     main_list = ListField(default=[])
 
+class 结对共拓部门主任机房巡检图片表(Document):
+    # 走访日期 = StringField(default='')
+    # 部门主任姓名 = StringField(default='')
+    # 客户经理姓名 = StringField(default='')
+    # 单位名称 = StringField(default='')
+    # main_list_tittle = StringField(default='')
+    # main_list_tittle_image = ImageField(default=outfile)
+    file_url = StringField(default='')
+    file_image = ImageField(default=outfile)
 
 if __name__ == '__main__':
     # 结对共拓客户经理表(

@@ -18,7 +18,7 @@ from myConfig import appid, secret, grant_type, django_root_path, jdgt_appid, jd
 from mysite.ding_can_mongo import 订餐登录状态表
 from mysite.jdgt_mongo import 结对共拓食堂模版表, 结对共拓结果表, 结对共拓主界面表, 结对共拓用户表, 结对共拓登录状态表, 结对共拓验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 结对共拓核销码表, \
     取消, 结对共拓部门表, 结对共拓统计结果, 结对共拓菜单分页, 结对共拓菜单表, 菜单分隔符, 结对共拓菜单模版表, 结对共拓菜单评价表, 结对共拓客户经理表, 结对共拓客户经理上传单位信息, 结对共拓部门主任客户经理对应表, \
-    结对共拓部门主任走访客户结果表, 客户经理未核实, 客户经理已核实, 客户经理不通过, 政企校园完成打分, 党群部审核通过, 党群部审核不通过, 结对共拓部门主任机房巡检结果表
+    结对共拓部门主任走访客户结果表, 客户经理未核实, 客户经理已核实, 客户经理不通过, 政企校园完成打分, 党群部审核通过, 党群部审核不通过, 结对共拓部门主任机房巡检结果表, 结对共拓部门主任机房巡检图片表
 
 from mysite.schedule_tool import 启动订餐提醒定时器
 
@@ -2545,12 +2545,7 @@ def 部门主任上传机房走访数据(request):
             countries_val = request.GET['countries_val']
             countries2_val = request.GET['countries2_val']
             main_list = request.GET['main_list']
-            print(main_list)
             main_list_list = json.loads(main_list)
-            # main_list_tittle = request.GET['main_list_tittle']
-            # main_body_tittle = request.GET['main_body_tittle']
-            # main_body_txt = request.GET['main_body_txt']
-            # main_body_placeholder = request.GET['main_body_placeholder']
             name = request.GET['name']
             page_name = request.GET['page_name']
             page_desc = request.GET['page_desc']
@@ -2563,17 +2558,7 @@ def 部门主任上传机房走访数据(request):
                 客户经理姓名=countries_val,
                 单位名称=countries2_val,
             ).first()
-            # print(countries_val,countries2_val,main_list_tittle,main_body_tittle,main_body_txt,main_body_placeholder)
             if queryset1 == None:
-                # main_list = [
-                #     {
-                #         'main_list_tittle': main_list_tittle,
-                #         'files': [],
-                #         'main_body_tittle': main_body_tittle,
-                #         'main_body_txt': main_body_txt,
-                #         'main_body_placeholder': main_body_placeholder,
-                #     }
-                # ]
                 结对共拓部门主任机房巡检结果表(
                     走访日期=当前日期,
                     部门主任姓名=queryset0.姓名,
@@ -2582,22 +2567,6 @@ def 部门主任上传机房走访数据(request):
                     main_list=main_list_list
                 ).save()
             else:
-                # main_list_tmp = queryset1.main_list
-                # for main_list_tmp_one in main_list_tmp:
-                #     if main_list_tmp_one['main_list_tittle'] == main_list_tittle:
-                #         main_list_tmp_one['files'] = []
-                #         main_list_tmp_one['main_body_tittle'] = main_body_tittle
-                #         main_list_tmp_one['main_body_txt'] = main_body_txt
-                #         main_list_tmp_one['main_body_placeholder'] = main_body_placeholder
-                #     else:
-                #         main_list_dict = {
-                #             'main_list_tittle': main_list_tittle,
-                #             'files': [],
-                #             'main_body_tittle': main_body_tittle,
-                #             'main_body_txt': main_body_txt,
-                #             'main_body_placeholder': main_body_placeholder,
-                #         }
-                #         main_list_tmp.append(main_list_dict)
                 queryset1.update(
                     main_list=main_list_list
                 )
@@ -2620,7 +2589,6 @@ def 部门主任上传机房走访数据(request):
 
 def 部门主任上传机房走访图片(request):
     try:
-        print(request)
         import os
         from django.core.files.storage import default_storage
         from django.core.files.base import ContentFile
@@ -2629,13 +2597,43 @@ def 部门主任上传机房走访图片(request):
         path = default_storage.save('tmp/somename.mp3', ContentFile(data.read()))
         img_file2 = os.path.join(settings.MEDIA_ROOT, path)
         img_file = open(img_file2, 'rb')
-        countries_val = request.POST['countries_val']
-        countries2_val = request.POST['countries2_val']
-        main_list_tittle = request.POST['main_list_tittle']
-        name = request.POST['name']
-        page_name = request.POST['page_name']
-        page_desc = request.POST['page_desc']
-        print(img_file, countries_val, countries2_val, main_list_tittle, name, page_name, page_desc)
+        file_url = request.POST['file_url']
+        # formData_obj = request.POST['formData_obj']
+        print(file_url)
+        # print(formData_obj)
+        # print(type(formData_obj))
+
+        # countries_val = formData_obj['countries_val']
+        # countries2_val = formData_obj['countries2_val']
+        # main_list_tittle = formData_obj['main_list_tittle']
+        # name = formData_obj['name']
+        # page_name = formData_obj['page_name']
+        # page_desc = formData_obj['page_desc']
+        # print(img_file, countries_val, countries2_val, main_list_tittle, name, page_name, page_desc)
+        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        queryset0 = 结对共拓部门主任机房巡检图片表.objects(
+            # 走访日期 = 当前日期,
+            # 部门主任姓名 = 部门主任姓名,
+            # 客户经理姓名 = countries_val,
+            # 单位名称 = countries2_val,
+            # main_list_tittle = main_list_tittle,
+            file_url = file_url
+        ).first()
+        if queryset0 == None:
+            结对共拓部门主任机房巡检图片表(
+                # 走访日期=当前日期,
+                # 部门主任姓名 = 部门主任姓名,
+                # 客户经理姓名=countries_val,
+                # 单位名称=countries2_val,
+                # main_list_tittle=main_list_tittle,
+                # main_list_tittle_image = img_file
+                file_url = file_url,
+                file_image = img_file
+            ).save()
+        else:
+            queryset0.update(
+                main_list_tittle_image = img_file
+            )
         描述 = '成功'
         return HttpResponse(描述)
     except:
