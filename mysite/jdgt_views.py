@@ -2589,61 +2589,31 @@ def 部门主任上传机房走访数据(request):
 
 def 部门主任上传机房走访图片(request):
     try:
+        file_url = request.POST['file_url']
         import os
         from django.core.files.storage import default_storage
         from django.core.files.base import ContentFile
         from django.conf import settings
         data = request.FILES['file']  # or self.files['image'] in your form
-        path = default_storage.save('tmp/somename.mp3', ContentFile(data.read()))
+        path = default_storage.save('tmp/somename.jpg', ContentFile(data.read()))
         img_file2 = os.path.join(settings.MEDIA_ROOT, path)
         img_file = open(img_file2, 'rb')
-        file_url = request.POST['file_url']
-        # formData_obj = request.POST['formData_obj']
         print(file_url)
-        # print(formData_obj)
-        # print(type(formData_obj))
-
-        # countries_val = formData_obj['countries_val']
-        # countries2_val = formData_obj['countries2_val']
-        # main_list_tittle = formData_obj['main_list_tittle']
-        # name = formData_obj['name']
-        # page_name = formData_obj['page_name']
-        # page_desc = formData_obj['page_desc']
-        # print(img_file, countries_val, countries2_val, main_list_tittle, name, page_name, page_desc)
-        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         queryset0 = 结对共拓部门主任机房巡检图片表.objects(
-            # 走访日期 = 当前日期,
-            # 部门主任姓名 = 部门主任姓名,
-            # 客户经理姓名 = countries_val,
-            # 单位名称 = countries2_val,
-            # main_list_tittle = main_list_tittle,
             file_url = file_url
         ).first()
         if queryset0 == None:
             结对共拓部门主任机房巡检图片表(
-                # 走访日期=当前日期,
-                # 部门主任姓名 = 部门主任姓名,
-                # 客户经理姓名=countries_val,
-                # 单位名称=countries2_val,
-                # main_list_tittle=main_list_tittle,
-                # main_list_tittle_image = img_file
                 file_url = file_url,
                 file_image = img_file
             ).save()
         else:
-            queryset0.update(
-                main_list_tittle_image = img_file
-            )
+            queryset0.file_image.replace(img_file)
         描述 = '成功'
         return HttpResponse(描述)
     except:
         描述 = '系统错误'
         print(traceback.format_exc())
-        # 结果表 = {
-        #     '描述': 描述,
-        # }
-        # 结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
-        # 结果表 = str(结果表)
         return HttpResponse(描述)
 
 
