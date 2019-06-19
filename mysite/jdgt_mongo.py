@@ -204,30 +204,6 @@ class 结对共拓部门主任走访客户结果表(Document):
     得分 = DictField(default={'积分': '0'})
     大门照片 = ImageField(default=outfile)
 
-
-main_list_default = [
-    {
-        'main_list_tittle': '第三方设备',
-        'files': [],
-        'main_body_tittle': '请输入服务器、路由器、防火墙等型号及年限',
-        'main_body_txt': '',
-        'main_body_placeholder': '路由器 华为S3200 2004年；防火墙 华为U2000 2006年；',
-    },
-    {
-        'main_list_tittle': '第三方应用平台清单',
-        'files': [],
-        'main_body_tittle': '请输入系统名称、开发公司、备注',
-        'main_body_txt': '',
-        'main_body_placeholder': 'OA办公系统 科大讯飞 2004年；财务管理系统 金蝶软件 2006年；',
-    },
-    {
-        'main_list_tittle': '第三方维保信息',
-        'files': [],
-        'main_body_tittle': '请输入维保方式、维保费用',
-        'main_body_txt': '',
-        'main_body_placeholder': 'OA办公系统 按年收费 每年2万；财务管理系统 按年收费 每年1万；',
-    },
-]
 class 结对共拓部门主任机房巡检结果表(Document):
     走访日期 = StringField(default='')
     部门主任姓名 = StringField(default='')
@@ -235,7 +211,7 @@ class 结对共拓部门主任机房巡检结果表(Document):
     单位名称 = StringField(default='')
     状态 = StringField(default=客户经理未核实)
     得分 = DictField(default={'积分': '0'})
-    main_list = ListField(default=main_list_default)
+    main_list = ListField(default=[])
 
 
 if __name__ == '__main__':

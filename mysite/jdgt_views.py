@@ -1361,6 +1361,7 @@ def 订餐上传评价(request):
 if __name__ == '__main__':
     异步计算订餐结果(' ', '')
 
+
 def 客户经理上报单位信息(request):
     try:
         js_code = request.GET['code']
@@ -1447,6 +1448,51 @@ def 部门主任选择客户经理初始化(request):
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
             countries = []
+            countries2 = []
+            main_list = [
+                {
+                    'main_list_tittle': '第三方设备',
+                    'files': [],
+                    'main_body_tittle': '请输入服务器、路由器、防火墙等型号及年限',
+                    'main_body_txt': '',
+                    'main_body_placeholder': '路由器 华为S3200 2004年；防火墙 华为U2000 2006年；',
+                },
+                {
+                    'main_list_tittle': '第三方应用平台清单',
+                    'files': [],
+                    'main_body_tittle': '请输入系统名称、开发公司、备注',
+                    'main_body_txt': '',
+                    'main_body_placeholder': 'OA办公系统 科大讯飞 2004年；财务管理系统 金蝶软件 2006年；',
+                },
+                {
+                    'main_list_tittle': '第三方维保信息',
+                    'files': [],
+                    'main_body_tittle': '请输入维保方式、维保费用',
+                    'main_body_txt': '',
+                    'main_body_placeholder': 'OA办公系统 按年收费 每年2万；财务管理系统 按年收费 每年1万；',
+                },
+                {
+                    'main_list_tittle': '客户近期软硬件升级需求',
+                    'files': [],
+                    'main_body_tittle': '请输入需求内容和落地时间',
+                    'main_body_txt': '',
+                    'main_body_placeholder': '增加采购管理系统 2019年12月',
+                },
+                {
+                    'main_list_tittle': '电信设备清单',
+                    'files': [],
+                    'main_body_tittle': '请输至少上传设备、机柜、走线照片各1张',
+                    'main_body_txt': '',
+                    'main_body_placeholder': '',
+                },
+                {
+                    'main_list_tittle': '安全隐患情况',
+                    'files': [],
+                    'main_body_tittle': '若有安全隐患，请上传照片',
+                    'main_body_txt': '',
+                    'main_body_placeholder': '',
+                },
+            ]
             for 结对共拓部门主任客户经理对应表obj in 结对共拓部门主任客户经理对应表objs:
                 姓名 = 结对共拓主界面表.objects(
                     手机号=结对共拓部门主任客户经理对应表obj.客户经理手机号码
@@ -1454,7 +1500,9 @@ def 部门主任选择客户经理初始化(request):
                 countries.append(姓名)
             结果表 = {
                 '描述': '成功',
-                'countries': countries
+                'countries': countries,
+                'countries2': countries2,
+                'main_list': main_list,
             }
             结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
             结果表 = str(结果表)
@@ -1578,7 +1626,7 @@ def 部门主任上传数据(request):
                 ).save()
                 描述 = '成功'
             else:
-                if 结对共拓部门主任走访客户结果表first.状态 in [客户经理未核实,客户经理不通过,党群部审核不通过]:
+                if 结对共拓部门主任走访客户结果表first.状态 in [客户经理未核实, 客户经理不通过, 党群部审核不通过]:
                     结对共拓部门主任走访客户结果表first.update(
                         走访日期=当前日期,
                         部门主任姓名=结对共拓主界面表first.姓名,
@@ -1591,13 +1639,13 @@ def 部门主任上传数据(request):
                         服务问题={'服务问题': dx_xia_zai},
                         是否有服务问题=shi_fou_you_di_xia_ting_cha_chang,
                         是否提交云方案=shi_fou_you_yi_wang_shi_feng,
-                        状态 = 客户经理未核实,
+                        状态=客户经理未核实,
                     )
                     描述 = '成功'
                 else:
                     描述 = 结对共拓部门主任走访客户结果表first.状态
             自定义登录状态 = {
-                '描述': 描述 ,
+                '描述': 描述,
                 '会话': '',
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -1696,7 +1744,7 @@ def 客户经理核实走访初始化(request):
         else:
             list = []
             结对共拓部门主任走访客户结果表objs = 结对共拓部门主任走访客户结果表.objects(
-                状态 = 客户经理未核实
+                状态=客户经理未核实
             )
             i = 0
             for 结对共拓部门主任走访客户结果表obj in 结对共拓部门主任走访客户结果表objs:
@@ -1705,10 +1753,10 @@ def 客户经理核实走访初始化(request):
                         'riqi': 结对共拓部门主任走访客户结果表obj.走访日期,
                         'zhu_ren': 结对共拓部门主任走访客户结果表obj.部门主任姓名,
                         'dan_wei': 结对共拓部门主任走访客户结果表obj.单位名称,
-                        'value':i
+                        'value': i
                     }
                 )
-                i = i+1
+                i = i + 1
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
@@ -1769,7 +1817,7 @@ def 客户经理政企校园查询详情(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
-                'src': myConfig.global_image_url+'?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
+                'src': myConfig.global_image_url + '?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -1790,7 +1838,7 @@ def 客户经理核实走访下载图片(request):
         zhu_ren = request.GET['zhu_ren']
         dan_wei = request.GET['dan_wei']
         结对共拓部门主任走访客户结果表first = 结对共拓部门主任走访客户结果表.objects(
-            走访日期 = riqi,
+            走访日期=riqi,
             部门主任姓名=zhu_ren,
             单位名称=dan_wei
         ).first()
@@ -1815,6 +1863,7 @@ def 客户经理核实走访下载图片(request):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
         return response
+
 
 def 客户经理同意走访任务(request):
     try:
@@ -1893,6 +1942,7 @@ def 客户经理同意走访任务(request):
         结果表 = str(结果表)
         return HttpResponse(结果表)
 
+
 def 客户经理不同意走访任务(request):
     try:
         js_code = request.GET['code']
@@ -1954,6 +2004,7 @@ def 客户经理不同意走访任务(request):
         结果表 = str(结果表)
         return HttpResponse(结果表)
 
+
 def 政企校园录入积分初始化(request):
     try:
         js_code = request.GET['code']
@@ -1973,7 +2024,7 @@ def 政企校园录入积分初始化(request):
         else:
             list = []
             结对共拓部门主任走访客户结果表objs = 结对共拓部门主任走访客户结果表.objects(
-                状态 = 客户经理已核实
+                状态=客户经理已核实
             )
             i = 0
             for 结对共拓部门主任走访客户结果表obj in 结对共拓部门主任走访客户结果表objs:
@@ -1985,7 +2036,7 @@ def 政企校园录入积分初始化(request):
                         'value': i
                     }
                 )
-                i = i +1
+                i = i + 1
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
@@ -2049,8 +2100,8 @@ def 政企校园录打分(request):
                     ji_feng = request.GET['ji_feng']
                     当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                     结对共拓部门主任走访客户结果表first.update(
-                        状态 = 政企校园完成打分,
-                        得分 = {'积分':ji_feng,'当前时间':当前时间},
+                        状态=政企校园完成打分,
+                        得分={'积分': ji_feng, '当前时间': 当前时间},
                     )
                     自定义登录状态 = {
                         '描述': '成功',
@@ -2171,7 +2222,7 @@ def 党群部查询详情(request):
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
-                'ji_feng':结对共拓部门主任走访客户结果表first.得分['积分'],
+                'ji_feng': 结对共拓部门主任走访客户结果表first.得分['积分'],
                 'chang_suo_lou_yu_zong_dong_shu': 结对共拓部门主任走访客户结果表first.走访主题,
                 'lou_yu_ceng_shu': 结对共拓部门主任走访客户结果表first.走访对象['走访对象'],
                 'di_xia_shi_ceng_shu': 结对共拓部门主任走访客户结果表first.商机信息['商机信息'],
@@ -2179,7 +2230,7 @@ def 党群部查询详情(request):
                 'dx_xia_zai': 结对共拓部门主任走访客户结果表first.服务问题['服务问题'],
                 'shi_fou_you_di_xia_ting_cha_chang': 结对共拓部门主任走访客户结果表first.是否有服务问题,
                 'shi_fou_you_yi_wang_shi_feng': 结对共拓部门主任走访客户结果表first.是否提交云方案,
-                'src': myConfig.global_image_url+'?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
+                'src': myConfig.global_image_url + '?riqi=' + riqi + '&zhu_ren=' + zhu_ren + '&dan_wei=' + dan_wei,
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -2192,6 +2243,7 @@ def 党群部查询详情(request):
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
         return HttpResponse(结果表)
+
 
 def 党群部同意走访任务(request):
     try:
@@ -2252,7 +2304,7 @@ def 党群部同意走访任务(request):
                     return HttpResponse(自定义登录状态)
                 elif 结对共拓部门主任走访客户结果表first.状态 == 政企校园完成打分:
                     结对共拓部门主任走访客户结果表first.update(
-                        状态 = 党群部审核通过
+                        状态=党群部审核通过
                     )
                     自定义登录状态 = {
                         '描述': '成功',
@@ -2277,6 +2329,7 @@ def 党群部同意走访任务(request):
         结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
         结果表 = str(结果表)
         return HttpResponse(结果表)
+
 
 def 党群部不同意走访任务(request):
     try:
@@ -2447,8 +2500,8 @@ def 查询任务详情(request):
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
-                '状态':结对共拓部门主任走访客户结果表first.状态,
-                'ji_feng':结对共拓部门主任走访客户结果表first.得分['积分'],
+                '状态': 结对共拓部门主任走访客户结果表first.状态,
+                'ji_feng': 结对共拓部门主任走访客户结果表first.得分['积分'],
                 'chang_suo_lou_yu_zong_dong_shu': 结对共拓部门主任走访客户结果表first.走访主题,
                 'lou_yu_ceng_shu': 结对共拓部门主任走访客户结果表first.走访对象['走访对象'],
                 'di_xia_shi_ceng_shu': 结对共拓部门主任走访客户结果表first.商机信息['商机信息'],
@@ -2488,6 +2541,63 @@ def 部门主任上传机房走访数据(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         else:
+            当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            countries_val = request.GET['countries_val']
+            countries2_val = request.GET['countries2_val']
+            main_list_tittle = request.GET['main_list_tittle']
+            main_body_tittle = request.GET['main_body_tittle']
+            main_body_txt = request.GET['main_body_txt']
+            main_body_placeholder = request.GET['main_body_placeholder']
+            name = request.GET['name']
+            page_name = request.GET['page_name']
+            page_desc = request.GET['page_desc']
+            queryset0 = 结对共拓主界面表.objects(
+                手机号=用户.手机号,
+            ).first()
+            queryset1 = 结对共拓部门主任机房巡检结果表.objects(
+                走访日期=当前日期,
+                部门主任姓名=queryset0.姓名,
+                客户经理姓名=countries_val,
+                单位名称=countries2_val,
+            ).first()
+            print(countries_val,countries2_val,main_list_tittle,main_body_tittle,main_body_txt,main_body_placeholder)
+            if queryset1 == None:
+                main_list = [
+                    {
+                        'main_list_tittle': main_list_tittle,
+                        'files': [],
+                        'main_body_tittle': main_body_tittle,
+                        'main_body_txt': main_body_txt,
+                        'main_body_placeholder': main_body_placeholder,
+                    }
+                ]
+                结对共拓部门主任机房巡检结果表(
+                    走访日期=当前日期,
+                    部门主任姓名=queryset0.姓名,
+                    客户经理姓名=countries_val,
+                    单位名称=countries2_val,
+                    main_list=main_list
+                ).save()
+            else:
+                main_list_tmp = queryset1.main_list
+                for main_list_tmp_one in main_list_tmp:
+                    if main_list_tmp_one['main_list_tittle'] == main_list_tittle:
+                        main_list_tmp_one['files'] = []
+                        main_list_tmp_one['main_body_tittle'] = main_body_tittle
+                        main_list_tmp_one['main_body_txt'] = main_body_txt
+                        main_list_tmp_one['main_body_placeholder'] = main_body_placeholder
+                    else:
+                        main_list_dict = {
+                            'main_list_tittle': main_list_tittle,
+                            'files': [],
+                            'main_body_tittle': main_body_tittle,
+                            'main_body_txt': main_body_txt,
+                            'main_body_placeholder': main_body_placeholder,
+                        }
+                        main_list_tmp.append(main_list_dict)
+                queryset1.update(
+                    main_list=main_list_tmp
+                )
             自定义登录状态 = {
                 '描述': '成功',
                 '会话': '',
@@ -2522,7 +2632,7 @@ def 部门主任上传机房走访图片(request):
         name = request.POST['name']
         page_name = request.POST['page_name']
         page_desc = request.POST['page_desc']
-        print(img_file,countries_val,countries2_val,main_list_tittle,name,page_name,page_desc)
+        print(img_file, countries_val, countries2_val, main_list_tittle, name, page_name, page_desc)
         描述 = '成功'
         return HttpResponse(描述)
     except:
@@ -2555,7 +2665,7 @@ def 客户经理核实机房巡检初始化(request):
         else:
             list = []
             queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(
-                状态 = 客户经理未核实
+                状态=客户经理未核实
             )
             i = 0
             for queryset_obj in queryset_objs1:
@@ -2564,10 +2674,10 @@ def 客户经理核实机房巡检初始化(request):
                         'riqi': queryset_obj.走访日期,
                         'zhu_ren': queryset_obj.部门主任姓名,
                         'dan_wei': queryset_obj.单位名称,
-                        'value':i
+                        'value': i
                     }
                 )
-                i = i+1
+                i = i + 1
             list_done = []
             queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(
                 状态__ne=客户经理未核实
@@ -2587,7 +2697,7 @@ def 客户经理核实机房巡检初始化(request):
                 '描述': '成功',
                 '会话': '',
                 'list': list,
-                'list_done':list_done
+                'list_done': list_done
             }
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
