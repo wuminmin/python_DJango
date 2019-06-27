@@ -812,6 +812,7 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('晚餐食堂外带预订数')
                 吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('晚餐食堂外带预订数')
             else:
+                订餐结果表_all = []
                 pass
             r_list = []
             id = 1
@@ -828,32 +829,23 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                     else:
                         rr_dict = {}
                         if 子菜单page_desc == 早餐外带统计:
-                            rr_dict['page_name'] = 订餐主界面表_first.姓名
-                            rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
-                            rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
-                            pages.append(rr_dict)
-                        elif 子菜单page_desc == 中餐外带统计:
-                            rr_dict['page_name'] = 订餐主界面表_first.姓名
-                            rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂外带预订数
-                            rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
-                            pages.append(rr_dict)
-                        elif 子菜单page_desc == 晚餐外带统计:
-                            rr_dict['page_name'] = 订餐主界面表_first.姓名
-                            rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂外带预订数
-                            rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
-                            pages.append(rr_dict)
-                        elif 子菜单page_desc == 中餐统计:
-                            if 订餐结果表_one.子菜单page_name == 青阳食堂:
+                            if 订餐结果表_one.早餐食堂就餐签到 == 没吃:
                                 rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
+                                rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
+                                rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                                pages.append(rr_dict)
+                        elif 子菜单page_desc == 中餐外带统计:
+                            if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
+                                rr_dict['page_name'] = 订餐主界面表_first.姓名
+                                rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂外带预订数
                                 rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
                                 pages.append(rr_dict)
-                            else:
-                                if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
-                                    rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                    rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
-                                    rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
-                                    pages.append(rr_dict)
+                        elif 子菜单page_desc == 晚餐外带统计:
+                            if 订餐结果表_one.晚餐食堂就餐签到 == 没吃:
+                                rr_dict['page_name'] = 订餐主界面表_first.姓名
+                                rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂外带预订数
+                                rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
+                                pages.append(rr_dict)
                         elif 子菜单page_desc == 早餐统计:
                             if 订餐结果表_one.子菜单page_name == 青阳食堂:
                                 rr_dict['page_name'] = 订餐主界面表_first.姓名
@@ -865,6 +857,18 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                                     rr_dict['page_name'] = 订餐主界面表_first.姓名
                                     rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂就餐预订数
                                     rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                                    pages.append(rr_dict)
+                        elif 子菜单page_desc == 中餐统计:
+                            if 订餐结果表_one.子菜单page_name == 青阳食堂:
+                                rr_dict['page_name'] = 订餐主界面表_first.姓名
+                                rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
+                                rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
+                                pages.append(rr_dict)
+                            else:
+                                if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
+                                    rr_dict['page_name'] = 订餐主界面表_first.姓名
+                                    rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
+                                    rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
                                     pages.append(rr_dict)
                         elif 子菜单page_desc == 晚餐统计:
                             if 订餐结果表_one.子菜单page_name == 青阳食堂:
