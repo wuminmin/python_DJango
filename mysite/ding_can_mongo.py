@@ -51,6 +51,9 @@ class 订餐食堂模版表(Document):
 早餐统计 = '早餐统计'
 中餐统计 = '中餐统计'
 晚餐统计 = '晚餐统计'
+早餐外带统计 = '早餐外带统计'
+中餐外带统计 = '中餐外带统计'
+晚餐外带统计 = '晚餐外带统计'
 class 订餐结果表(Document):
     手机号 = StringField(default='')
     主菜单name = StringField(default='')
@@ -58,17 +61,17 @@ class 订餐结果表(Document):
     子菜单page_desc = StringField(default='')
     用餐日期 = StringField(default='')
     早餐食堂就餐预订数 = IntField(default=0)
-    早餐食堂就餐签到 = StringField(default='')
+    早餐食堂就餐签到 = StringField(default=没吃)
     早餐订餐时间 = StringField(default='')
     早餐取消时间 = StringField(default='')
     早餐食堂外带预订数 = IntField(default=0)
     中餐食堂就餐预订数 = IntField(default=0)
-    中餐食堂就餐签到 = StringField(default='')
+    中餐食堂就餐签到 = StringField(default=没吃)
     中餐订餐时间 = StringField(default='')
     中餐取消时间 = StringField(default='')
     中餐食堂外带预订数 = IntField(default=0)
     晚餐食堂就餐预订数 = IntField(default=0)
-    晚餐食堂就餐签到 = StringField(default='')
+    晚餐食堂就餐签到 = StringField(default=没吃)
     晚餐订餐时间 = StringField(default='')
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
@@ -143,6 +146,10 @@ class 订餐菜单评价表(Document):
 
 class 订餐评论表(Document):
     手机号 = StringField()
+    姓名 = StringField(default='')
+    二级部门 = StringField(default='')
+    三级部门 = StringField(default='')
+    四级部门 = StringField(default='')
     创建时间 = StringField()
     评论内容 = StringField()
     评论图片 = ImageField()

@@ -18,7 +18,8 @@ from myConfig import appid, secret, grant_type, django_root_path, ding_can_appid
     sign_name, \
     template_code
 from mysite.ding_can_mongo import 订餐食堂模版表, 订餐结果表, 订餐主界面表, 订餐用户表, 订餐登录状态表, 订餐验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 订餐核销码表, \
-    取消, 订餐部门表, 订餐统计结果, 订餐菜单分页, 订餐菜单表, 菜单分隔符, 订餐菜单模版表, 订餐菜单评价表, 订餐评论表, 早餐统计, 青阳食堂, 青阳电信分公司, 池州烟草公司, 池州电信分公司
+    取消, 订餐部门表, 订餐统计结果, 订餐菜单分页, 订餐菜单表, 菜单分隔符, 订餐菜单模版表, 订餐菜单评价表, 订餐评论表, 早餐统计, 青阳食堂, 青阳电信分公司, 池州烟草公司, 池州电信分公司, 早餐外带统计, \
+    中餐外带统计, 晚餐外带统计
 import sys
 
 from mysite.schedule_tool import 启动订餐提醒定时器
@@ -87,7 +88,6 @@ def 订餐下载主界面数据(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
-
 def 下载订餐模版(request):
     try:
         # 主菜单name = request.GET['name']
@@ -123,76 +123,121 @@ def 下载订餐模版(request):
                 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
                 会话 = r_json['session_key']
                 描述 = '下载成功'
-                if 订餐主界面表first.二级部门 == 青阳电信分公司:
+                if 订餐主界面表first.二级部门 == '青阳分公司':
                     countries = ['无', '预定1份', '预定2份', '预定3份']
-                elif 订餐主界面表first.二级部门 == 池州烟草公司:
-                    countries = []
                 else:
                     countries = ['无', '预定1份']
-                if 订餐主界面表first.二级部门 == 青阳电信分公司:
+                if 订餐主界面表first.二级部门 == '青阳分公司':
                     accounts = ['无', '预定1份', '预定2份', '预定3份']
-                elif 订餐主界面表first.二级部门 == 池州烟草公司:
-                    accounts = []
                 else:
                     accounts = ['无', '预定1份']
-                if 订餐主界面表first.二级部门 == 青阳电信分公司:
+                if 订餐主界面表first.二级部门 == '青阳分公司':
                     accounts2 = ['无', '预定1份', '预定2份', '预定3份']
-                elif 订餐主界面表first.二级部门 == 池州烟草公司:
-                    accounts2 = []
                 else:
                     accounts2 = ['无', '预定1份']
+
+                自定义登录状态 = {'描述': 描述, '会话': 会话, '预订开始日期': 预订开始日期, '预订结束日期': 预订结束日期, '主菜单name': 主菜单name,
+                    '子菜单page_name': 子菜单page_name, '子菜单page_desc': 子菜单page_desc, '食堂地址': 食堂地址, '用餐日期': 用餐日期,
+                    'countries': countries, 'accounts': accounts, 'accounts2': accounts2, }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        return HttpResponse('500')
+
+def 下载订餐模版2(request):
+    try:
+        用餐日期 = request.GET['date']
+        主菜单name = request.GET['name']
+        子菜单page_name = request.GET['page_name']
+        子菜单page_desc = request.GET['page_desc']
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
+                   'grant_type': ding_can_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        print(r_json)
+        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
+            return HttpResponse(自定义登录状态)
+        else:
+            手机号 = 用户.手机号
+            订餐主界面表first = 订餐主界面表.objects(手机号=手机号).first()
+            if 订餐主界面表first == None:
+                自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                return HttpResponse(自定义登录状态)
+
+            订餐模版表_one = 订餐食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
+            if 订餐模版表_one == None:
+                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                return HttpResponse(自定义登录状态)
+            else:
+                食堂地址 = 订餐模版表_one.食堂地址
+                主菜单name = 订餐模版表_one.主菜单name
+                if 用餐日期 ==  '':
+                    用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
+                会话 = r_json['session_key']
+                描述 = '下载成功'
+                queryset0 = 订餐结果表.objects(
+                    手机号=手机号,
+                    用餐日期=用餐日期,
+                    主菜单name=主菜单name,
+                    子菜单page_name=子菜单page_name,
+                    子菜单page_desc=子菜单page_desc,
+                ).first()
+                if queryset0 == None:
+                    早餐食堂就餐预订数 = 0
+                    中餐食堂就餐预订数 = 0
+                    晚餐食堂就餐预订数 = 0
+                    早餐食堂外带预订数 = 0
+                    中餐食堂外带预订数 = 0
+                    晚餐食堂外带预订数 = 0
+                else:
+                    早餐食堂就餐预订数 = queryset0.早餐食堂就餐预订数
+                    中餐食堂就餐预订数 = queryset0.中餐食堂就餐预订数
+                    晚餐食堂就餐预订数 = queryset0.晚餐食堂就餐预订数
+                    早餐食堂外带预订数 = queryset0.早餐食堂外带预订数
+                    中餐食堂外带预订数 = queryset0.中餐食堂外带预订数
+                    晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
                 if 订餐主界面表first.二级部门 == 池州烟草公司:
-                    订餐结果表.objects(
-                        手机号=手机号
-                    )
                     ding_can_list = [
-                        {
-                            'tittle': "早餐食堂就餐预订数",
-                            'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
-                        },
                         {
                             'tittle': "中餐食堂就餐预订数",
                             'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
+                            'input_index': 中餐食堂就餐预订数,
                         },
                         {
                             'tittle': "晚餐食堂就餐预订数",
                             'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
-                        },
-                        {
-                            'tittle': "早餐食堂外带预订数",
-                            'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
+                            'input_index': 晚餐食堂就餐预订数,
                         },
                         {
                             'tittle': "中餐食堂外带预订数",
                             'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
+                            'input_index': 中餐食堂外带预订数,
                         },
                         {
                             'tittle': "晚餐食堂外带预订数",
                             'input_list': ['无', '订1份', '订2份'],
-                            'input_index': 0,
+                            'input_index': 晚餐食堂外带预订数,
                         },
                     ]
                 elif 订餐主界面表first.二级部门 == 青阳电信分公司:
                     ding_can_list = [
                         {
-                            'tittle': "早餐食堂就餐预订数",
-                            'input_list': ['无'],
-                            'input_index': 0,
-                        },
-                        {
                             'tittle': "中餐食堂就餐预订数",
                             'input_list': ['无', '预定1份', '预定2份', '预定3份'],
-                            'input_index': 0,
+                            'input_index': 中餐食堂就餐预订数,
                         },
                         {
                             'tittle': "晚餐食堂就餐预订数",
                             'input_list': ['无', '预定1份', '预定2份', '预定3份'],
-                            'input_index': 0,
+                            'input_index': 晚餐食堂就餐预订数,
                         },
                     ]
                 elif 订餐主界面表first.二级部门 == 池州电信分公司:
@@ -200,17 +245,17 @@ def 下载订餐模版(request):
                         {
                             'tittle': "早餐食堂就餐预订数",
                             'input_list': ['无', '预定1份'],
-                            'input_index': 0,
+                            'input_index': 早餐食堂就餐预订数,
                         },
                         {
                             'tittle': "中餐食堂就餐预订数",
                             'input_list': ['无', '预定1份'],
-                            'input_index': 0,
+                            'input_index': 中餐食堂就餐预订数,
                         },
                         {
                             'tittle': "晚餐食堂就餐预订数",
                             'input_list': ['无', '预定1份'],
-                            'input_index': 0,
+                            'input_index': 晚餐食堂就餐预订数,
                         },
                     ]
                 else:
@@ -226,9 +271,6 @@ def 下载订餐模版(request):
                     '子菜单page_desc': 子菜单page_desc,
                     '食堂地址': 食堂地址,
                     '用餐日期': 用餐日期,
-                    'countries': countries,
-                    'accounts': accounts,
-                    'accounts2': accounts2,
                 }
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
@@ -477,6 +519,7 @@ def 上传订餐结果(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+
 def 上传订餐结果2(request):
     try:
         js_code = request.GET['code']
@@ -504,7 +547,7 @@ def 上传订餐结果2(request):
                 自定义登录状态 = "{\"描述\":\"预订日期不正确\",\"会话\":\"\"}"
                 return HttpResponse(自定义登录状态)
             queryset0 = 订餐结果表.objects(
-                手机号 = 手机号,
+                手机号=手机号,
                 主菜单name=主菜单name,
                 子菜单page_name=子菜单page_name,
                 子菜单page_desc=子菜单page_desc,
@@ -516,7 +559,7 @@ def 上传订餐结果2(request):
                     主菜单name=主菜单name,
                     子菜单page_name=子菜单page_name,
                     子菜单page_desc=子菜单page_desc,
-                    用餐日期=用餐日期
+                    用餐日期=用餐日期,
                 ).save()
             订餐食堂模版表_one = 订餐食堂模版表.objects(主菜单name=主菜单name
                                           , 子菜单page_name=子菜单page_name
@@ -553,15 +596,14 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.早餐食堂就餐预订数 == 0:
-                        if 当前时间戳 < 预定早餐提前截止时间:
-                            queryset1.update(
-                                早餐食堂就餐预订数=index,
-                                早餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定早餐提前截止时间:
+                        queryset1.update(
+                            早餐食堂就餐预订数=index,
+                            早餐订餐时间=当前时间
+                        )
+                    else:
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
+                        return HttpResponse(自定义登录状态)
                 elif tittle == '早餐食堂外带预订数':
                     queryset1 = 订餐结果表.objects(
                         手机号=手机号,
@@ -570,15 +612,14 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.早餐食堂外带预订数 == 0:
-                        if 当前时间戳 < 预定早餐提前截止时间:
-                            queryset1.update(
-                                早餐食堂外带预订数=index,
-                                早餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定早餐提前截止时间:
+                        queryset1.update(
+                            早餐食堂外带预订数=index,
+                            早餐订餐时间=当前时间
+                        )
+                    else:
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
+                        return HttpResponse(自定义登录状态)
                 elif tittle == '中餐食堂就餐预订数':
                     queryset1 = 订餐结果表.objects(
                         手机号=手机号,
@@ -587,15 +628,14 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.中餐食堂就餐预订数 == 0:
-                        if 当前时间戳 < 预定中餐提前截止时间:
-                            queryset1.update(
-                                中餐食堂就餐预订数=index,
-                                中餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定中餐提前截止时间:
+                        queryset1.update(
+                            中餐食堂就餐预订数=index,
+                            中餐订餐时间=当前时间
+                        )
+                    else:
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
+                        return HttpResponse(自定义登录状态)
                 elif tittle == '中餐食堂外带预订数':
                     queryset1 = 订餐结果表.objects(
                         手机号=手机号,
@@ -604,15 +644,14 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.中餐食堂外带预订数 == 0:
-                        if 当前时间戳 < 预定中餐提前截止时间:
-                            queryset1.update(
-                                中餐食堂外带预订数=index,
-                                中餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定中餐提前截止时间:
+                        queryset1.update(
+                            中餐食堂外带预订数=index,
+                            中餐订餐时间=当前时间
+                        )
+                    else:
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
+                        return HttpResponse(自定义登录状态)
                 elif tittle == '晚餐食堂就餐预订数':
                     queryset1 = 订餐结果表.objects(
                         手机号=手机号,
@@ -621,15 +660,14 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.晚餐食堂就餐预订数 == 0:
-                        if 当前时间戳 < 预定晚餐提前截止时间:
-                            queryset1.update(
-                                晚餐食堂就餐预订数=index,
-                                晚餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定晚餐提前截止时间:
+                        queryset1.update(
+                            晚餐食堂就餐预订数=index,
+                            晚餐订餐时间=当前时间
+                        )
+                    else:
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
+                        return HttpResponse(自定义登录状态)
                 elif tittle == '晚餐食堂外带预订数':
                     queryset1 = 订餐结果表.objects(
                         手机号=手机号,
@@ -638,18 +676,15 @@ def 上传订餐结果2(request):
                         子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
                     ).first()
-                    if queryset1.晚餐食堂外带预订数 == 0:
-                        if 当前时间戳 < 预定晚餐提前截止时间:
-                            queryset1.update(
-                                晚餐食堂外带预订数=index,
-                                晚餐订餐时间=当前时间
-                            )
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
+                    if 当前时间戳 < 预定晚餐提前截止时间:
+                        queryset1.update(
+                            晚餐食堂外带预订数=index,
+                            晚餐订餐时间=当前时间
+                        )
                     else:
-                        自定义登录状态 = "{\"描述\":\"不能重复预订\",\"会话\":\"\"}"
+                        自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
                         return HttpResponse(自定义登录状态)
+
                 else:
                     描述 = '系统错误'
                     自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']
@@ -715,11 +750,12 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
     print('异步计算开始', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     第一天 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
-    日期_list = [第一天, 第二天]
+    第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400+86400))
+    日期_list = [第一天, 第二天,第三天]
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
         子菜单page_name = 子菜单page_name
-        子菜单page_desc_list = ['早餐统计', '中餐统计', '晚餐统计']
+        子菜单page_desc_list = [早餐统计, 中餐统计, 晚餐统计,早餐外带统计,中餐外带统计,晚餐外带统计]
         for 子菜单page_desc_list_one in 子菜单page_desc_list:
             子菜单page_desc = 子菜单page_desc_list_one
             订餐部门表_first = 订餐部门表.objects(二级部门=二级部门).first()
@@ -751,6 +787,30 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('早餐食堂就餐预订数')
                 没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃).sum('早餐食堂就餐预订数')
                 吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过).sum('早餐食堂就餐预订数')
+            elif 子菜单page_desc == 早餐外带统计:
+                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)
+                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)))
+                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期).sum('早餐食堂外带预订数')
+                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('早餐食堂外带预订数')
+                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('早餐食堂外带预订数')
+            elif 子菜单page_desc == 中餐外带统计:
+                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)
+                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)))
+                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期).sum('中餐食堂外带预订数')
+                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('中餐食堂外带预订数')
+                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂外带预订数')
+            elif 子菜单page_desc == 晚餐外带统计:
+                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)
+                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)))
+                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期).sum('晚餐食堂外带预订数')
+                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('晚餐食堂外带预订数')
+                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('晚餐食堂外带预订数')
             else:
                 pass
             r_list = []
@@ -767,8 +827,22 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                         continue
                     else:
                         rr_dict = {}
-
-                        if 子菜单page_desc == 中餐统计:
+                        if 子菜单page_desc == 早餐外带统计:
+                            rr_dict['page_name'] = 订餐主界面表_first.姓名
+                            rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
+                            rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                            pages.append(rr_dict)
+                        elif 子菜单page_desc == 中餐外带统计:
+                            rr_dict['page_name'] = 订餐主界面表_first.姓名
+                            rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂外带预订数
+                            rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
+                            pages.append(rr_dict)
+                        elif 子菜单page_desc == 晚餐外带统计:
+                            rr_dict['page_name'] = 订餐主界面表_first.姓名
+                            rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂外带预订数
+                            rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
+                            pages.append(rr_dict)
+                        elif 子菜单page_desc == 中餐统计:
                             if 订餐结果表_one.子菜单page_name == 青阳食堂:
                                 rr_dict['page_name'] = 订餐主界面表_first.姓名
                                 rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
@@ -783,7 +857,7 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                         elif 子菜单page_desc == 早餐统计:
                             if 订餐结果表_one.子菜单page_name == 青阳食堂:
                                 rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂就餐预订数
+                                rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
                                 rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
                                 pages.append(rr_dict)
                             else:
@@ -792,7 +866,7 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                                     rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂就餐预订数
                                     rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
                                     pages.append(rr_dict)
-                        else:
+                        elif 子菜单page_desc == 晚餐统计:
                             if 订餐结果表_one.子菜单page_name == 青阳食堂:
                                 rr_dict['page_name'] = 订餐主界面表_first.姓名
                                 rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
@@ -804,6 +878,8 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                                     rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
                                     rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
                                     pages.append(rr_dict)
+                        else:
+                            pass
                 r_dict['num'] = len(pages)
                 if r_dict['num'] == 0:
                     pass
@@ -811,17 +887,16 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                     r_dict['pages'] = pages
                     r_list.append(r_dict)
             描述 = '下载成功'
-            if 子菜单page_desc == 中餐统计:
-                app_tittle = '中餐统计'
-            elif 子菜单page_desc == 早餐统计:
-                app_tittle = '早餐统计'
-            else:
-                app_tittle = '晚餐统计'
+            # if 子菜单page_desc == 中餐统计:
+            #     app_tittle = '中餐统计'
+            # elif 子菜单page_desc == 早餐统计:
+            #     app_tittle = '早餐统计'
+            # else:
+            #     app_tittle = '晚餐统计'
+            app_tittle = 子菜单page_desc
             app_des = '总人数 ' + str(总人数) + ';总份数' + str(总份数)
             app_code_des = '吃过人数 ' + str(吃过人数) + ';吃过份数' + str(吃过份数)
             app_code = '没吃人数' + str(没吃人数) + ';没吃份数' + str(没吃份数)
-            start_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-            end_date = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
             自定义登录状态 = {
                 '描述': 描述,
                 '会话': '23456',
@@ -831,8 +906,8 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 'app_code_des': app_code_des,
                 'app_code': app_code,
                 'date': 日期,
-                'start_date': start_date,
-                'end_date': end_date
+                'start_date': 第一天,
+                'end_date': 第三天
             }
             订餐统计结果_first = 订餐统计结果.objects(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 订餐统计结果_first == None:
@@ -842,7 +917,7 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
     print('异步计算完成', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
 
-def 订餐统计中餐(request):
+def 订餐统计(request):
     日期 = str(request.GET['date'])
     子菜单page_name = str(request.GET['page_name'])
     子菜单page_desc = str(request.GET['page_desc'])
@@ -864,10 +939,6 @@ def 订餐统计中餐(request):
     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
     自定义登录状态 = str(自定义登录状态)
     return HttpResponse(自定义登录状态)
-
-
-# def 订餐统计晚餐(request):
-#     return None
 
 def 订餐下载核销码(request):
     主菜单name = str(request.GET['name'])
@@ -1764,7 +1835,20 @@ def 订餐评价初始化(request):
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
-        订餐评论表objs = 订餐评论表.objects
+        queryset0 = 订餐主界面表.objects(
+            手机号=用户.手机号
+        ).first()
+        if queryset0 == None:
+            自定义登录状态 = {
+                '描述': '用户未授权',
+                'ping_jia_list': []
+            }
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        订餐评论表objs = 订餐评论表.objects(
+            二级部门 = queryset0.二级部门
+        )
         ping_jia_list = []
         for 订餐评论表obj in 订餐评论表objs:
             ping_jia_dict = {
@@ -1806,7 +1890,11 @@ def 订餐上传评价(request):
             outfile = open(path, 'rb')
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             订餐评论表(
-                手机号=订餐主界面表first.姓名,
+                手机号=订餐主界面表first.手机号,
+                姓名=订餐主界面表first.姓名,
+                二级部门=订餐主界面表first.二级部门,
+                三级部门=订餐主界面表first.三级部门,
+                四级部门=订餐主界面表first.四级部门,
                 创建时间=创建时间,
                 评论内容=ping_jia_txt,
                 评论图片=outfile
@@ -1828,13 +1916,21 @@ def 订餐上传评价(request):
             ping_jia_txt = request.POST['ping_jia_txt']
             tu_pian = request.FILES.get('file')
             订餐评论表first = 订餐评论表.objects(
-                手机号=订餐主界面表first.姓名,
+                手机号=订餐主界面表first.手机号,
+                姓名=订餐主界面表first.姓名,
+                二级部门=订餐主界面表first.二级部门,
+                三级部门=订餐主界面表first.三级部门,
+                四级部门=订餐主界面表first.四级部门,
                 评论内容=ping_jia_txt,
             ).first()
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             if 订餐评论表first == None:
                 订餐评论表(
-                    手机号=订餐主界面表first.姓名,
+                    手机号=订餐主界面表first.手机号,
+                    姓名=订餐主界面表first.姓名,
+                    二级部门=订餐主界面表first.二级部门,
+                    三级部门=订餐主界面表first.三级部门,
+                    四级部门=订餐主界面表first.四级部门,
                     创建时间=创建时间,
                     评论内容=ping_jia_txt,
                     评论图片=tu_pian
