@@ -5,6 +5,9 @@ import myConfig
 
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
+池州电信分公司 = '池州市分公司'
+青阳电信分公司 = '青阳分公司'
+池州烟草公司 = '池州烟草公司'
 #食堂订餐123--------------------------------------
 class 订餐主界面表(Document):
     手机号 = StringField()
@@ -49,24 +52,24 @@ class 订餐食堂模版表(Document):
 中餐统计 = '中餐统计'
 晚餐统计 = '晚餐统计'
 class 订餐结果表(Document):
-    手机号 = StringField()
-    主菜单name = StringField()
-    子菜单page_name = StringField()
-    子菜单page_desc = StringField()
-    用餐日期 = StringField()
-    早餐食堂就餐预订数 = IntField()
+    手机号 = StringField(default='')
+    主菜单name = StringField(default='')
+    子菜单page_name = StringField(default='')
+    子菜单page_desc = StringField(default='')
+    用餐日期 = StringField(default='')
+    早餐食堂就餐预订数 = IntField(default=0)
     早餐食堂就餐签到 = StringField(default='')
-    早餐订餐时间 = StringField()
-    早餐取消时间 = StringField()
+    早餐订餐时间 = StringField(default='')
+    早餐取消时间 = StringField(default='')
     早餐食堂外带预订数 = IntField(default=0)
-    中餐食堂就餐预订数 = IntField()
+    中餐食堂就餐预订数 = IntField(default=0)
     中餐食堂就餐签到 = StringField(default='')
-    中餐订餐时间 = StringField()
+    中餐订餐时间 = StringField(default='')
     中餐取消时间 = StringField(default='')
     中餐食堂外带预订数 = IntField(default=0)
-    晚餐食堂就餐预订数 = IntField()
+    晚餐食堂就餐预订数 = IntField(default=0)
     晚餐食堂就餐签到 = StringField(default='')
-    晚餐订餐时间 = StringField()
+    晚餐订餐时间 = StringField(default='')
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
 

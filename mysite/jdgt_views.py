@@ -2634,6 +2634,15 @@ def 客户经理核实机房巡检初始化(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         else:
+            page_name = request.GET['page_name']
+            page_desc = request.GET['page_desc']
+
+            if page_name == '' and page_desc == '':
+                hszf_jfxj_todo = 'hszf_jfxj_todo'
+                hszf_jfxj_done = 'hszf_jfxj_done'
+            else:
+                hszf_jfxj_todo = 'hszf_jfxj_todo'
+                hszf_jfxj_done = 'hszf_jfxj_done'
             list = []
             queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(
                 状态=客户经理未核实
@@ -2642,6 +2651,7 @@ def 客户经理核实机房巡检初始化(request):
             for queryset_obj in queryset_objs1:
                 list.append(
                     {
+                        'task_url': hszf_jfxj_todo,
                         'riqi': queryset_obj.走访日期,
                         'zhu_ren': queryset_obj.部门主任姓名,
                         'dan_wei': queryset_obj.单位名称,
@@ -2655,8 +2665,9 @@ def 客户经理核实机房巡检初始化(request):
             )
             j = 0
             for queryset_obj in queryset_objs2:
-                list.append(
+                list_done.append(
                     {
+                        'task_url':hszf_jfxj_done,
                         'riqi': queryset_obj.走访日期,
                         'zhu_ren': queryset_obj.部门主任姓名,
                         'dan_wei': queryset_obj.单位名称,

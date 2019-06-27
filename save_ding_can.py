@@ -69,17 +69,17 @@ def 导入主页数据(文件名):
         df_手机号 = df_main.loc[(df_main['手机号'] == 手机号)]
         for index, row in df_手机号.iterrows():
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            描述 = row['描述']
-            主页标题 = row['主页标题']
-            主页描述 = row['主页描述']
-            验证码标题 = row['验证码标题']
-            验证码描述 = row['验证码描述']
-            二级部门 = row['二级部门']
-            三级部门 = row['三级部门']
-            四级部门 = row['四级部门']
-            姓名 = row['姓名']
-            主菜单name = row['主菜单name']
-            主菜单id = row['主菜单id']
+            描述 = str(row['描述'])
+            主页标题 = str(row['主页标题'])
+            主页描述 = str(row['主页描述'])
+            验证码标题 = str(row['验证码标题'])
+            验证码描述 = str(row['验证码描述'])
+            二级部门 = str(row['二级部门'])
+            三级部门 = str(row['三级部门'])
+            四级部门 = str(row['四级部门'])
+            姓名 = str(row['姓名'])
+            主菜单name = str(row['主菜单name'])
+            主菜单id = str(row['主菜单id'])
 
             df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == 手机号) & (df_main['主菜单name'] == 主菜单name)]
             pages = []

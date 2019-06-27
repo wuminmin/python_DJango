@@ -6,6 +6,24 @@ import myConfig
 import json
 from myConfig import django_root_path
 
+
+
+class 测试类初始化是否执行一次():
+    def __init__(self):
+        self.now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    def get_now_time(self):
+        print(self.now_time)
+test_obj = 测试类初始化是否执行一次()
+
+now_timeaaaaa = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+def my_func():
+    print(now_timeaaaaa)
+
+
+def test_print():
+    test_obj.get_now_time()
+    my_func()
+
 def 测试(文件名1 , 文件名2):
     # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     # db = client['mydb']

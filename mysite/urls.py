@@ -39,6 +39,7 @@ urlpatterns = {
     url(r'^ding_can_get_home_data/$', ding_can_views.订餐下载主界面数据),
     url(r'^get_ding_can_data/$', ding_can_views.下载订餐模版),
     url(r'^send_ding_can_data/$', ding_can_views.上传订餐结果),
+    url(r'^send_ding_can_data2/$', ding_can_views.上传订餐结果2),
     url(r'^ding_can_tong_ji_zhong_can/$', ding_can_views.订餐统计中餐),
     url(r'^ding_can_xia_zai_he_xiao_ma/$', ding_can_views.订餐下载核销码),
     url(r'^ding_can_xia_zai_mp3/$', ding_can_views.订餐下载核销码mp3),
@@ -132,7 +133,9 @@ urlpatterns = {
     url(r'^jdgt_dqb_agree/$', jdgt_views.党群部同意走访任务),
     url(r'^jdgt_cxrw_detail/$', jdgt_views.查询任务详情),
     url(r'^jdgt_dqb_refuse/$', jdgt_views.党群部不同意走访任务),
-
+#
+    #
+    #
     url(r'^jdgt_bmzr_upload_jfzf_data/$', jdgt_views.部门主任上传机房走访数据),
     url(r'^jdgt_bmzr_upload_jfzf_images/$', jdgt_views.部门主任上传机房走访图片),
     url(r'^jdgt_hszf_jfxj_init/$', jdgt_views.客户经理核实机房巡检初始化),
