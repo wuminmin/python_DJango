@@ -54,6 +54,7 @@ class 订餐食堂模版表(Document):
 早餐外带统计 = '早餐外带统计'
 中餐外带统计 = '中餐外带统计'
 晚餐外带统计 = '晚餐外带统计'
+烟草公司每月外带上限次数 = 8
 class 订餐结果表(Document):
     手机号 = StringField(default='')
     主菜单name = StringField(default='')
