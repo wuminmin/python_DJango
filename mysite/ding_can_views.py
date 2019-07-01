@@ -641,7 +641,6 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
     日期_list = [第一天, 第二天, 第三天]
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
-        子菜单page_name = 子菜单page_name
         子菜单page_desc_list = [早餐统计, 中餐统计, 晚餐统计, 早餐外带统计, 中餐外带统计, 晚餐外带统计]
         for 子菜单page_desc_list_one in 子菜单page_desc_list:
             子菜单page_desc = 子菜单page_desc_list_one
@@ -778,12 +777,6 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                     r_dict['pages'] = pages
                     r_list.append(r_dict)
             描述 = '下载成功'
-            # if 子菜单page_desc == 中餐统计:
-            #     app_tittle = '中餐统计'
-            # elif 子菜单page_desc == 早餐统计:
-            #     app_tittle = '早餐统计'
-            # else:
-            #     app_tittle = '晚餐统计'
             app_tittle = 子菜单page_desc
             app_des = '总人数 ' + str(总人数) + ';总份数' + str(总份数)
             app_code_des = '吃过人数 ' + str(吃过人数) + ';吃过份数' + str(吃过份数)
@@ -1561,6 +1554,4 @@ def 订餐评价初始化图片(request):
 
 
 if __name__ == '__main__':
-    异步计算订餐结果('市公司食堂', '早餐统计')
-    异步计算订餐结果('市公司食堂', '中餐统计')
-    异步计算订餐结果('市公司食堂', '晚餐统计')
+    异步计算订餐结果('市公司食堂', '池州市分公司')

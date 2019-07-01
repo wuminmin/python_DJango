@@ -1,3 +1,4 @@
+import datetime
 import json
 import traceback
 import uuid
@@ -109,10 +110,15 @@ def 发邮件(邮箱, 文件名, 姓名, 附件):
         print('无法发送')
         return False
 
-def 订餐没吃统计发邮件(mail_addr):
+def 订餐没吃统计发邮件(mail_addr , 子菜单page_name):
     try:
-
-        dcjg = 订餐结果表.objects()
+        当月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month, 1).strftime('%Y-%m-%d')
+        上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
+        dcjg = 订餐结果表.objects(
+            子菜单page_name = 子菜单page_name,
+            用餐日期__gte=上月第一天,
+            用餐日期__lt=当月第一天
+        )
         l1 = []
         l2 = []
         l3 = []
@@ -193,9 +199,8 @@ def 启动订餐提醒定时器():
         time.sleep(1)
 
 if __name__ == '__main__':
-
-
     # mail_addr = ['15305669601@189.cn', '15305669706@189.cn', '15305666002@189.cn']
     mail_addr = ['buckwmm@qq.com']
-    订餐没吃统计发邮件(mail_addr)
+    子菜单page_name = '市公司食堂'
+    订餐没吃统计发邮件(mail_addr , 子菜单page_name)
 
