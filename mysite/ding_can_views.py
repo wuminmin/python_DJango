@@ -11,7 +11,6 @@ import time
 from django.http import HttpResponse, FileResponse
 
 import myConfig
-from fang_jun.test import 测试类初始化是否执行一次, now_timeaaaaa, test_print
 from mysite.chou_jiang_mongo import 建筑物主键分隔符
 from mysite.demo_sms_send import send_sms
 from myConfig import appid, secret, grant_type, django_root_path, ding_can_appid, ding_can_secret, ding_can_grant_type, \
@@ -490,18 +489,24 @@ def 上传订餐结果2(request):
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
                         return HttpResponse(自定义登录状态)
                 elif tittle == '早餐食堂外带预订数':
-                    queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum('早餐食堂外带预订数')
-                    queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum('中餐食堂外带预订数')
-                    queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum('晚餐食堂外带预订数')
-                    if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                        自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                        return HttpResponse(自定义登录状态)
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定早餐提前截止时间:
+                        if index == 0 :
+                            pass
+                        else:
+                            queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '早餐食堂外带预订数')
+                            queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '中餐食堂外带预订数')
+                            queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '晚餐食堂外带预订数')
+                            if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
+                                自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
+                                return HttpResponse(自定义登录状态)
                         queryset1.update(早餐食堂外带预订数=index, 早餐订餐时间=当前时间)
                     else:
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
@@ -515,21 +520,24 @@ def 上传订餐结果2(request):
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
                         return HttpResponse(自定义登录状态)
                 elif tittle == '中餐食堂外带预订数':
-                    queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '早餐食堂外带预订数')
-                    queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '中餐食堂外带预订数')
-                    queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '晚餐食堂外带预订数')
-                    if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                        自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                        return HttpResponse(自定义登录状态)
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定中餐提前截止时间:
+                        if index == 0:
+                            pass
+                        else:
+                            queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '早餐食堂外带预订数')
+                            queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '中餐食堂外带预订数')
+                            queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '晚餐食堂外带预订数')
+                            if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
+                                自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
+                                return HttpResponse(自定义登录状态)
                         queryset1.update(中餐食堂外带预订数=index, 中餐订餐时间=当前时间)
                     else:
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
@@ -543,21 +551,24 @@ def 上传订餐结果2(request):
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
                         return HttpResponse(自定义登录状态)
                 elif tittle == '晚餐食堂外带预订数':
-                    queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '早餐食堂外带预订数')
-                    queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '中餐食堂外带预订数')
-                    queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                              子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                        '晚餐食堂外带预订数')
-                    if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                        自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                        return HttpResponse(自定义登录状态)
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定晚餐提前截止时间:
+                        if index == 0:
+                            pass
+                        else:
+                            queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '早餐食堂外带预订数')
+                            queryset3 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '中餐食堂外带预订数')
+                            queryset4 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                                      子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
+                                '晚餐食堂外带预订数')
+                            if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
+                                自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
+                                return HttpResponse(自定义登录状态)
                         queryset1.update(晚餐食堂外带预订数=index, 晚餐订餐时间=当前时间)
                     else:
                         自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
