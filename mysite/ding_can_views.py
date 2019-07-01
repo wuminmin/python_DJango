@@ -492,7 +492,7 @@ def 上传订餐结果2(request):
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定早餐提前截止时间:
-                        if index == 0 :
+                        if index == '0' or index == 0 :
                             pass
                         else:
                             queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
@@ -523,7 +523,7 @@ def 上传订餐结果2(request):
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定中餐提前截止时间:
-                        if index == 0:
+                        if index == '0' or index == 0:
                             pass
                         else:
                             queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
@@ -554,7 +554,7 @@ def 上传订餐结果2(request):
                     queryset1 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                         子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
                     if 当前时间戳 < 预定晚餐提前截止时间:
-                        if index == 0:
+                        if index == '0' or index == 0:
                             pass
                         else:
                             queryset2 = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
