@@ -106,41 +106,11 @@ class 结对共拓部门表(Document):
     三级部门列表 = ListField(default=[])
 
 
-class 结对共拓统计结果(Document):
-    日期 = StringField()
-    子菜单page_name = StringField()
-    子菜单page_desc = StringField()
-    订餐结果 = DictField()
 
 
 class 结对共拓提醒短信锁(Document):
     日期 = StringField()
     短信锁 = BooleanField(default=False)
-
-
-菜单分隔符 = '_'
-无评价 = 'placeholder_grey'
-差评 = 'placeholder_red'
-中评 = 'placeholder_blue'
-好评 = 'placeholder_green'
-结对共拓菜单分页 = 10
-
-
-class 结对共拓菜单表(Document):
-    # 订餐日期 = StringField()
-    # 订餐类型 = StringField()
-    食堂名称 = StringField()
-    菜单列表 = ListField()
-
-
-class 结对共拓菜单模版表(Document):
-    订餐日期 = StringField()
-    食堂名称 = StringField()
-    订餐类型 = StringField()
-    菜谱名称 = StringField()
-    菜谱备注 = DictField(default={})
-    手机号 = StringField()
-    上传时间 = StringField()
 
 
 class 结对共拓菜单评价表(Document):
@@ -225,7 +195,14 @@ if __name__ == '__main__':
     # 部门 = '也管'
     # ).save()
 
-    结对共拓部门主任客户经理对应表(
-        客户经理手机号码='13355661100',
-        部门主任手机号码='15305668602'
+    # 结对共拓部门主任客户经理对应表(
+    #     客户经理手机号码='13355661100',
+    #     部门主任手机号码='15305668602'
+    # ).save()
+
+    结对共拓客户经理上传单位信息(
+        单位名称='池州电信',
+        客户编码 = '客户编码',
+        客户经理 = '吴敏民',
+        手机号码 = '13355661100'
     ).save()

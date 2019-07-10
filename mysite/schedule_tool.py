@@ -127,13 +127,11 @@ def 订餐没吃统计发邮件(mail_addr , 子菜单page_name):
         l6 = []
         l7 = []
         l8 = []
-        市公司本部员工移动电话list = []
-        df1 = pandas.read_excel(myConfig.django_root_path + '/' + '市公司本部员工0610.xlsx', sheet_name=0)
-        for index_main, row_main in df1.iterrows():
-            市公司本部员工移动电话list.append(str(row_main['移动电话']))
+        l9 = []
         for dcjg_1 in dcjg:
             手机号 = dcjg_1.手机号
             用餐日期 = dcjg_1.用餐日期
+            早餐食堂就餐签到 = dcjg_1.早餐食堂就餐签到
             中餐食堂就餐签到 = dcjg_1.中餐食堂就餐签到
             晚餐食堂就餐签到 = dcjg_1.晚餐食堂就餐签到
             dczjm = 订餐主界面表.objects(
@@ -142,28 +140,28 @@ def 订餐没吃统计发邮件(mail_addr , 子菜单page_name):
             if dczjm == None:
                 continue
             二级部门 = dczjm.二级部门
+            三级部门 = dczjm.三级部门
             四级部门 = dczjm.四级部门
             姓名 = dczjm.姓名
             l1.append(手机号)
             l2.append(用餐日期)
+            l9.append(早餐食堂就餐签到)
             l3.append(中餐食堂就餐签到)
             l4.append(晚餐食堂就餐签到)
             l5.append(二级部门)
-            l6.append(四级部门)
-            l7.append(姓名)
-            if 手机号 in 市公司本部员工移动电话list:
-                l8.append('本部员工')
-            else:
-                l8.append('非本部员工')
+            l6.append(三级部门)
+            l7.append(四级部门)
+            l8.append(姓名)
         jie_guo_df = pandas.DataFrame({
              '手机号': l1,
             '用餐日期': l2,
+            '早餐食堂就餐签到': l9,
             '中餐食堂就餐签到': l3,
             '晚餐食堂就餐签到': l4,
             '二级部门': l5,
-            '四级部门': l6,
-            '姓名': l7,
-            '是否本部':l8
+            '三级部门': l6,
+            '四级部门': l7,
+            '姓名':l8
         })
         创建时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
         file_name = '订餐没吃统计发邮件' + 创建时间 + '.xls'
@@ -181,11 +179,11 @@ def 订餐没吃统计发邮件(mail_addr , 子菜单page_name):
 
 @deprecated_async
 def 启动订餐提醒定时器():
-    mail_addr = ['15305669601@189.cn','15305669706@189.cn','15305666002@189.cn','18905667300@189.cn']
+    # mail_addr = ['15305669601@189.cn','15305669706@189.cn','15305666002@189.cn','18905667300@189.cn']
     # mail_addr = ['buckwmm@qq.com']
     # schedule.every().monday.do(订餐没吃统计发邮件,mail_addr)
     # schedule.every().day.at("17:14").do(订餐没吃统计发邮件,mail_addr)
-
+    # schedule.every().month.at("17:14").do(订餐没吃统计发邮件, mail_addr)
     # schedule.every(10).seconds.do(job)
     # schedule.every(10).minutes.do(job)
     # schedule.every().hour.do(job)
@@ -199,8 +197,7 @@ def 启动订餐提醒定时器():
         time.sleep(1)
 
 if __name__ == '__main__':
-    # mail_addr = ['15305669601@189.cn', '15305669706@189.cn', '15305666002@189.cn']
-    mail_addr = ['buckwmm@qq.com']
-    子菜单page_name = '市公司食堂'
-    订餐没吃统计发邮件(mail_addr , 子菜单page_name)
-
+    订餐没吃统计发邮件('buckwmm@qq.com' , '市公司食堂')
+    # 订餐没吃统计发邮件('buckwmm@qq.com' , '市局（公司）食堂')
+    # 订餐没吃统计发邮件('59559558@qq.com', '市局（公司）食堂')
+#

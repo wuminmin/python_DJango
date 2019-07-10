@@ -137,4 +137,5 @@ urlpatterns = {
     url(r'^jdgt_bmzr_upload_jfzf_data/$', jdgt_views.部门主任上传机房走访数据),
     url(r'^jdgt_bmzr_upload_jfzf_images/$', jdgt_views.部门主任上传机房走访图片),
     url(r'^jdgt_hszf_jfxj_init/$', jdgt_views.客户经理核实机房巡检初始化),
+    url(r'^jdgt_hszf_jfxj_detail/$', jdgt_views.客户经理核实机房巡检查询详情),
 }
