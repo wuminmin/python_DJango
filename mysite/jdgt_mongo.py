@@ -6,11 +6,11 @@ import myConfig
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
 部门主任存草稿 = '部门主任存草稿'
-客户经理未核实 = '客户经理未核实'
+客户经理未核实 = '客户经理待核实'
 客户经理已核实 = '客户经理已核实'
 客户经理不通过 = '客户经理不通过'
-政企校园完成打分 = '政企校园完成打分'
-党群部审核通过 = '党群部审核通过'
+政企校园完成打分 = '政企校园已打分'
+党群部审核通过 = '党群部审核已通过'
 党群部审核不通过 = '党群部审核不通过'
 
 拜访客户 = '拜访客户'

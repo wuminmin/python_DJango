@@ -145,4 +145,6 @@ urlpatterns = {
     url(r'^jdgt_jfxj_agree/$', jdgt_views.客户经理同意机房巡检任务),
     url(r'^jdgt_jfxj_refuse/$', jdgt_views.客户经理不同意机房巡检任务),
     url(r'^jdgt_jfxj_zqxy_upload/$', jdgt_views.政企校园机房巡检打分),
+    url(r'^jdgt_jfxj_dqb_agree/$', jdgt_views.党群部同意机房巡检任务),
+    url(r'^jdgt_jfxj_dqb_refuse/$', jdgt_views.党群部不同意机房巡检任务),
 }
