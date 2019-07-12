@@ -142,4 +142,7 @@ urlpatterns = {
     url(r'^jdgt_hszf_jfxj_init/$', jdgt_views.客户经理核实机房巡检初始化),
     url(r'^jdgt_cgx_jfxj_detail/$', jdgt_views.部门主任草稿箱查询详情),
     url(r'^jdgt_hszf_jfxj_detail/$', jdgt_views.客户经理核实机房巡检查询详情),
+    url(r'^jdgt_jfxj_agree/$', jdgt_views.客户经理同意机房巡检任务),
+    url(r'^jdgt_jfxj_refuse/$', jdgt_views.客户经理不同意机房巡检任务),
+    url(r'^jdgt_jfxj_zqxy_upload/$', jdgt_views.政企校园机房巡检打分),
 }

@@ -12,6 +12,14 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfi
 政企校园完成打分 = '政企校园完成打分'
 党群部审核通过 = '党群部审核通过'
 党群部审核不通过 = '党群部审核不通过'
+
+拜访客户 = '拜访客户'
+巡检机房 = '巡检机房'
+草稿箱 = '草稿箱'
+核实任务 = '核实任务'
+录入积分 = '录入积分'
+审核积分 = '审核积分'
+
 path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
 outfile = open(path, 'rb')
 巡检机房 = '巡检机房'

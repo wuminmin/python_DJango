@@ -17,7 +17,8 @@ from myConfig import appid, secret, grant_type, django_root_path, jdgt_appid, jd
     template_code
 from mysite.ding_can_mongo import 订餐登录状态表
 from mysite.jdgt_mongo import 结对共拓主界面表, 结对共拓用户表, 结对共拓登录状态表, 结对共拓验证码表, 结对共拓客户经理上传单位信息, 结对共拓部门主任客户经理对应表, 结对共拓部门主任走访客户结果表, \
-    客户经理未核实, 客户经理已核实, 客户经理不通过, 政企校园完成打分, 党群部审核通过, 党群部审核不通过, 结对共拓部门主任机房巡检结果表, 结对共拓部门主任机房巡检图片表, 巡检机房, 拜访客户, 部门主任存草稿
+    客户经理未核实, 客户经理已核实, 客户经理不通过, 政企校园完成打分, 党群部审核通过, 党群部审核不通过, 结对共拓部门主任机房巡检结果表, 结对共拓部门主任机房巡检图片表, 巡检机房, 拜访客户, 部门主任存草稿, 草稿箱, \
+    核实任务, 录入积分, 审核积分
 
 from mysite.schedule_tool import 启动订餐提醒定时器
 
@@ -1983,15 +1984,36 @@ def 部门主任草稿箱机房巡检初始化(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         else:
-            # page_name = request.GET['page_name']
-            # page_desc = request.GET['page_desc']
-            hszf_jfxj_todo = 'xjjf_cgx_todo'
-            hszf_jfxj_done = 'xjjf_cgx_done'
+            page_name = request.GET['page_name']
+            page_desc = request.GET['page_desc']
+            if page_desc == 草稿箱:
+                hszf_jfxj_todo = 'xjjf_cgx_todo'
+                hszf_jfxj_done = 'xjjf_cgx_done'
+                queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[部门主任存草稿,客户经理不通过])
+                queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__nin=[部门主任存草稿])
+            elif page_desc == 核实任务:
+                queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[客户经理未核实])
+                queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[客户经理已核实,政企校园完成打分,党群部审核通过])
+                hszf_jfxj_todo = 'hszf_jfxj_todo'
+                hszf_jfxj_done = 'xjjf_cgx_done'
+            elif page_desc == 录入积分:
+                queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[客户经理已核实,党群部审核不通过])
+                queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[政企校园完成打分,党群部审核通过])
+                hszf_jfxj_todo = 'lrjf_jfxj_todo'
+                hszf_jfxj_done = 'xjjf_cgx_done'
+            elif page_desc == 审核积分:
+                queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[政企校园完成打分])
+                queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__in=[党群部审核通过])
+                hszf_jfxj_todo = 'shjf_jfxj_todo'
+                hszf_jfxj_done = 'xjjf_cgx_done'
+            else:
+                queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态='')
+                queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__ne='')
+                hszf_jfxj_todo = 'hszf_jfxj_todo'
+                hszf_jfxj_done = 'xjjf_cgx_done'
             list = []
-            queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(状态=部门主任存草稿)
             i = 0
             for queryset_obj in queryset_objs1:
-                结对共拓主界面表.objects(手机号=queryset_obj.部门主任手机号).first()
                 list.append(
                     {
                         'task_url': hszf_jfxj_todo,
@@ -2005,7 +2027,6 @@ def 部门主任草稿箱机房巡检初始化(request):
                 )
                 i = i + 1
             list_done = []
-            queryset_objs2 = 结对共拓部门主任机房巡检结果表.objects(状态__ne=部门主任存草稿)
             j = 0
             for queryset_obj in queryset_objs2:
                 list_done.append({
@@ -2093,10 +2114,10 @@ def 部门主任草稿箱查询详情(request):
             queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(走访日期=riqi, 部门主任手机号=zhu_ren, 客户编码=dan_wei).first()
             if queryset_objs1 == None:
                 main_list = []
-                status = ''
+                status = '无数据'
             else:
                 main_list = queryset_objs1.main_list
-                status = queryset_objs1.状态
+                status = '状态:' + queryset_objs1.状态 + '，积分:' + queryset_objs1.得分['积分']
             自定义登录状态 = {'描述': '成功', '会话': '', 'main_list': main_list,'status':status}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
@@ -2125,8 +2146,14 @@ def 客户经理核实机房巡检查询详情(request):
             riqi = request.GET['riqi']
             zhu_ren = request.GET['zhu_ren']
             dan_wei = request.GET['dan_wei']
-            queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(走访日期=riqi, 部门主任姓名=zhu_ren, 单位名称=dan_wei).first()
-            自定义登录状态 = {'描述': '成功', '会话': '', 'main_list': queryset_objs1.main_list}
+            queryset_objs1 = 结对共拓部门主任机房巡检结果表.objects(走访日期=riqi, 部门主任手机号=zhu_ren, 客户编码=dan_wei).first()
+            if queryset_objs1 == None:
+                main_list = []
+                status = '无数据'
+            else:
+                main_list = queryset_objs1.main_list
+                status = '状态:'+queryset_objs1.状态 + '，积分:' + queryset_objs1.得分['积分']
+            自定义登录状态 = {'描述': '成功', '会话': '', 'main_list': main_list,'status':status}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
@@ -2210,3 +2237,157 @@ def 部门主任机房巡检出初始化(request):
         结果表 = str(结果表)
         return HttpResponse(结果表)
 
+def 客户经理同意机房巡检任务(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code, 'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {'描述': '该用户未注册'}
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            riqi = request.GET['riqi']
+            zhu_ren = request.GET['zhu_ren']
+            dan_wei = request.GET['dan_wei']
+            queryset0 = 结对共拓部门主任机房巡检结果表.objects(
+                走访日期=riqi, 部门主任手机号=zhu_ren, 客户编码=dan_wei, ).first()
+            if queryset0 == None:
+                自定义登录状态 = {'描述': '无效记录', }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                if queryset0.状态 == 客户经理未核实:
+                    queryset0.update(状态=客户经理已核实)
+                    自定义登录状态 = {'描述': '成功', '会话': '', }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                # elif queryset0.状态 == 客户经理已核实:
+                #     自定义登录状态 = {'描述': '客户经理已核实', '会话': ''}
+                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                #     自定义登录状态 = str(自定义登录状态)
+                #     return HttpResponse(自定义登录状态)
+                # elif queryset0.状态 == 客户经理不通过:
+                #     自定义登录状态 = {'描述': '客户经理不通过', '会话': ''}
+                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                #     自定义登录状态 = str(自定义登录状态)
+                #     return HttpResponse(自定义登录状态)
+                else:
+                    自定义登录状态 = {'描述': queryset0.状态, '会话': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {'描述': '系统错误', }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
+
+
+def 客户经理不同意机房巡检任务(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code, 'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {'描述': '该用户未注册'}
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            riqi = request.GET['riqi']
+            zhu_ren = request.GET['zhu_ren']
+            dan_wei = request.GET['dan_wei']
+            queryset0 = 结对共拓部门主任机房巡检结果表.objects(
+                走访日期=riqi, 部门主任手机号=zhu_ren, 客户编码=dan_wei, ).first()
+            if queryset0 == None:
+                自定义登录状态 = {'描述': '无效记录', }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                if queryset0.状态 == 客户经理未核实:
+                    queryset0.update(状态=客户经理不通过)
+                    自定义登录状态 = {'描述': '成功', '会话': '', }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                else:
+                    自定义登录状态 = {'描述': queryset0.状态, '会话': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {'描述': '系统错误', }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
+
+def 政企校园机房巡检打分(request):
+    try:
+        js_code = request.GET['code']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': jdgt_appid, 'secret': jdgt_secret, 'js_code': js_code, 'grant_type': jdgt_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 结对共拓用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            自定义登录状态 = {'描述': '该用户未注册'}
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            riqi = request.GET['riqi']
+            zhu_ren = request.GET['zhu_ren']
+            dan_wei = request.GET['dan_wei']
+            queryset0 = 结对共拓部门主任机房巡检结果表.objects(
+                走访日期=riqi, 部门主任手机号=zhu_ren, 客户编码=dan_wei, ).first()
+            if queryset0 == None:
+                自定义登录状态 = {'描述': '无效记录', }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                if queryset0.状态 == 客户经理已核实 or  queryset0.状态 == 党群部审核不通过 :
+                    ji_feng = request.GET['ji_feng']
+                    当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    queryset0.update(状态=政企校园完成打分, 得分={'积分': ji_feng, '当前时间': 当前时间}, )
+                    自定义登录状态 = {'描述': '成功', '会话': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                # elif queryset0.状态 == 客户经理已核实:
+                #     ji_feng = request.GET['ji_feng']
+                #     当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                #     queryset0.update(状态=政企校园完成打分, 得分={'积分': ji_feng, '当前时间': 当前时间}, )
+                #     自定义登录状态 = {'描述': '成功', '会话': ''}
+                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                #     自定义登录状态 = str(自定义登录状态)
+                #     return HttpResponse(自定义登录状态)
+                # elif queryset0.状态 == 客户经理不通过:
+                #     自定义登录状态 = {'描述': '客户经理不通过', '会话': ''}
+                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                #     自定义登录状态 = str(自定义登录状态)
+                #     return HttpResponse(自定义登录状态)
+                else:
+                    自定义登录状态 = {'描述': queryset0.状态, '会话': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        结果表 = {'描述': '系统错误', }
+        结果表 = json.dumps(结果表).encode('utf-8').decode('unicode_escape')
+        结果表 = str(结果表)
+        return HttpResponse(结果表)
