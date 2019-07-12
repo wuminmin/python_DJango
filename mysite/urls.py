@@ -135,6 +135,7 @@ urlpatterns = {
     url(r'^jdgt_cxrw_detail/$', jdgt_views.查询任务详情),
     url(r'^jdgt_dqb_refuse/$', jdgt_views.党群部不同意走访任务),
     url(r'^jdgt_bmzr_jfxj_init/$', jdgt_views.部门主任机房巡检出初始化),
+    url(r'^jdgt_bmzr_upload_jfzf_caogao/$', jdgt_views.部门主任上传机房走访草稿),
     url(r'^jdgt_bmzr_upload_jfzf_data/$', jdgt_views.部门主任上传机房走访数据),
     url(r'^jdgt_bmzr_upload_jfzf_images/$', jdgt_views.部门主任上传机房走访图片),
     url(r'^jdgt_cgx_jfxj_init/$', jdgt_views.部门主任草稿箱机房巡检初始化),
