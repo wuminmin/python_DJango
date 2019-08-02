@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import json
 import traceback
 import uuid
@@ -10,6 +11,7 @@ import time
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 
+import myConfig
 from myConfig import appid, secret, grant_type, sign_name, template_code, django_root_path
 import sys
 
@@ -85,4 +87,20 @@ if __name__ == '__main__':
     jie_guo_df = pandas.DataFrame({'物理站点名称':site_1,'物理站点名称2':site_2,'距离(米)':ju_li_list})
     jie_guo_df.to_excel('ju_li.xls')
 
-
+#微信认证
+def wx(request):
+    signature = request.GET["signature"]
+    timestamp = request.GET["timestamp"]
+    nonce = request.GET["nonce"]
+    echostr = request.GET["echostr"]
+    token = myConfig.wx_token
+    list = [token, timestamp, nonce]
+    list.sort()
+    list2 = ''.join(list)
+    sha1 = hashlib.sha1()
+    sha1.update(list2.encode('utf-8'))
+    hashcode = sha1.hexdigest()
+    if hashcode == signature:
+        return HttpResponse(echostr)
+    else:
+        return HttpResponse(echostr)

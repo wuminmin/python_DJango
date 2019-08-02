@@ -45,6 +45,7 @@ def 订餐登录检查(request):
                    'grant_type': ding_can_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
+
         查询结果 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 查询结果 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
@@ -76,7 +77,17 @@ def 订餐下载主界面数据(request):
             手机号 = 用户.手机号
             主界面 = 订餐主界面表.objects(手机号=用户.手机号).first()
             if 主界面 == None:
-                自定义登录状态 = "{\"描述\":\"没有数据\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                描述 = '没有数据'
+                会话 = '123456'
+                主页标题 = ''
+                主页描述 = ''
+                验证码标题 = ''
+                验证码描述 = ''
+                主界内容 = []
+                自定义登录状态 = {'描述': 描述, '会话': 会话,'主页标题':主页标题,'主页描述':主页描述,'验证码标题':验证码标题,
+                           '验证码描述':验证码描述,'主界内容':主界内容}
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
             else:
                 自定义登录状态 = 主界面.to_json().encode('utf-8').decode('unicode_escape')
@@ -808,9 +819,9 @@ def 订餐统计(request):
         return HttpResponse(自定义登录状态)
     else:
         自定义登录状态 = 订餐统计结果_first.订餐结果
-    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-    自定义登录状态 = str(自定义登录状态)
-    return HttpResponse(自定义登录状态)
+        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+        自定义登录状态 = str(自定义登录状态)
+        return HttpResponse(自定义登录状态)
 
 
 def 订餐下载核销码(request):
@@ -827,7 +838,7 @@ def 订餐下载核销码(request):
             订餐核销码表(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 核销码='123456').save()
             自定义登录状态 = {'核销码': '654321', '手机号': '无', '二级部门': '无', '三级部门': '无', '四级部门': '无', '姓名': '无'}
         else:
-            自定义登录状态 = {'描述': '入参不合法'}
+            自定义登录状态 = {'核销码': '654321', '手机号': '无', '二级部门': '无', '三级部门': '无', '四级部门': '无', '姓名': '无'}
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
     else:
         自定义登录状态 = 订餐中餐核销码表_first.to_json().encode('utf-8').decode('unicode_escape')
