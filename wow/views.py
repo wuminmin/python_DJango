@@ -1,9 +1,11 @@
+from django.shortcuts import render
 from django.http import HttpResponse, FileResponse
 import requests
 import json
 import myConfig
 
-def 注册(request):
+# Create your views here.
+def wow_login(request):
     # code = request.GET['code']
     # print(code)
     # return HttpResponse('{"openid":code}')
@@ -23,12 +25,3 @@ def 注册(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
-
-
-
-def 预约(request):
-    return None
-
-
-def 管理员(request):
-    return None

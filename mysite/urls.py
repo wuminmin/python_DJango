@@ -14,13 +14,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-
+from django.urls import path,include
 from mysite import views, ding_can_views, yi_cha_views, chou_jiang_views, cai_ji_views, xiao_shou_views, jdgt_views,wxyy_views
 
 urlpatterns = {
+
+    path('wow/', include('wow.urls')),
+
     # 验证码---------------------
     url(r'^$', views.index),
     url(r'^wx$', views.wx),
+
     url(r'^jian_cha_jing_wei_du/$', views.检查经纬度),
 
     # 易查199----------------------
@@ -149,8 +153,8 @@ urlpatterns = {
     url(r'^jdgt_jfxj_dqb_agree/$', jdgt_views.党群部同意机房巡检任务),
     url(r'^jdgt_jfxj_dqb_refuse/$', jdgt_views.党群部不同意机房巡检任务),
 
-    #微信预约
-    url(r'^zc/$', wxyy_views.注册),
+    #微信公众号
+    url(r'^wow_login/$', wxyy_views.注册),
     url(r'^yy/$', wxyy_views.预约),
     url(r'^gly/$', wxyy_views.管理员),
 }
