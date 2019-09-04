@@ -5,7 +5,7 @@ import json
 import myConfig
 
 # Create your views here.
-def wow_login(request):
+def zc(request):
     # code = request.GET['code']
     # print(code)
     # return HttpResponse('{"openid":code}')

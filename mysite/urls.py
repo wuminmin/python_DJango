@@ -20,6 +20,7 @@ from mysite import views, ding_can_views, yi_cha_views, chou_jiang_views, cai_ji
 urlpatterns = {
 
     path('wow/', include('wow.urls')),
+    path('dzzwzx/', include('dzzwzx.urls')),
 
     # 验证码---------------------
     url(r'^$', views.index),

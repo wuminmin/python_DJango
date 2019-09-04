@@ -2,7 +2,7 @@ import pandas
 import time
 
 from myConfig import django_root_path
-from mysite.ding_can_mongo import 订餐主界面表, 订餐食堂模版表, 订餐部门表
+from mysite.ding_can_mongo import 订餐主界面表, 订餐食堂模版表, 订餐部门表,订餐结果表
 
 
 def 导入食堂模版(文件名):
@@ -187,12 +187,20 @@ def 根据三级部门删除主界面表(三级部门):
         print(one.三级部门)
         one.delete()
 
+def 删除订餐(手机号,用餐日期):
+    订餐结果表.objects(
+        手机号 = 手机号,
+        用餐日期 = 用餐日期
+    ).delete()
+
 if __name__ == '__main__':
     # 导入食堂模版('食堂模版.xls')
     # 导入主页数据('订餐人员池州电信.xls')
-    导入主页数据('订餐人员青阳电信.xls')
+    # 导入主页数据('订餐人员青阳电信.xls')
     # 导入主页数据('订餐人员池州烟草公司.xls')
     # 导入主页数据('订餐人员清单池州烟草吴敏民.xls')
     # 导入主页数据('订餐人员清单池州电信吴敏民.xls')
 
-    保存订餐部门列表()
+    # 保存订餐部门列表()
+
+    删除订餐('18956660925','2019-08-30')
