@@ -37,7 +37,6 @@ def one_driver_ticket(driver, from_city, to_city):
     page_num = 0
     while flag:
         # 保存页面
-        # print driver.page_source
         source_code = driver.find_element_by_xpath("//*").get_attribute("outerHTML")
         print (type(source_code))
         dstdir = u'./ticket/'

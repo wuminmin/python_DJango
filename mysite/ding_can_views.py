@@ -48,6 +48,7 @@ def 订餐登录检查(request):
 
         查询结果 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 查询结果 == None:
+
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
         else:
@@ -77,6 +78,7 @@ def 订餐下载主界面数据(request):
             手机号 = 用户.手机号
             主界面 = 订餐主界面表.objects(手机号=用户.手机号).first()
             if 主界面 == None:
+                用户.delete()
                 描述 = '没有数据'
                 会话 = '123456'
                 主页标题 = ''
@@ -91,7 +93,6 @@ def 订餐下载主界面数据(request):
                 return HttpResponse(自定义登录状态)
             else:
                 自定义登录状态 = 主界面.to_json().encode('utf-8').decode('unicode_escape')
-                print(自定义登录状态)
                 return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -109,7 +110,6 @@ def 下载订餐模版(request):
                    'grant_type': ding_can_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
-        print(r_json)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 用户 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
@@ -169,7 +169,6 @@ def 下载订餐模版2(request):
                    'grant_type': ding_can_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
-        print(r_json)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 用户 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
@@ -591,8 +590,6 @@ def 上传订餐结果2(request):
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
-            print(ding_can_list)
-
             描述 = '上传成功'
             订餐结果描述 = '上传成功'
             自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述}
@@ -645,7 +642,6 @@ def 订餐发送验证码(request):
 
 @deprecated_async
 def 异步计算订餐结果(子菜单page_name, 二级部门):
-    print('异步计算开始', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     第一天 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
     第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400 + 86400))
@@ -799,7 +795,6 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 订餐统计结果(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 订餐结果=自定义登录状态).save()
             else:
                 订餐统计结果_first.update(订餐结果=自定义登录状态)
-    print('异步计算完成', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
 
 def 订餐统计(request):
@@ -1096,7 +1091,6 @@ def 订餐订单(request):
                            '晚餐价格': 订餐食堂模版表_first.晚餐价格, '晚餐订餐时间': 订餐结果表_first.晚餐订餐时间, '晚餐取消时间': 订餐结果表_first.晚餐取消时间}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
-                print(自定义登录状态)
                 return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
