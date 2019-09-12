@@ -9,8 +9,7 @@ import pandas
 import requests
 import time
 from django.http import HttpResponse, FileResponse
-
-
+from wxyl import models
 
 def images(request):
     try:

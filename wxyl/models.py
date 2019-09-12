@@ -1,16 +1,10 @@
 from django.db import models
-
-# Create your models here.
-
 from mongoengine import *
 
 # 数据库连接
 import sys, os
 root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-print(root_path )
 sys.path.append(root_path)
-print(sys.path)
-
 import myConfig
 
 
@@ -30,9 +24,17 @@ def save_image(id,path):
             wxyl_image = outfile
         ).save()
     else:
-        qset.update(
-            wxyl_id = '1',
-            wxyl_image = outfile
-        )
+        qset.wxyl_image.replace( outfile )
+
 if __name__ == '__main__':
     save_image('1','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190320114217.jpg')
+    save_image('2','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190320114217.jpg')
+    save_image('3','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190320123024.jpg')
+    save_image('4','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190320123044.jpg')
+    save_image('5','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190810160733.jpg')
+    save_image('6','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_20190810223907.jpg')
+    save_image('7','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201142171.jpg')
+    save_image('8','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201142176.jpg')
+    save_image('9','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201142179.jpg')
+    save_image('10','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145215.jpg')
+    
