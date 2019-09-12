@@ -4,5 +4,4 @@ from . import views
 
 urlpatterns = [
     path('image', views.images, name='image'),
-    path('wx', views.wx),
 ]
