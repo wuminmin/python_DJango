@@ -17,7 +17,7 @@ from django.conf.urls import url
 from django.urls import path,include
 from mysite import views, ding_can_views, yi_cha_views, chou_jiang_views, cai_ji_views, xiao_shou_views, jdgt_views,wxyy_views
 
-urlpatterns = {
+urlpatterns = [
 
     path('wow/', include('wow.urls')),
     path('dzzwzx/', include('dzzwzx.urls')),
@@ -159,4 +159,4 @@ urlpatterns = {
     url(r'^wow_login/$', wxyy_views.注册),
     url(r'^yy/$', wxyy_views.预约),
     url(r'^gly/$', wxyy_views.管理员),
-}
+]
