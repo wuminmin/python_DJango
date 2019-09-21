@@ -78,9 +78,21 @@ def dl_2(request):
     openid = r_json['openid']
     qset0 = models.微信预约用户表.objects(openid=openid).first()
     if qset0 == None:
-        return redirect(models.react_url+'zhuce')
+        models.微信预约用户表(
+            openid=openid,
+            access_token=access_token,
+            refresh_token=refresh_token
+        ).save()
+        return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
     else:
-        return redirect(models.react_url+'contact')
+        qset0.update(
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+        if qset0.手机号 == '':
+            return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+        else:
+            return redirect(models.react_url+'contact'+'?access_token='+access_token+'&refresh_token='+refresh_token)
     # res = '{"openid":'+openid+'}'
     # response = HttpResponse(res)
     # response["Access-Control-Allow-Origin"] = "*"
@@ -96,7 +108,6 @@ def sendSms(request):
         if 手机号 == '':
             # return HttpResponse("手机号为空")
             response = HttpResponse('手机号为空')
-           
         else:
             import random
             j = 6
@@ -104,21 +115,63 @@ def sendSms(request):
             __business_id = uuid.uuid1()
             params = "{\"code\":\"" + 验证码 + "\"}"
             from mysite.demo_sms_send import send_sms
-            r = send_sms(__business_id, 手机号, sign_name, template_code, params)
+            r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
             r2 = json.loads(r)
             if r2['Code'] == 'OK':
                 r = models.微信预约验证码表(验证码=验证码, 手机号=手机号).save()
-            response = HttpResponse(r2['Code'])
+                response = HttpResponse('短信发送成功')
+            response = HttpResponse('请输入正确的手机号')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
     except:
-        response = HttpResponse('500')
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
-    
+
+def zhuce(request):
+    try:
+        myState = str(request.GET['myState'])
+        print(myState)
+        myState_json = json.loads(myState)
+        access_token = myState_json['access_token']
+        refresh_token = myState_json['refresh_token']
+        print(access_token)
+        qset0 = models.微信预约用户表.objects(access_token=access_token).first()
+        if qset0 == None:
+            response = HttpResponse('用户未注册')
+        else:
+            姓名 = myState_json['姓名']
+            验证码 = myState_json['验证码']
+            手机号 = myState_json['手机号']
+            身份证号码 = myState_json['身份证号码']
+            qset1 = models.微信预约验证码表.objects(验证码=验证码,手机号=手机号).first()
+            if qset1 == None:
+                response = HttpResponse('验证码错误')
+            else:
+                qset0.update(
+                    手机号=手机号,
+                    其它={'姓名':姓名,'身份证号码':身份证号码}
+                )
+                response = HttpResponse('注册成功')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

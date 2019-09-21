@@ -12,8 +12,11 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfi
 react_url = 'https://oa.wuminmin.top/'
 
 class  微信预约用户表(Document):
-    openid = StringField()
-    手机号 = StringField()
+    openid = StringField(default='')
+    access_token = StringField(default='')
+    refresh_token = StringField(default='')
+    手机号 = StringField(default='')
+    其它 = DictField(default={})
 
 class  微信预约验证码表(Document):
     验证码 = StringField()

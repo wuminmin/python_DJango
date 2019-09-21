@@ -8,4 +8,5 @@ urlpatterns = [
     path('dl/', views.dl),
     path('dl_2/', views.dl_2),
     path('sendSms', views.sendSms),
+    path('zhuce', views.zhuce),
 ]
