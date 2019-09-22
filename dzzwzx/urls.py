@@ -11,4 +11,6 @@ urlpatterns = [
     path('zhuce', views.zhuce),
     path('yy/', views.yy),
     path('yy2/', views.yy2),
+    path('icon',views.icon),
+    path('xia_zai_bu_men',views.下载部门列表),
 ]

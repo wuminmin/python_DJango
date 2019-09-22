@@ -222,3 +222,51 @@ def yy2(request):
                 '&手机号='+手机号+\
                 '&姓名='+姓名+\
                 '&身份证号码='+身份证号码)
+
+def icon(request):
+    from django.shortcuts import render
+    import myConfig
+    import datetime
+    import json
+    import traceback
+    import uuid
+    import os
+    import pandas
+    import requests
+    import time
+    from django.http import HttpResponse, FileResponse
+    from . import models
+    try:
+        部门编号 = request.GET['id']
+        qset = models.微信预约部门表.objects(部门编号=部门编号).first()
+        print(qset)
+        if qset == None:
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            outfile = open(path, 'rb')
+            response = FileResponse(outfile)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
+            return response
+        else:
+            image = qset.部门图标.read()
+            response = HttpResponse(image)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename="ano.jpg"'
+            return response
+    except:
+        print(traceback.format_exc())
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        outfile = open(path, 'rb')
+        response = FileResponse(outfile)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
+        return response
+
+def 下载部门列表(request):
+    jsonstr = models.微信预约部门表.objects.to_json().encode('utf-8').decode('unicode_escape')
+    response = HttpResponse(jsonstr)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
