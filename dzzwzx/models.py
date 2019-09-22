@@ -21,6 +21,15 @@ class  微信预约用户表(Document):
     手机号 = StringField(default='')
     其它 = DictField(default={})
 
+class  微信预约办事申请表(Document):
+    openid = StringField(default='')
+    部门编号 = StringField(default='')
+    部门名称 = StringField(default='')
+    办事内容 = StringField(default='')
+    办事日期 = StringField(default='')
+    办事区间 = StringField(default='')
+    其它 = DictField(default={})
+
 class  微信预约验证码表(Document):
     验证码 = StringField()
     手机号 = StringField()

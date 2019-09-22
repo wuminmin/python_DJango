@@ -35,9 +35,6 @@ def wx(request):
 
 # Create your views here.
 def zc(request):
-    # code = request.GET['code']
-    # print(code)
-    # return HttpResponse('{"openid":code}')
     code = request.GET['code']
     js_code = request.GET['code']
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
@@ -45,12 +42,9 @@ def zc(request):
                 'grant_type': myConfig.mskj_grant_type}
     r = requests.get(url=url, params=payload)
     r_json = json.loads(r.text)
-    print(r_json)
     access_token = r_json['access_token']
     refresh_token = r_json['refresh_token']
     openid = r_json['openid']
-
-    print(code)
     res = '{"openid":'+openid+'}'
     response = HttpResponse(res)
     response["Access-Control-Allow-Origin"] = "*"
@@ -71,7 +65,6 @@ def dl_2(request):
     payload = {'appid': myConfig.wxyy_appid, 'secret': myConfig.wxyy_scrit, 'code': js_code,
                 'grant_type': myConfig.wxyy_grant_type}
     r = requests.get(url=url, params=payload)
-    print(r.text)
     r_json = json.loads(r.text)
     access_token = r_json['access_token']
     refresh_token = r_json['refresh_token']
@@ -144,7 +137,6 @@ def zhuce(request):
         myState_json = json.loads(myState)
         access_token = myState_json['access_token']
         refresh_token = myState_json['refresh_token']
-        print(access_token)
         qset0 = models.微信预约用户表.objects(access_token=access_token).first()
         if qset0 == None:
             response = HttpResponse('用户未注册')
@@ -191,7 +183,6 @@ def yy2(request):
     payload = {'appid': myConfig.wxyy_appid, 'secret': myConfig.wxyy_scrit, 'code': js_code,
                 'grant_type': myConfig.wxyy_grant_type}
     r = requests.get(url=url, params=payload)
-    print(r.text)
     r_json = json.loads(r.text)
     access_token = r_json['access_token']
     refresh_token = r_json['refresh_token']
@@ -215,6 +206,7 @@ def yy2(request):
             手机号 = qset0.手机号
             姓名 = qset0.其它['姓名']
             身份证号码 = qset0.其它['身份证号码']
+            print('---------------------------------------',access_token)
             return redirect(
                 models.react_url+'yuyue'+'?\
                 access_token='+access_token+\
@@ -239,7 +231,6 @@ def icon(request):
     try:
         部门编号 = request.GET['id']
         qset = models.微信预约部门表.objects(部门编号=部门编号).first()
-        print(qset)
         if qset == None:
             path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
             outfile = open(path, 'rb')
@@ -270,3 +261,65 @@ def 下载部门列表(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
+def 提交办事申请(request):
+    try:
+        myState = str(request.GET['myState'])
+        myState_json = json.loads(myState)
+        access_token = myState_json['access_token']
+        refresh_token = myState_json['refresh_token']
+        qset0 = models.微信预约用户表.objects(refresh_token=refresh_token).first()
+        if qset0 == None:
+            response = HttpResponse('用户未注册')
+        else:
+            姓名 = myState_json['姓名']
+            验证码 = myState_json['验证码']
+            手机号 = myState_json['手机号']
+            身份证号码 = myState_json['身份证号码']
+            部门编号 = myState_json['部门编号']
+            部门名称 = myState_json['部门名称']
+            办事内容 = myState_json['办事内容']
+            办事日期 = myState_json['办事日期']
+            办事区间 = myState_json['办事区间']
+            其它 = {}
+            qset1 = models.微信预约用户表.objects(refresh_token=refresh_token,手机号=手机号).first()
+            if qset1 == None:
+                response = HttpResponse('未绑定手机')
+            else:
+                qset2 = models.微信预约办事申请表.objects(openid=qset1.openid,部门编号=部门编号,
+                部门名称=部门名称,办事日期=办事日期,办事区间=办事区间).first()
+                if qset2 == None:
+                    models.微信预约办事申请表(
+                        openid = qset1.openid,
+                        部门编号 = 部门编号,
+                        部门名称 = 部门名称,
+                        办事内容 = 办事内容,
+                        办事日期 = 办事日期,
+                        办事区间 = 办事区间,
+                        其它 = 其它
+                    ).save()
+                    response = HttpResponse('预约成功')
+                else:
+                    qset2.update(
+                        部门编号 = 部门编号,
+                        部门名称 = 部门名称,
+                        办事内容 = 办事内容,
+                        办事日期 = 办事日期,
+                        办事区间 = 办事区间,
+                        其它 =其它
+                    )
+                    response = HttpResponse('更新预约成功')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
