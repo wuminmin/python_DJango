@@ -11,7 +11,6 @@ import time
 from django.http import HttpResponse, FileResponse
 from django.shortcuts import render_to_response,render
 import myConfig
-from . import models
 import sys
 from django.shortcuts import redirect
 
@@ -318,6 +317,34 @@ def 提交办事申请(request):
         import traceback
         print(traceback.format_exc())
         response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def 下载预约列表(request):
+    try:
+        myState = str(request.GET['myState'])
+        print('下载预约列表myState----------------',myState)
+        myState_json = json.loads(myState)
+        refresh_token = myState_json['refresh_token']
+        qset0 = models.微信预约用户表.objects(refresh_token=refresh_token).first()
+        if qset0 == None:
+            response = HttpResponse('[]')
+        else:
+            jsonstr = models.微信预约办事申请表.objects(openid=qset0.openid).to_json().encode('utf-8').decode('unicode_escape')
+            print(jsonstr)
+            response = HttpResponse(jsonstr)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(['系统故障'])
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"

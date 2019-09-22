@@ -14,4 +14,5 @@ urlpatterns = [
     path('icon',views.icon),
     path('xia_zai_bu_men',views.下载部门列表),
     path('submit_ban_shi',views.提交办事申请),
+    path('xia_zai_yu_yue_list',views.下载预约列表),
 ]
