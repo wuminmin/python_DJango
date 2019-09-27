@@ -281,6 +281,20 @@ def 提交办事申请(request):
             办事日期 = myState_json['办事日期']
             办事区间 = myState_json['办事区间']
             其它 = {}
+            if 办事日期 == '':
+                response = HttpResponse('办事日期为空，请重新输入')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            if 办事内容 == '':
+                response = HttpResponse('办事内容为空，请重新输入')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
             qset1 = models.微信预约用户表.objects(refresh_token=refresh_token,手机号=手机号).first()
             if qset1 == None:
                 response = HttpResponse('未绑定手机')
@@ -350,3 +364,30 @@ def 下载预约列表(request):
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
+
+def zn(request):
+    try:
+        return redirect(models.react_url+'zhinan')
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(['系统故障'])
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def 下载办事列表(request):
+    部门编号 = request.GET['部门编号']
+    部门名称 = request.GET['部门名称']
+    jsonstr = models.微信预约办事内容表.objects(
+        部门编号=部门编号,
+        部门名称=部门名称
+    ).to_json().encode('utf-8').decode('unicode_escape')
+    response = HttpResponse(jsonstr)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
