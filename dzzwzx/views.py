@@ -288,6 +288,13 @@ def 提交办事申请(request):
                 response["Access-Control-Max-Age"] = "1000"
                 response["Access-Control-Allow-Headers"] = "*"
                 return response
+            if 办事区间 == '':
+                response = HttpResponse('办事区间为空，请重新输入')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
             if 办事内容 == '':
                 response = HttpResponse('办事内容为空，请重新输入')
                 response["Access-Control-Allow-Origin"] = "*"
