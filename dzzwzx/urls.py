@@ -18,4 +18,6 @@ urlpatterns = [
     path('zn/', views.zn),
     path('xia_zai_ban_shi', views.下载办事列表),
     path('xia_zai_ban_shi_hui_zong',views.下载办事汇总列表),
+    path('submit_qu_xiao_ban_shi',views.取消办事预约)
+
 ]
