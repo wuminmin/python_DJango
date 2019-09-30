@@ -281,6 +281,12 @@ def 提交办事申请(request):
             办事日期 = myState_json['办事日期']
             办事区间 = myState_json['办事区间']
             其它 = {}
+            # 上午办事区间 = ['9:00-10:00','10:00-11:00','11:00-12:00']
+            # 下午办事区间 = ['14:00-15:00','15:00-16:00','16:00-17:30']
+            当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            当前日期五天后 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 432000))
+            当前小时 = time.strftime('%H:%M:%S', time.localtime(time.time()))
+            print(当前日期,当前小时,办事日期)
             if 办事日期 == '':
                 response = HttpResponse('办事日期为空，请重新输入')
                 response["Access-Control-Allow-Origin"] = "*"
@@ -302,12 +308,48 @@ def 提交办事申请(request):
                 response["Access-Control-Max-Age"] = "1000"
                 response["Access-Control-Allow-Headers"] = "*"
                 return response
+            if 办事日期 < 当前日期:
+                response = HttpResponse('办事日期已过，请重新输入')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            if 办事日期 == 当前日期:
+                # if 当前小时 <= '12:00:00':
+                #     if 办事区间 in 上午办事区间:
+                #         response = HttpResponse('请选择下午办事')
+                #         response["Access-Control-Allow-Origin"] = "*"
+                #         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                #         response["Access-Control-Max-Age"] = "1000"
+                #         response["Access-Control-Allow-Headers"] = "*"
+                #         return response
+                # if 当前小时 > '12:00:00':
+                #     response = HttpResponse('请选择明天办事')
+                #     response["Access-Control-Allow-Origin"] = "*"
+                #     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                #     response["Access-Control-Max-Age"] = "1000"
+                #     response["Access-Control-Allow-Headers"] = "*"
+                #     return response
+                response = HttpResponse('请选择明天办事')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            if 办事日期 >= 当前日期五天后:
+                response = HttpResponse('请选择最近5天预约')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
             qset1 = models.微信预约用户表.objects(refresh_token=refresh_token,手机号=手机号).first()
             if qset1 == None:
                 response = HttpResponse('未绑定手机')
             else:
                 qset2 = models.微信预约办事申请表.objects(openid=qset1.openid,部门编号=部门编号,
-                部门名称=部门名称,办事日期=办事日期,办事区间=办事区间).first()
+                部门名称=部门名称,办事日期=办事日期).first()
                 if qset2 == None:
                     models.微信预约办事申请表(
                         openid = qset1.openid,
@@ -318,7 +360,7 @@ def 提交办事申请(request):
                         办事区间 = 办事区间,
                         其它 = 其它
                     ).save()
-                    response = HttpResponse('预约成功')
+                    res = '预约成功'
                 else:
                     qset2.update(
                         部门编号 = 部门编号,
@@ -328,7 +370,19 @@ def 提交办事申请(request):
                         办事区间 = 办事区间,
                         其它 =其它
                     )
-                    response = HttpResponse('更新预约成功')
+                    res = '更新预约成功'
+                __business_id = uuid.uuid1()
+                # params = {'riqi':办事日期,'qujian':办事区间,'banshi':办事内容}
+                params = "{\"riqi\":\""+"\",\"qujian\":\""+"\",\"banshi\":\""+部门名称+"\"}"
+                from mysite.demo_sms_send import send_sms
+                print(手机号, myConfig.sign_name, myConfig.template_code_dzzwzx,params)
+                r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code_dzzwzx, params)
+                r2 = json.loads(r)
+                print(r2)
+                if r2['Code'] == 'OK':
+                    response = HttpResponse(res+'，短信发送成功')
+                else:
+                    response = HttpResponse(res+'，短信发送失败')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
@@ -347,7 +401,6 @@ def 提交办事申请(request):
 def 下载预约列表(request):
     try:
         myState = str(request.GET['myState'])
-        print('下载预约列表myState----------------',myState)
         myState_json = json.loads(myState)
         refresh_token = myState_json['refresh_token']
         qset0 = models.微信预约用户表.objects(refresh_token=refresh_token).first()
@@ -398,3 +451,79 @@ def 下载办事列表(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
+def 下载办事汇总列表(request):
+    try:
+        myState = str(request.GET['myState'])
+        print('下载预约列表myState----------------',myState)
+        myState_json = json.loads(myState)
+        refresh_token = myState_json['refresh_token']
+        qset0 = models.微信预约用户表.objects(refresh_token=refresh_token).first()
+        if qset0 == None:
+            response = HttpResponse('[]')
+        else:
+            当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            if '权限' in qset0.其它.keys() and qset0.其它['权限'] == '管理员':
+                qset1 = models.微信预约办事申请表.objects(
+                    办事日期__gte = 当前日期
+                ).to_json().encode('utf-8').decode('unicode_escape')
+                qset1_json = json.loads(qset1)
+                for qset11 in qset1_json:
+                    qset2 = models.微信预约用户表.objects(openid = qset11['openid']).first()
+                    qset11['手机号'] = qset2.手机号
+                    qset11['姓名'] = qset2.其它['姓名']
+                    qset11['身份证号码'] = qset2.其它['身份证号码']
+                    qset11['openid'] = ''
+                qset1_str = json.dumps(qset1_json)
+            else:
+                qset1_str = '[]'
+            print(qset1_str)
+            response = HttpResponse(qset1_str)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(['系统故障'])
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def 微信预约发送短信(request):
+    try:
+        手机号 = str(request.GET['手机号'])
+        if 手机号 == '':
+            # return HttpResponse("手机号为空")
+            response = HttpResponse('手机号为空')
+        else:
+            import random
+            j = 6
+            验证码 = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
+            __business_id = uuid.uuid1()
+            params = "{\"code\":\"" + 验证码 + "\"}"
+            from mysite.demo_sms_send import send_sms
+            r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
+            r2 = json.loads(r)
+            if r2['Code'] == 'OK':
+                r = models.微信预约验证码表(验证码=验证码, 手机号=手机号).save()
+                response = HttpResponse('短信发送成功')
+            response = HttpResponse('请输入正确的手机号')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

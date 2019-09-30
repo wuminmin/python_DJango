@@ -17,4 +17,5 @@ urlpatterns = [
     path('xia_zai_yu_yue_list',views.下载预约列表),
     path('zn/', views.zn),
     path('xia_zai_ban_shi', views.下载办事列表),
+    path('xia_zai_ban_shi_hui_zong',views.下载办事汇总列表),
 ]
