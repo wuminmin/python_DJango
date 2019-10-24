@@ -29,7 +29,7 @@ def save_image(id,path):
         ).save()
 
 if __name__ == '__main__':
-    save_image('1','D:\WMM\皱燕民\微信图片_20190917090036.jpg')
+    save_image('1','D:\WMM\青阳人大\profile-bg.png')
     save_image('2','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145217.jpg')
     save_image('3','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145219.jpg')
     save_image('4','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201147335.jpg')

@@ -11,4 +11,4 @@ python manage.py migrate
 #请确定你现在处于 manage.py 所在的目录下，然后运行这行命令来创建一个应用：
 python manage.py startapp polls
 
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8005

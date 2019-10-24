@@ -22,6 +22,7 @@ urlpatterns = [
     path('wow/', include('wow.urls')),
     path('dzzwzx/', include('dzzwzx.urls')),
     path('wxyl/', include('wxyl.urls')),
+    path('tou_piao/', include('tou_piao.urls')),
 
     # 验证码---------------------
     url(r'^$', views.index),
