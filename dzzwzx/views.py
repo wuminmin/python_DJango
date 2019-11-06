@@ -348,6 +348,23 @@ def 下载部门列表(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+def 是否工作日(riqi):
+    riqi_2 = riqi.replace('-','')
+    print(riqi_2)
+    import requests
+    import json
+    payload = {'date': riqi_2}
+    r = requests.get("http://api.goseek.cn/Tools/holiday", params=payload)
+    r_text = r.text
+    r_json = json.loads(r_text)
+    print(r_json['data'])
+    if r_json['data'] == 0 or r_json['data'] == 2:
+        return True
+    elif r_json['data'] == 1 or r_json['data'] == 3:
+        return False
+    else:
+        return 'error'
+
 def 提交办事申请(request):
     try:
         myState = str(request.GET['myState'])
@@ -426,6 +443,13 @@ def 提交办事申请(request):
                 return response
             if 办事日期 >= 当前日期五天后:
                 response = HttpResponse('请选择最近5天预约')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            if 是否工作日(办事日期):
+                response = HttpResponse('请选择非工作日预约！')
                 response["Access-Control-Allow-Origin"] = "*"
                 response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
                 response["Access-Control-Max-Age"] = "1000"
