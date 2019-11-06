@@ -388,9 +388,12 @@ def 提交办事申请(request):
             # 上午办事区间 = ['9:00-10:00','10:00-11:00','11:00-12:00']
             # 下午办事区间 = ['14:00-15:00','15:00-16:00','16:00-17:30']
             当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+            当前日期第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
             当前日期五天后 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 432000))
             当前小时 = time.strftime('%H:%M:%S', time.localtime(time.time()))
-            print(当前日期,当前小时,办事日期)
+            # 办事日期 = '2019-11-09'
+            # 当前日期第二天 = '2019-11-09'
+            # 当前小时 = '18:00:00'
             if 办事日期 == '':
                 response = HttpResponse('办事日期为空，请重新输入')
                 response["Access-Control-Allow-Origin"] = "*"
@@ -455,6 +458,19 @@ def 提交办事申请(request):
                 response["Access-Control-Max-Age"] = "1000"
                 response["Access-Control-Allow-Headers"] = "*"
                 return response
+            
+            if 办事日期 == 当前日期第二天:
+                if 是否工作日(办事日期):
+                    pass
+                else:
+                    if 当前小时 > '17:00:00':
+                        response = HttpResponse('已超过下午5点，请改天预约！')
+                        response["Access-Control-Allow-Origin"] = "*"
+                        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                        response["Access-Control-Max-Age"] = "1000"
+                        response["Access-Control-Allow-Headers"] = "*"
+                        return response
+                    
             qset1 = models.微信预约用户表.objects(refresh_token=refresh_token,手机号=手机号).first()
             if qset1 == None:
                 response = HttpResponse('未绑定手机')
