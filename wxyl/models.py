@@ -53,6 +53,7 @@ if __name__ == '__main__':
     # save_image('22','D:/WMM/青阳人大/微信图片_20191105095522.jpg')
     # save_image('23','D:/WMM/青阳人大/微信图片_20191105095526.jpg')
     # save_image('24','D:/WMM/青阳人大/微信图片_20191105095529.jpg')
-    save_image('25','C:/Users/WMM\Pictures/青阳人大/8b31fa16247dfa6260f7e202ca1c5d36.jpg')
-    save_image('26','C:/Users/WMM\Pictures/青阳人大/673d352f8e6351e4aa2aa962409d93ca.jpg')
+    # save_image('25','C:/Users/WMM\Pictures/青阳人大/8b31fa16247dfa6260f7e202ca1c5d36.jpg')
+    # save_image('26','C:/Users/WMM\Pictures/青阳人大/673d352f8e6351e4aa2aa962409d93ca.jpg')
+    save_image('10','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145215.jpg')
     
