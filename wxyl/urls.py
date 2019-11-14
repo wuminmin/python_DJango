@@ -3,5 +3,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('image', views.images, name='image'),
+    path('image', views.images),
 ]

@@ -61,6 +61,25 @@ def 导入青阳人大人大要闻(path):
                 其它=其它
             ).save()
 
+class qyrd_image_col(Document):
+    col_id = StringField()
+    col_image = ImageField()
+
+def save_image(id,path):
+    outfile = open(path, 'rb')
+    qset = qyrd_image_col.objects(wxyl_id=id).first()
+    if qset == None:
+        qyrd_image_col(
+            col_id = id,
+            col_image = outfile
+        ).save()
+    else:
+        qset.delete()
+        qyrd_image_col(
+            col_id = id,
+            col_image = outfile
+        ).save()
+
 
 if __name__ == "__main__":
     导入青阳人大人大要闻(myConfig.django_root_path+'/qyrd/'+'导入青阳人大人大要闻.xlsx')
