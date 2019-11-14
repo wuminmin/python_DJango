@@ -21,24 +21,39 @@ def 上传新闻(request):
     from django.http import HttpResponse
     import traceback
     import json
-    resj = json.loads(request.body)
-    print(resj)
-    ano_data = request.body.decode('utf-8')
-    # import re
-    # n = re.findall(r"{\"params\":{\"myState\":{\"outputHTML\":\"(.+?)\"}}}", ano_data)
-    # if n != []:
-    #     res2 = n[0]
-    #     print(res2)
-    # else:
-    #     res2 = ''
-    # print(res2)
-    res = ano_data.encode('utf-8')
-    response = HttpResponse( res)
+    # resj = json.loads(request.body)
+    # print(resj)
+    request_body = request.body
+    # print(request.body)
+    import chardet
+    request_body_encoding = chardet.detect(request_body)['encoding']
+    print(request_body_encoding)
+    if request_body_encoding == None:
+        request_body_encoding = 'GB2312'
+    ano_data = request.body.decode(request_body_encoding)
+    # print(ano_data)
+    import re
+    import time
+    当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+    n = re.findall(r"{\"article\":\"(.+?)\",\"tittle\":\"(.+?)\",\"type\":\"(.+?)\"}", ano_data)
+    if n != []:
+        article = n[0][0]
+        tittle = n[0][1]
+        type = n[0][2]
+        qset1 = models.qyrd_article_col.objects(tittle=tittle,type=type).first()
+        if qset1 == None:
+            models.qyrd_article_col(article=ano_data,tittle=tittle,type=type,my_time=当前时间).save()
+        else:
+            qset1.update(article=ano_data,my_time=当前时间)
+        response = HttpResponse(ano_data.encode(request_body_encoding))
+    else:
+        response = HttpResponse('{"article":"<p>输入有误！</p>","tittle":"","type":""}')
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+    
 
 def images(request):
     try:
