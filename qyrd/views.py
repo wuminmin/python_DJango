@@ -2,12 +2,13 @@ from django.shortcuts import render
 
 # Create your views here.
 
+
 def 人大要闻(request):
     from . import models
     from django.http import HttpResponse
     import traceback
     qset0 = models.青阳人大人大要闻.objects.first()
-    
+
     print(traceback.format_exc())
     response = HttpResponse('系统故障')
     response["Access-Control-Allow-Origin"] = "*"
@@ -15,6 +16,7 @@ def 人大要闻(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
 
 def 上传新闻(request):
     from . import models
@@ -35,25 +37,36 @@ def 上传新闻(request):
     import re
     import time
     当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-    n = re.findall(r"{\"article\":\"(.+?)\",\"tittle\":\"(.+?)\",\"type\":\"(.+?)\"}", ano_data)
+    n = re.findall(
+        r"{\"article\":\"(.+?)\",\"tittle\":\"(.+?)\",\"type\":\"(.+?)\"}", ano_data)
     if n != []:
         article = n[0][0]
         tittle = n[0][1]
         type = n[0][2]
-        qset1 = models.qyrd_article_col.objects(tittle=tittle,type=type).first()
+        qset1 = models.qyrd_article_col.objects(
+            tittle=tittle, type=type).first()
         if qset1 == None:
-            models.qyrd_article_col(article=ano_data,tittle=tittle,type=type,my_time=当前时间).save()
+            models.qyrd_article_col(
+                article=ano_data,
+                tittle=tittle,
+                type=type,
+                my_time=当前时间,
+                other={'request_body_encoding': request_body_encoding}).save()
         else:
-            qset1.update(article=ano_data,my_time=当前时间)
+            qset1.update(
+                article=ano_data,
+                my_time=当前时间,
+                other={'request_body_encoding': request_body_encoding})
         response = HttpResponse(ano_data.encode(request_body_encoding))
     else:
-        response = HttpResponse('{"article":"<p>输入有误！</p>","tittle":"","type":""}')
+        response = HttpResponse(
+            '{"article":"<p>输入有误！</p>","tittle":"","type":""}')
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
-    
+
 
 def images(request):
     try:
@@ -84,3 +97,35 @@ def images(request):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
         return response
+
+
+def 新闻下载(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    mytype = request.POST['type']
+    import myConfig
+    from pymongo import MongoClient
+    client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
+    db = client['mydb']
+    r = db.qyrd_article_col.find({'type':mytype}).sort([("_id", -1)])
+    if r == []:
+        response = HttpResponse( '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\"}')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    else:
+        r2 = []
+        for one in r:
+            r2.append(one['article'])
+        # print(r2)
+        response = HttpResponse( r2 )
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
