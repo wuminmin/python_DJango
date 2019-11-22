@@ -23,24 +23,20 @@ def 上传新闻(request):
     from django.http import HttpResponse
     import traceback
     import json
-    # resj = json.loads(request.body)
-    # print(resj)
     request_body = request.body
-    # print(request.body)
     import chardet
     request_body_encoding = chardet.detect(request_body)['encoding']
     print(request_body_encoding)
     if request_body_encoding == None:
         request_body_encoding = 'GB2312'
     ano_data = request.body.decode(request_body_encoding)
-    # print(ano_data)
     import re
     import time
     当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     n = re.findall(
         r"{\"article\":\"(.+?)\",\"tittle\":\"(.+?)\",\"type\":\"(.+?)\"}", ano_data)
     if n != []:
-        article = n[0][0]
+        # article = n[0][0]
         tittle = n[0][1]
         type = n[0][2]
         qset1 = models.qyrd_article_col.objects(
@@ -121,7 +117,6 @@ def 新闻下载(request):
         r2 = []
         for one in r:
             r2.append(one['article'])
-        # print(r2)
         response = HttpResponse( r2 )
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -129,3 +124,32 @@ def 新闻下载(request):
         response["Access-Control-Allow-Headers"] = "*"
         return response
 
+def 新闻列表下载(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    mytype = request.POST['type']
+    import myConfig
+    from pymongo import MongoClient
+    client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
+    db = client['mydb']
+    r = db.qyrd_article_col.find({'type':mytype}).sort([("_id", -1)])
+    if r == []:
+        response = HttpResponse( '[]')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    else:
+        # r2 = '[{"tittle":"1111","my_time":"22222"}]'
+        r2 = []
+        for one in r:
+            r2.append({'tittle':one['tittle'],'time':one['my_time']})
+        response = HttpResponse( json.dumps(r2))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

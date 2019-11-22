@@ -28,20 +28,26 @@ sys.path.append(root_path)
 
 
 from qyrd import models
-from django.http import HttpResponse
-import traceback
-import myConfig
-from pymongo import MongoClient
-client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-db = client['mydb']
-r = db.qyrd_article_col.find({'type':'首页新闻'}).sort([("_id", -1)])
-from bson import json_util 
-import json
-j = {}
-j['article'] = r[0]['article']
-j['type'] = r[0]['type']
-j['tittle'] = r[0]['tittle']
-j['my_time'] = r[0]['my_time']
-j['other'] = r[0]['other']
-r = json.dumps(j).encode('utf-8').decode('unicode_escape')
+# from django.http import HttpResponse
+# import traceback
+# import myConfig
+# from pymongo import MongoClient
+# client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
+# db = client['mydb']
+# r = db.qyrd_article_col.find({'type':'首页新闻'}).sort([("_id", -1)])
+# from bson import json_util 
+# import json
+# j = {}
+# j['article'] = r[0]['article']
+# j['type'] = r[0]['type']
+# j['tittle'] = r[0]['tittle']
+# j['my_time'] = r[0]['my_time']
+# j['other'] = r[0]['other']
+# r = json.dumps(j).encode('utf-8').decode('unicode_escape')
+# print(r)
+
+
+r = [{'tittle':'1111','my_time':'22222'}]
+# r = {'tittle':'1111','my_time':'22222'}
+r = json.dumps(r)
 print(r)
