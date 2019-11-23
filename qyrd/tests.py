@@ -27,7 +27,7 @@ sys.path.append(root_path)
 # print(r['encoding'])
 
 
-from qyrd import models
+# from qyrd import models
 # from django.http import HttpResponse
 # import traceback
 # import myConfig
@@ -47,7 +47,40 @@ from qyrd import models
 # print(r)
 
 
-r = [{'tittle':'1111','my_time':'22222'}]
+# r = [{'tittle':'1111','my_time':'22222'}]
 # r = {'tittle':'1111','my_time':'22222'}
-r = json.dumps(r)
-print(r)
+# r = json.dumps(r)
+# print(r)
+import datetime
+now = datetime.datetime.now()
+print( str(now.year) + '年'+str(now.month)+'月' )
+
+# import myConfig
+# from pymongo import MongoClient
+# client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
+# db = client['mydb']
+# r = db.qyrd_article_col.aggregate([
+#   { "$match": { "type": "人大要闻" }},
+#   { "$group": {
+#     "_id": { "$month": "$date" },
+#     "tittle": {
+#       "$push": "$$ROOT"
+#     }
+#   }}
+# ])
+# r = db.qyrd_article_col.aggregate( [
+#    {
+#      "$group": {
+#         "_id": {
+#            "cust_id": "$cust_id",
+#            "my_date": {
+#                "month": { "$month": "$my_date" },
+#                "day": { "$dayOfMonth": "$my_date" },
+#                "year": { "$year": "$my_date"}
+#            }
+#         },
+#         "tittle": "&tittle"
+#      }
+#    }
+# ] )
+# print(list(r))

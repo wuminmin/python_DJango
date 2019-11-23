@@ -14,11 +14,14 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port,username=myConfig
 
 react_url = 'https://oa.wuminmin.top/'
 
+import datetime
 class qyrd_article_col(Document):
     article = StringField(default='')
     type = StringField(default='')
     tittle = StringField(default='')
     my_time = StringField(default='')
+    my_date = DateTimeField(default = datetime.datetime.now() )
+    my_month = StringField(default= '')
     author = StringField(default='')
     other = DictField(default={})
 

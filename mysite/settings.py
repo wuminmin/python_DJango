@@ -133,6 +133,7 @@ STATICFILES_DIRS = [
     '/static/',
 ]
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  
 
 #自定义设置
 两高楼宇采集template_id = '-_slWEWDujVWCQJ7kPoC5nuEWRFIn6_kKatgyHA1bfU'
