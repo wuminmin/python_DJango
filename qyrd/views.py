@@ -210,9 +210,8 @@ def 根据标题下载文章(request):
     import myConfig
     qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
     if qset1 == None:
-        response = HttpResponse( '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\",\"my_time\":\'\'}')
+        response = HttpResponse( '')
     else:
-        # response = HttpResponse(qset1.to_json().encode('utf-8').decode('unicode_escape'))
         response = HttpResponse(qset1.article)
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -241,6 +240,24 @@ def 根据标题下载文章(request):
     #     response["Access-Control-Allow-Headers"] = "*"
     #     return response
 
+def 根据标题下载时间(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    myVar = request.POST['tittle']
+    import myConfig
+    qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
+    if qset1 == None:
+        response = HttpResponse( '')
+    else:
+        response = HttpResponse(qset1.my_time)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
 def 根据栏目下载目录(request):
     import json
     from . import models
@@ -262,7 +279,7 @@ def 根据栏目下载目录(request):
             myVar2.append(one.my_month)
     for one in myVar2:
         myVar4 = []
-        qset2 = models.qyrd_article_col.objects(my_month = one)
+        qset2 = models.qyrd_article_col.objects( type = myVar,my_month = one)
         for one2 in qset2:
             myVar4.append({'标题':one2.tittle,})
         myVar3.append({'月份':one,'新闻标题列表':myVar4})

@@ -51,9 +51,9 @@ sys.path.append(root_path)
 # r = {'tittle':'1111','my_time':'22222'}
 # r = json.dumps(r)
 # print(r)
-import datetime
-now = datetime.datetime.now()
-print( str(now.year) + '年'+str(now.month)+'月' )
+# import datetime
+# now = datetime.datetime.now()
+# print( str(now.year) + '年'+str(now.month)+'月' )
 
 # import myConfig
 # from pymongo import MongoClient
@@ -84,3 +84,7 @@ print( str(now.year) + '年'+str(now.month)+'月' )
 #    }
 # ] )
 # print(list(r))
+
+from . import models
+qset1 = models.qyrd_article_col.objects(type=myVar)
+print(qset1.to_json())

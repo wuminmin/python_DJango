@@ -1,3 +1,7 @@
+import sys, os
+root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(root_path)
+
 import myConfig
 from django.db import models
 
@@ -46,4 +50,5 @@ def save_image(id,path):
 
 
 if __name__ == "__main__":
-    pass
+    qset1 = qyrd_article_col.objects(type='通知公告').count()
+    print(qset1)
