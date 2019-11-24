@@ -18,6 +18,13 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port,username=myConfig
 
 react_url = 'https://oa.wuminmin.top/'
 
+ban_kuai_lan_mu_dict = {
+    '人大概况':['人大概况','机构设置','制度建设'],
+    '新闻中心':['人大要闻','通知公告','领导讲话','工作动态'],
+    '依法履职':['立法工作','决定决议','任职任免','监督工作'],
+    '代表工作':['代表信息','代表风采','代表信箱','议案建议']
+}
+
 import datetime
 class qyrd_article_col(Document):
     article = StringField(default='')
@@ -35,7 +42,7 @@ class qyrd_image_col(Document):
 
 def save_image(id,path):
     outfile = open(path, 'rb')
-    qset = qyrd_image_col.objects(wxyl_id=id).first()
+    qset = qyrd_image_col.objects(col_id=id).first()
     if qset == None:
         qyrd_image_col(
             col_id = id,
@@ -50,5 +57,6 @@ def save_image(id,path):
 
 
 if __name__ == "__main__":
-    qset1 = qyrd_article_col.objects(type='通知公告').count()
-    print(qset1)
+    # qset1 = qyrd_article_col.objects(type='通知公告').count()
+    # print(qset1)
+    save_image('修身福地灵秀青阳','./qyrd/banner.jpg')

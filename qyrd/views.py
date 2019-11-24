@@ -112,8 +112,11 @@ def 上传新闻(request):
 
 
 def images(request):
+    from . import models
+    from django.http import HttpResponse, FileResponse
     try:
         id = request.GET['id']
+        print(id)
         qset = models.qyrd_image_col.objects(col_id=id).first()
         print(qset)
         if qset == None:
@@ -124,7 +127,7 @@ def images(request):
             response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
             return response
         else:
-            image = qset.qyrd_image_col.read()
+            image = qset.col_image.read()
             response = HttpResponse(image)
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = 'attachment;filename="ano.jpg"'
@@ -132,7 +135,6 @@ def images(request):
     except:
         import traceback
         import myConfig
-        from django.http import HttpResponse, FileResponse
         print(traceback.format_exc())
         path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
         outfile = open(path, 'rb')
@@ -207,38 +209,25 @@ def 根据标题下载文章(request):
     from django.http import HttpResponse
     import traceback
     myVar = request.POST['tittle']
-    import myConfig
-    qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
-    if qset1 == None:
-        response = HttpResponse( '')
+    if myVar == '默认':
+        myVar2 = request.POST['lan_mu']
+        qset2 = models.qyrd_article_col.objects(type=myVar2).first()
+        if qset2 == None:
+            response = HttpResponse( '')
+        else:
+            response = HttpResponse( qset2.article)
     else:
-        response = HttpResponse(qset1.article)
+        import myConfig
+        qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
+        if qset1 == None:
+            response = HttpResponse( '')
+        else:
+            response = HttpResponse(qset1.article)
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
-    # from pymongo import MongoClient
-    # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-    # db = client['mydb']
-    # r = db.qyrd_article_col.find({'tittle':myVar}).sort([("_id", -1)]).limit(1)
-    # if r == []:
-    #     response = HttpResponse( '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\"}')
-    #     response["Access-Control-Allow-Origin"] = "*"
-    #     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-    #     response["Access-Control-Max-Age"] = "1000"
-    #     response["Access-Control-Allow-Headers"] = "*"
-    #     return response
-    # else:
-    #     r2 = []
-    #     for one in r:
-    #         r2.append(one['article'])
-    #     response = HttpResponse( r2 )
-    #     response["Access-Control-Allow-Origin"] = "*"
-    #     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-    #     response["Access-Control-Max-Age"] = "1000"
-    #     response["Access-Control-Allow-Headers"] = "*"
-    #     return response
 
 def 根据标题下载时间(request):
     import json
@@ -246,12 +235,20 @@ def 根据标题下载时间(request):
     from django.http import HttpResponse
     import traceback
     myVar = request.POST['tittle']
-    import myConfig
-    qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
-    if qset1 == None:
-        response = HttpResponse( '')
+    if myVar == '默认':
+        myVar2 = request.POST['lan_mu']
+        qset2 = models.qyrd_article_col.objects(type=myVar2).first()
+        if qset2 == None:
+            response = HttpResponse( '{\"tittle\":\"没有文章\",\"my_time\":\"没有文章\"}')
+        else:
+            response = HttpResponse( '{\"tittle\":\"'+ qset2.tittle +'\",\"my_time\":\"'+qset2.my_time+'\"}')
     else:
-        response = HttpResponse(qset1.my_time)
+        import myConfig
+        qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
+        if qset1 == None:
+            response = HttpResponse( '{\"tittle\":\"'+ myVar +'\",\"my_time\":\"\"}')
+        else:
+            response = HttpResponse('{\"tittle\":\"'+ myVar +'\",\"my_time\":\"'+qset1.my_time+'\"}')
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
@@ -290,3 +287,29 @@ def 根据栏目下载目录(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
     
+def 根据板块下载表格(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    myVar = request.POST['ban_kuai']
+    myVar2 = models.ban_kuai_lan_mu_dict[myVar]
+    myVar3 = []
+    i = 0
+    for one in myVar2:
+        i = i+1
+        myVar4 = []
+        qset2 = models.qyrd_article_col.objects( type = one).limit(10)
+        for one2 in qset2:
+            myVar4.append({'key':one2.tittle,'key2':one2.my_time,'url':'/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle})
+        myVar3.append({
+            'table_key':i,
+            'table_name':one,
+            'list_data':myVar4
+        })
+    response = HttpResponse(json.dumps(myVar3))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
