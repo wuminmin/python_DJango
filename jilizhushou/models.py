@@ -26,7 +26,7 @@ ban_kuai_lan_mu_dict = {
 }
 
 import datetime
-class qyrd_article_col(Document):
+class ji_li_zhu_shou_article(Document):
     article = StringField(default='')
     type = StringField(default='')
     tittle = StringField(default='')
@@ -35,22 +35,53 @@ class qyrd_article_col(Document):
     my_month = StringField(default= '')
     author = StringField(default='')
     other = DictField(default={})
+    usernamelist = ListField(default=[])
+    type1list =  ListField(default=[])
+    type2list =  ListField(default=[])
+    type3list =  ListField(default=[])
+    userrolelist = ListField(default=[])
 
-class qyrd_image_col(Document):
+mystate1 = '待确认'
+mystate2 = '已确认'
+mystate3 = '已超时'
+mystate4 = '已归档'
+class ji_li_zhu_shou_dui_xian_qing_dan(Document):
+    mainid = StringField(default='')
+    tittle = StringField(default='')
+    sellid = StringField(default='')
+    money = FloatField(default=0)
+    mydate = StringField(default='')
+    nowdate = DateTimeField(default= datetime.datetime.now())
+    bankid = StringField(default='')
+    mystate = StringField(default='')
+
+class ji_li_zhu_shou_userinfo(Document):
+    my_date = DateTimeField(default = datetime.datetime.now() )
+    username = StringField(default='')
+    userpwd = StringField(default='')
+    userphone = StringField(default='')
+    userrole = StringField(default='')
+    usertoken = StringField(default='')
+    mainid = StringField(default='')
+    type1 = StringField(default='')
+    type2 = StringField(default='')
+    type3 = StringField(default='')
+
+class ji_li_zhu_shou_image(Document):
     col_id = StringField()
     col_image = ImageField()
 
 def save_image(id,path):
     outfile = open(path, 'rb')
-    qset = qyrd_image_col.objects(col_id=id).first()
+    qset = ji_li_zhu_shou_image.objects(col_id=id).first()
     if qset == None:
-        qyrd_image_col(
+        ji_li_zhu_shou_image(
             col_id = id,
             col_image = outfile
         ).save()
     else:
         qset.delete()
-        qyrd_image_col(
+        ji_li_zhu_shou_image(
             col_id = id,
             col_image = outfile
         ).save()
@@ -59,4 +90,10 @@ def save_image(id,path):
 if __name__ == "__main__":
     # qset1 = qyrd_article_col.objects(type='通知公告').count()
     # print(qset1)
-    save_image('修身福地灵秀青阳','./qyrd/banner.jpg')
+    # save_image('修身福地灵秀青阳','./qyrd/banner.jpg')
+
+    ji_li_zhu_shou_userinfo(
+        username = '吴敏民',
+        userphone = '13355661100',
+        userrole = '营销活动管理员',
+    ).save()
