@@ -55,6 +55,11 @@ class ji_li_zhu_shou_dui_xian_qing_dan(Document):
     bankid = StringField(default='')
     mystate = StringField(default='')
 
+userrole1 = '销售员'
+userrole2 = '活动管理员'
+userrole3 = '公司领导'
+userrole4 = '县区主任'
+userrole5 = '营业部主任'
 class ji_li_zhu_shou_userinfo(Document):
     my_date = DateTimeField(default = datetime.datetime.now() )
     username = StringField(default='')

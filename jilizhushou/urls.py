@@ -15,4 +15,5 @@ urlpatterns = [
     path('get_user_info',views.获取用户信息),
     path('upload',views.兑现激励上传文件),
     path('get_tittle_list',views.获得活动列表),
+    path('get_tables_by_tittle',views.获得兑现详单),
 ]

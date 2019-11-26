@@ -388,25 +388,18 @@ def 兑现激励上传文件(request):
     from django.http import HttpResponse
     import traceback
     import myConfig
-    myfile = request.FILES.get("file", None)
-    # uploaded_filename = 'file.xlsx'
-    # folder = request.path.replace("/", "_")
-    # print(myConfig.django_root_path + '/'+folder+ '/'+uploaded_filename)
-    # with open(myConfig.django_root_path + '/'+folder+ '/'+uploaded_filename , 'wb+') as destination:
-    #                     for chunk in myfile.chunks():
-    #                         destination.write(chunk)
+    myfile = request.FILES.get("file")
     import pandas as pd
     df1 = pd.read_excel(myfile)
     r = df1.head(10)
-    print(r)
-    for index, row in df1.iterrows():
+    for row in df1.iterrows():
         主数据工号 = row['主数据工号']
         活动名称 = row['活动名称']
         销售品编码 = row['销售品编码']
         激励金额 = row['激励金额']
         激励账期 = row['激励账期']
         银行卡 = row['银行卡']
-        qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(sellid=销售品编码).first()
+        qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(tittle=活动名称,sellid=销售品编码).first()
         if qset1 == None:
             models.ji_li_zhu_shou_dui_xian_qing_dan(
                 mainid=str(主数据工号),
@@ -447,6 +440,53 @@ def 获得活动列表(request):
         else:
             myVar2list.append(one.tittle)
     response = HttpResponse(json.dumps(myVar2list).encode('utf-8').decode('unicode_escape'))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+def 获得兑现详单(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        myVar1 = request.POST['usertoken']
+        myVar2 = request.POST['tittle']
+        print('获得兑现详单',myVar1,myVar2)
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+            usertoken=myVar1).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps([]))
+        else:
+            if qset1.userrole == models.userrole2 :
+                qset2 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(
+                    tittle = myVar2
+                )
+                rlist = []
+                i = 0
+                for one in qset2:
+                    i = i +1
+                    rdict = {
+                        'key':str(i),
+                        'name': one.mainid,
+                        'tittle': one.tittle,
+                        'age': one.sellid,
+                        'address': one.money,
+                        'tags': [str(one.mydate)],
+                        'bankid': one.bankid,
+                        'mystate': one.mystate
+                    }
+                    rlist.append(rdict)
+                response = HttpResponse(json.dumps(rlist))
+            else:
+                response = HttpResponse(json.dumps([]))
+    except:
+        response = HttpResponse(json.dumps([]))
+        import traceback
+        print(traceback.format_exc())
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
