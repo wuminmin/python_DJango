@@ -19,7 +19,7 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port,username=myConfig
 react_url = 'https://oa.wuminmin.top/'
 
 ban_kuai_lan_mu_dict = {
-    '人大概况':['人大概况','机构设置','制度建设'],
+    '营销活动':['已发布','兑现中','已归档'],
     '新闻中心':['人大要闻','通知公告','工作动态'],
     '依法履职':['立法工作','决定决议','任职任免','监督工作'],
     '代表工作':['代表信息','代表风采','代表信箱','议案建议']
