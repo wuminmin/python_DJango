@@ -392,22 +392,20 @@ def 获取用户信息(request):
 
 
 @deprecated_async
-def 异步处理兑现激励文件(myfile):
+def 异步处理兑现激励文件(myfile,tittle):
     from . import models
     import pandas as pd
     df1 = pd.read_excel(myfile)
-
     def save_row_to_mongo(row):
         try:
             主数据工号 = row['主数据工号']
-            活动名称 = row['活动名称']
+            活动名称 = tittle
             销售品编码 = row['销售品编码']
             激励金额 = row['激励金额']
             激励账期 = row['激励账期']
             银行卡 = row['银行卡']
             print(主数据工号, 活动名称, 销售品编码, 激励金额, 激励账期, 银行卡)
-            qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(
-                tittle=活动名称, sellid=销售品编码).first()
+            qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(sellid=销售品编码).first()
             if qset1 == None:
                 models.ji_li_zhu_shou_dui_xian_qing_dan(
                     mainid=str(主数据工号),
@@ -443,18 +441,28 @@ def 兑现激励上传文件(request):
     try:
         print(request.FILES)
         print(request.POST)
-        file_object = request.FILES['file'].file
-        my_file_name = request.FILES['file'].name
-        print(file_object)
-        fo = open(my_file_name, "wb")
-        fo.write(request.FILES['file'].file.read())
-        fo.close()
-        异步处理兑现激励文件(my_file_name)
-        response = HttpResponse('成功')
+        usertoken = request.POST['usertoken']
+        tittle = request.POST['tittle']
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(usertoken=usertoken).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'非法用户'}))
+        else:
+            if qset1.userrole == models.userrole2:
+                file_object = request.FILES['file'].file
+                my_file_name = request.FILES['file'].name
+                print(file_object)
+                fo = open(my_file_name, "wb")
+                fo.write(request.FILES['file'].file.read())
+                fo.close()
+                异步处理兑现激励文件(my_file_name,tittle)
+                response = HttpResponse(json.dumps({'code':'成功'}))
+            else:
+                response = HttpResponse(json.dumps({'code':'没有权限'}))
+
     except:
         import traceback
         print(traceback.format_exc())
-        response = HttpResponse('失败')
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
