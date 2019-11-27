@@ -3,6 +3,14 @@ from django.shortcuts import render
 # Create your views here.
 
 
+def deprecated_async(f):
+    def wrapper(*args, **kwargs):
+        from threading import Thread
+        thr = Thread(target=f, args=args, kwargs=kwargs)
+        thr.start()
+    return wrapper
+
+
 def 人大要闻(request):
     from . import models
     from django.http import HttpResponse
@@ -25,17 +33,17 @@ def 上传新闻(request):
     try:
         article = request.POST['article']
         tittle = request.POST['tittle']
-        type = request.POST['type']
+        mytype = request.POST['type']
         now = request.POST['now']
         当前月 = str(datetime.datetime.now().year) + '年' + \
             str(datetime.datetime.now().month)+'月'
         qset1 = models.ji_li_zhu_shou_article.objects(
-            tittle=tittle, type=type).first()
+            tittle=tittle, type=mytype).first()
         if qset1 == None:
             models.ji_li_zhu_shou_article(
                 article=article,
                 tittle=tittle,
-                type=type,
+                type=mytype,
                 my_time=now,
                 my_date=datetime.datetime.now(),
                 my_month=当前月,
@@ -351,7 +359,7 @@ def 获取用户信息(request):
             }
             response = HttpResponse(json.dumps(r_dict))
         else:
-            
+
             r_dict = {
                 'username': qset1.username,
                 'userphone': qset1.userphone,
@@ -382,49 +390,77 @@ def 获取用户信息(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+
+@deprecated_async
+def 异步处理兑现激励文件(myfile):
+    from . import models
+    import pandas as pd
+    df1 = pd.read_excel(myfile)
+
+    def save_row_to_mongo(row):
+        try:
+            主数据工号 = row['主数据工号']
+            活动名称 = row['活动名称']
+            销售品编码 = row['销售品编码']
+            激励金额 = row['激励金额']
+            激励账期 = row['激励账期']
+            银行卡 = row['银行卡']
+            print(主数据工号, 活动名称, 销售品编码, 激励金额, 激励账期, 银行卡)
+            qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(
+                tittle=活动名称, sellid=销售品编码).first()
+            if qset1 == None:
+                models.ji_li_zhu_shou_dui_xian_qing_dan(
+                    mainid=str(主数据工号),
+                    tittle=str(活动名称),
+                    sellid=str(销售品编码),
+                    money=float(激励金额),
+                    mydate=str(激励账期),
+                    bankid=str(银行卡)
+                ).save()
+            else:
+                qset1.update(
+                    mainid=str(主数据工号),
+                    tittle=str(活动名称),
+                    sellid=str(销售品编码),
+                    money=float(激励金额),
+                    mydate=str(激励账期),
+                    bankid=str(银行卡)
+                )
+        except:
+            import traceback
+            print(traceback.format_exc())
+        return row['主数据工号']
+    df1['主数据工号'] = df1.apply(
+        save_row_to_mongo, axis=1
+    )
+
 def 兑现激励上传文件(request):
     import json
     from . import models
     from django.http import HttpResponse
     import traceback
     import myConfig
-    myfile = request.FILES.get("file")
-    import pandas as pd
-    df1 = pd.read_excel(myfile)
-    r = df1.head(10)
-    for row in df1.iterrows():
-        主数据工号 = row['主数据工号']
-        活动名称 = row['活动名称']
-        销售品编码 = row['销售品编码']
-        激励金额 = row['激励金额']
-        激励账期 = row['激励账期']
-        银行卡 = row['银行卡']
-        qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(tittle=活动名称,sellid=销售品编码).first()
-        if qset1 == None:
-            models.ji_li_zhu_shou_dui_xian_qing_dan(
-                mainid=str(主数据工号),
-                tittle=活动名称,
-                sellid=销售品编码,
-                money=激励金额,
-                mydate=str(激励账期),
-                bankid=银行卡,
-                mystate=models.mystate1
-            ).save()
-        else:
-            qset1.update(
-                 mainid=主数据工号,
-                tittle=活动名称,
-                money=激励金额,
-                mydate=激励账期,
-                bankid=银行卡,
-                mystate=models.mystate1
-            )
-    response = HttpResponse('成功')
+    try:
+        print(request.FILES)
+        print(request.POST)
+        file_object = request.FILES['file'].file
+        my_file_name = request.FILES['file'].name
+        print(file_object)
+        fo = open(my_file_name, "wb")
+        fo.write(request.FILES['file'].file.read())
+        fo.close()
+        异步处理兑现激励文件(my_file_name)
+        response = HttpResponse('成功')
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('失败')
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
 
 def 获得活动列表(request):
     import json
@@ -439,12 +475,14 @@ def 获得活动列表(request):
             pass
         else:
             myVar2list.append(one.tittle)
-    response = HttpResponse(json.dumps(myVar2list).encode('utf-8').decode('unicode_escape'))
+    response = HttpResponse(json.dumps(myVar2list).encode(
+        'utf-8').decode('unicode_escape'))
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
 
 def 获得兑现详单(request):
     import json
@@ -455,22 +493,43 @@ def 获得兑现详单(request):
     try:
         myVar1 = request.POST['usertoken']
         myVar2 = request.POST['tittle']
-        print('获得兑现详单',myVar1,myVar2)
+        print('获得兑现详单', myVar1, myVar2)
         qset1 = models.ji_li_zhu_shou_userinfo.objects(
             usertoken=myVar1).first()
         if qset1 == None:
             response = HttpResponse(json.dumps([]))
         else:
-            if qset1.userrole == models.userrole2 :
+            if qset1.userrole == models.userrole2:
                 qset2 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(
-                    tittle = myVar2
+                    tittle=myVar2
                 )
                 rlist = []
                 i = 0
                 for one in qset2:
-                    i = i +1
+                    i = i + 1
                     rdict = {
-                        'key':str(i),
+                        'key': str(i),
+                        'name': one.mainid,
+                        'tittle': one.tittle,
+                        'age': one.sellid,
+                        'address': one.money,
+                        'tags': [str(one.mydate)],
+                        'bankid': one.bankid,
+                        'mystate': one.mystate
+                    }
+                    rlist.append(rdict)
+                response = HttpResponse(json.dumps(rlist))
+            elif qset1.userrole == models.userrole1:
+                qset2 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(
+                    tittle = myVar2,
+                    mainid =  qset1.mainid
+                )
+                rlist = []
+                i = 0
+                for one in qset2:
+                    i = i + 1
+                    rdict = {
+                        'key': str(i),
                         'name': one.mainid,
                         'tittle': one.tittle,
                         'age': one.sellid,
@@ -485,6 +544,39 @@ def 获得兑现详单(request):
                 response = HttpResponse(json.dumps([]))
     except:
         response = HttpResponse(json.dumps([]))
+        import traceback
+        print(traceback.format_exc())
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+def 根据销售品编号确认收款(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        myVar1 = request.POST['usertoken']
+        myVar2 = request.POST['sellid']
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+            usertoken=myVar1).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'用户不存在'}))
+        else:
+            if qset1.userrole == models.userrole1:
+                qset2 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(sellid=myVar2).first()
+                if qset2 == None:
+                    response = HttpResponse(json.dumps({'code':'没有权限'}))
+                else:
+                    qset2.update(mystate=models.mystate2)
+                    response = HttpResponse(json.dumps({'code':'成功'}))
+            else:
+                response = HttpResponse(json.dumps({'code':'角色错误'}))
+    except:
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
         import traceback
         print(traceback.format_exc())
     response["Access-Control-Allow-Origin"] = "*"
