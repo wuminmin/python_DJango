@@ -6,12 +6,45 @@ import sys, os
 root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(root_path)
 import myConfig
-
+import datetime
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
+ban_kuai_lan_mu_dict = {
+     '营销活动':['已发布','兑现中','已归档'],
+    '新闻中心':['人大要闻','通知公告','工作动态'],
+    '依法履职':['立法工作','决定决议','任职任免','监督工作'],
+    '代表工作':['代表信息','代表风采','代表信箱','议案建议']
+}
 class wxyl_image_col(Document):
     wxyl_id = StringField()
     wxyl_image = ImageField()
+
+class wxyl_article(Document):
+    article = StringField(default='')
+    type = StringField(default='')
+    tittle = StringField(default='')
+    my_time = StringField(default='')
+    my_date = DateTimeField(default = datetime.datetime.now() )
+    my_month = StringField(default= '')
+    author = StringField(default='')
+    other = DictField(default={})
+    usernamelist = ListField(default=[])
+    type1list =  ListField(default=[])
+    type2list =  ListField(default=[])
+    type3list =  ListField(default=[])
+    userrolelist = ListField(default=[])
+
+class wxyl_userinfo(Document):
+    my_date = DateTimeField(default = datetime.datetime.now() )
+    username = StringField(default='')
+    userpwd = StringField(default='')
+    userphone = StringField(default='')
+    userrole = StringField(default='')
+    usertoken = StringField(default='')
+    mainid = StringField(default='')
+    type1 = StringField(default='')
+    type2 = StringField(default='')
+    type3 = StringField(default='')
 
 def save_image(id,path):
     outfile = open(path, 'rb')
@@ -55,5 +88,12 @@ if __name__ == '__main__':
     # save_image('24','D:/WMM/青阳人大/微信图片_20191105095529.jpg')
     # save_image('25','C:/Users/WMM\Pictures/青阳人大/8b31fa16247dfa6260f7e202ca1c5d36.jpg')
     # save_image('26','C:/Users/WMM\Pictures/青阳人大/673d352f8e6351e4aa2aa962409d93ca.jpg')
-    save_image('10','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145215.jpg')
+    # save_image('10','D:\WMM\皱燕民\景观工程（假山、驳岸）\微信图片_201903201145215.jpg')
+
+    wxyl_userinfo(
+        username = '吴敏民',
+        userphone = '13355661100',
+        userrole = '管理员',
+        usertoken = '123456'
+    ).save()
     
