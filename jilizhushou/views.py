@@ -592,3 +592,66 @@ def 根据销售品编号确认收款(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
+def deng_lu(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    import time
+    try:
+        myVar1 = request.POST['userphone']
+        myVar2 = request.POST['smscode']
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+            userphone=myVar1,userpwd=myVar2).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'账号或者密码不正确'}))
+        else:
+            usertoken = str(time.time())
+            qset1.update(usertoken =usertoken )
+            response = HttpResponse(json.dumps({'code':'成功','usertoken':qset1.usertoken}))
+    except:
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+        import traceback
+        print(traceback.format_exc())
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+def send_sms(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        myVar1 = request.POST['userphone']
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+            userphone=myVar1).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'用户不存在'}))
+        else:
+            import random
+            j = 6
+            验证码 = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
+            __business_id = uuid.uuid1()
+            params = "{\"code\":\"" + 验证码 + "\"}"
+            from mysite.demo_sms_send import send_sms
+            r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
+            r2 = json.loads(r)
+            if r2['Code'] == 'OK':
+                qset1.update(userpwd = 验证码 )
+                response = HttpResponse(json.dumps({'code':'成功'}))
+            response = HttpResponse(json.dumps({'code':'号码不正确'}))
+    except:
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+        import traceback
+        print(traceback.format_exc())
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
