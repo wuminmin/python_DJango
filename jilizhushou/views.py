@@ -469,7 +469,6 @@ def 兑现激励上传文件(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
-
 def 获得活动列表(request):
     import json
     from . import models
@@ -490,7 +489,6 @@ def 获得活动列表(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
-
 
 def 获得兑现详单(request):
     import json
@@ -609,8 +607,9 @@ def deng_lu(request):
             response = HttpResponse(json.dumps({'code':'账号或者密码不正确'}))
         else:
             usertoken = str(time.time())
-            qset1.update(usertoken =usertoken )
-            response = HttpResponse(json.dumps({'code':'成功','usertoken':qset1.usertoken}))
+            # 当前时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            qset1.update(usertoken = usertoken )
+            response = HttpResponse(json.dumps({'code':'成功','usertoken':usertoken}))
     except:
         response = HttpResponse(json.dumps({'code':'系统错误'}))
         import traceback
@@ -655,3 +654,91 @@ def send_sms(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
+@deprecated_async
+def 异步处理人员清单文件(myfile,tittle):
+    from . import models
+    import pandas as pd
+    df1 = pd.read_excel(myfile)
+    def save_row_to_mongo(row):
+        try:
+            主数据工号 = row['主数据工号']
+            活动名称 = tittle
+            销售品编码 = row['销售品编码']
+            激励金额 = row['激励金额']
+            激励账期 = row['激励账期']
+            银行卡 = row['银行卡']
+            print(主数据工号, 活动名称, 销售品编码, 激励金额, 激励账期, 银行卡)
+            qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(sellid=销售品编码).first()
+            if qset1 == None:
+                models.ji_li_zhu_shou_dui_xian_qing_dan(
+                    mainid=str(主数据工号),
+                    tittle=str(活动名称),
+                    sellid=str(销售品编码),
+                    money=float(激励金额),
+                    mydate=str(激励账期),
+                    bankid=str(银行卡)
+                ).save()
+            else:
+                qset1.update(
+                    mainid=str(主数据工号),
+                    tittle=str(活动名称),
+                    sellid=str(销售品编码),
+                    money=float(激励金额),
+                    mydate=str(激励账期),
+                    bankid=str(银行卡)
+                )
+        except:
+            import traceback
+            print(traceback.format_exc())
+        return row['主数据工号']
+    df1['主数据工号'] = df1.apply(
+        save_row_to_mongo, axis=1
+    )
+
+def upload_userinfos(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        usertoken = request.POST['usertoken']
+        tittle = request.POST['tittle']
+        qset1 = models.ji_li_zhu_shou_userinfo.objects(usertoken=usertoken).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'非法用户'}))
+        else:
+            if qset1.userrole == models.userrole2:
+                file_object = request.FILES['file'].file
+                my_file_name = request.FILES['file'].name
+                print(file_object)
+                fo = open(my_file_name, "wb")
+                fo.write(request.FILES['file'].file.read())
+                fo.close()
+                异步处理人员清单文件(my_file_name,tittle)
+                response = HttpResponse(json.dumps({'code':'成功'}))
+            else:
+                response = HttpResponse(json.dumps({'code':'没有权限'}))
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+
+
+
+
+
+
+
+
+
+
+
+

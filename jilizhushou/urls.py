@@ -19,4 +19,5 @@ urlpatterns = [
     path('que_ren_by_sellid',views.根据销售品编号确认收款),
     path('deng_lu',views.deng_lu),
     path('send_sms',views.send_sms),
+    path('upload_userinfos',views.upload_userinfos),
 ]

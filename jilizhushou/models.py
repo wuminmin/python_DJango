@@ -60,6 +60,7 @@ userrole2 = '活动管理员'
 userrole3 = '公司领导'
 userrole4 = '县区主任'
 userrole5 = '营业部主任'
+userrole6 = '系统管理员'
 class ji_li_zhu_shou_userinfo(Document):
     my_date = DateTimeField(default = datetime.datetime.now() )
     username = StringField(default='')

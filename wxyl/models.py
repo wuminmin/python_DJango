@@ -10,10 +10,10 @@ import datetime
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
 ban_kuai_lan_mu_dict = {
-     '营销活动':['已发布','兑现中','已归档'],
-    '新闻中心':['人大要闻','通知公告','工作动态'],
-    '依法履职':['立法工作','决定决议','任职任免','监督工作'],
-    '代表工作':['代表信息','代表风采','代表信箱','议案建议']
+    '工程案例':['假山工程','园林工程','驳岸工程'],
+    '产品中心':['千层石','假山石料','龟纹石','草坪石','刻字石','景观石','泰山石','太湖石','石槽石磨','灵璧石','鹅软石'],
+    '资讯动态':['行业资讯','企业资讯'],
+    '关于我们':['关于我们'],
 }
 class wxyl_image_col(Document):
     wxyl_id = StringField()

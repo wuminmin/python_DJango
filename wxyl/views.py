@@ -114,10 +114,10 @@ def 上传新闻(request):
         now = request.POST['now']
         当前月 = str(datetime.datetime.now().year) + '年' + \
             str(datetime.datetime.now().month)+'月'
-        qset1 = models.ji_li_zhu_shou_article.objects(
+        qset1 = models.wxyl_article.objects(
             tittle=tittle, type=mytype).first()
         if qset1 == None:
-            models.ji_li_zhu_shou_article(
+            models.wxyl_article(
                 article=article,
                 tittle=tittle,
                 type=mytype,
@@ -220,14 +220,14 @@ def 根据标题下载文章(request):
     myVar = request.POST['tittle']
     if myVar == '默认':
         myVar2 = request.POST['lan_mu']
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar2).first()
+        qset2 = models.wxyl_article.objects(type=myVar2).first()
         if qset2 == None:
             response = HttpResponse('')
         else:
             response = HttpResponse(qset2.article)
     else:
         import myConfig
-        qset1 = models.ji_li_zhu_shou_article.objects(tittle=myVar).first()
+        qset1 = models.wxyl_article.objects(tittle=myVar).first()
         if qset1 == None:
             response = HttpResponse('')
         else:
@@ -246,7 +246,7 @@ def 根据标题下载时间(request):
     myVar = request.POST['tittle']
     if myVar == '默认':
         myVar2 = request.POST['lan_mu']
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar2).first()
+        qset2 = models.wxyl_article.objects(type=myVar2).first()
         if qset2 == None:
             response = HttpResponse(
                 '{\"tittle\":\"没有文章\",\"my_time\":\"没有文章\"}')
@@ -255,7 +255,7 @@ def 根据标题下载时间(request):
                 '{\"tittle\":\"' + qset2.tittle + '\",\"my_time\":\"'+qset2.my_time+'\"}')
     else:
         import myConfig
-        qset1 = models.ji_li_zhu_shou_article.objects(tittle=myVar).first()
+        qset1 = models.wxyl_article.objects(tittle=myVar).first()
         if qset1 == None:
             response = HttpResponse(
                 '{\"tittle\":\"' + myVar + '\",\"my_time\":\"\"}')
@@ -279,7 +279,7 @@ def 根据栏目下载目录(request):
     # from pymongo import MongoClient
     # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     # db = client['mydb']
-    qset1 = models.ji_li_zhu_shou_article.objects(type=myVar)
+    qset1 = models.wxyl_article.objects(type=myVar)
     myVar2 = []
     myVar3 = []
     for one in qset1:
@@ -289,7 +289,7 @@ def 根据栏目下载目录(request):
             myVar2.append(one.my_month)
     for one in myVar2:
         myVar4 = []
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar, my_month=one)
+        qset2 = models.wxyl_article.objects(type=myVar, my_month=one)
         for one2 in qset2:
             myVar4.append({'标题': one2.tittle, })
         myVar3.append({'月份': one, '新闻标题列表': myVar4})
@@ -306,13 +306,14 @@ def 根据板块下载表格(request):
     from django.http import HttpResponse
     import traceback
     myVar = request.POST['ban_kuai']
+    print('根据板块下载表格',myVar)
     myVar2 = models.ban_kuai_lan_mu_dict[myVar]
     myVar3 = []
     i = 0
     for one in myVar2:
         i = i+1
         myVar4 = []
-        qset2 = models.ji_li_zhu_shou_article.objects(type=one).limit(10)
+        qset2 = models.wxyl_article.objects(type=one).limit(10)
         for one2 in qset2:
             myVar4.append({'key': one2.tittle, 'key2': one2.my_time,
                            'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle})
@@ -336,7 +337,7 @@ def 获取用户信息(request):
     import myConfig
     try:
         myVar1 = request.POST['usertoken']
-        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+        qset1 = models.wxyl_userinfo.objects(
             usertoken=myVar1).first()
         if qset1 == None:
             r_dict = {
@@ -433,7 +434,7 @@ def 兑现激励上传文件(request):
         print(request.POST)
         usertoken = request.POST['usertoken']
         tittle = request.POST['tittle']
-        qset1 = models.ji_li_zhu_shou_userinfo.objects(usertoken=usertoken).first()
+        qset1 = models.wxyl_userinfo.objects(usertoken=usertoken).first()
         if qset1 == None:
             response = HttpResponse(json.dumps({'code':'非法用户'}))
         else:
@@ -465,7 +466,7 @@ def 获得活动列表(request):
     from django.http import HttpResponse
     import traceback
     import myConfig
-    qset2 = models.ji_li_zhu_shou_article.objects()
+    qset2 = models.wxyl_article.objects()
     myVar2list = []
     for one in qset2:
         if one.tittle in myVar2list:
@@ -490,7 +491,7 @@ def 获得兑现详单(request):
         myVar1 = request.POST['usertoken']
         myVar2 = request.POST['tittle']
         print('获得兑现详单', myVar1, myVar2)
-        qset1 = models.ji_li_zhu_shou_userinfo.objects(
+        qset1 = models.wxyl_userinfo.objects(
             usertoken=myVar1).first()
         if qset1 == None:
             response = HttpResponse(json.dumps([]))
