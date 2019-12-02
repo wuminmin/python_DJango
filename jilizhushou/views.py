@@ -345,9 +345,8 @@ def 获取用户信息(request):
     import myConfig
     try:
         myVar1 = request.POST['usertoken']
-        qset1 = models.ji_li_zhu_shou_userinfo.objects(
-            usertoken=myVar1).first()
-        if qset1 == None:
+        print('获取用户信息',myVar1)
+        if myVar1 == '':
             r_dict = {
                 'username': '',
                 'userphone': '',
@@ -359,17 +358,30 @@ def 获取用户信息(request):
             }
             response = HttpResponse(json.dumps(r_dict))
         else:
-
-            r_dict = {
-                'username': qset1.username,
-                'userphone': qset1.userphone,
-                'userrole': qset1.userrole,
-                'mainid': qset1.mainid,
-                'type1': qset1.type1,
-                'type2': qset1.type2,
-                'type3': qset1.type3
-            }
-            response = HttpResponse(json.dumps(r_dict))
+            qset1 = models.ji_li_zhu_shou_userinfo.objects(
+                usertoken=myVar1).first()
+            if qset1 == None:
+                r_dict = {
+                    'username': '',
+                    'userphone': '',
+                    'userrole': '',
+                    'mainid': '',
+                    'type1': '',
+                    'type2': '',
+                    'type3': ''
+                }
+                response = HttpResponse(json.dumps(r_dict))
+            else:
+                r_dict = {
+                    'username': qset1.username,
+                    'userphone': qset1.userphone,
+                    'userrole': qset1.userrole,
+                    'mainid': qset1.mainid,
+                    'type1': qset1.type1,
+                    'type2': qset1.type2,
+                    'type3': qset1.type3
+                }
+                response = HttpResponse(json.dumps(r_dict))
     except:
         response = HttpResponse(
             json.dumps({
@@ -606,8 +618,7 @@ def deng_lu(request):
         if qset1 == None:
             response = HttpResponse(json.dumps({'code':'账号或者密码不正确'}))
         else:
-            usertoken = str(time.time())
-            # 当前时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            usertoken = myVar1+'_'+str(time.time())
             qset1.update(usertoken = usertoken )
             response = HttpResponse(json.dumps({'code':'成功','usertoken':usertoken}))
     except:
@@ -636,15 +647,17 @@ def send_sms(request):
             import random
             j = 6
             验证码 = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
+            import uuid
             __business_id = uuid.uuid1()
             params = "{\"code\":\"" + 验证码 + "\"}"
             from mysite.demo_sms_send import send_sms
-            r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
+            r = send_sms(__business_id, qset1.userphone, myConfig.sign_name, myConfig.template_code, params)
             r2 = json.loads(r)
             if r2['Code'] == 'OK':
                 qset1.update(userpwd = 验证码 )
                 response = HttpResponse(json.dumps({'code':'成功'}))
-            response = HttpResponse(json.dumps({'code':'号码不正确'}))
+            else:
+                response = HttpResponse(json.dumps({'code':'号码不正确'}))
     except:
         response = HttpResponse(json.dumps({'code':'系统错误'}))
         import traceback
@@ -662,37 +675,39 @@ def 异步处理人员清单文件(myfile,tittle):
     df1 = pd.read_excel(myfile)
     def save_row_to_mongo(row):
         try:
-            主数据工号 = row['主数据工号']
-            活动名称 = tittle
-            销售品编码 = row['销售品编码']
-            激励金额 = row['激励金额']
-            激励账期 = row['激励账期']
-            银行卡 = row['银行卡']
-            print(主数据工号, 活动名称, 销售品编码, 激励金额, 激励账期, 银行卡)
-            qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(sellid=销售品编码).first()
+            username = row['姓名']
+            userphone = row['手机号']
+            userrole = row['角色']
+            mainid = row['主数据编号']
+            type1 = row['三级单元']
+            type2 = row['四级单元']
+            type3 = row['五级单元']
+            qset1 = models.ji_li_zhu_shou_userinfo.objects(userphone=userphone).first()
             if qset1 == None:
-                models.ji_li_zhu_shou_dui_xian_qing_dan(
-                    mainid=str(主数据工号),
-                    tittle=str(活动名称),
-                    sellid=str(销售品编码),
-                    money=float(激励金额),
-                    mydate=str(激励账期),
-                    bankid=str(银行卡)
+                models.ji_li_zhu_shou_userinfo(
+                    username=str(username),
+                    userphone=str(userphone),
+                    userrole=str(userrole),
+                    mainid=str(mainid),
+                    type1=str(type1),
+                    type2 = str(type2),
+                    type3 = str(type3)
                 ).save()
             else:
                 qset1.update(
-                    mainid=str(主数据工号),
-                    tittle=str(活动名称),
-                    sellid=str(销售品编码),
-                    money=float(激励金额),
-                    mydate=str(激励账期),
-                    bankid=str(银行卡)
+                    username=str(username),
+                    userphone=str(userphone),
+                    userrole=str(userrole),
+                    mainid=str(mainid),
+                    type1=str(type1),
+                    type2 = str(type2),
+                    type3 = str(type3)
                 )
         except:
             import traceback
             print(traceback.format_exc())
-        return row['主数据工号']
-    df1['主数据工号'] = df1.apply(
+        return row['手机号']
+    df1['手机号'] = df1.apply(
         save_row_to_mongo, axis=1
     )
 
