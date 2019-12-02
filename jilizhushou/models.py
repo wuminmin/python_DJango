@@ -25,10 +25,13 @@ ban_kuai_lan_mu_dict = {
     '代表工作':['代表信息','代表风采','代表信箱','议案建议']
 }
 
+ban_kuai1_lan_mu1 = '已发布'
+ban_kuai1_lan_mu2 = '兑现中'
+ban_kuai1_lan_mu3 = '已归档'
 import datetime
 class ji_li_zhu_shou_article(Document):
     article = StringField(default='')
-    type = StringField(default='')
+    lan_mu = StringField(default='')
     tittle = StringField(default='')
     my_time = StringField(default='')
     my_date = DateTimeField(default = datetime.datetime.now() )
@@ -36,9 +39,9 @@ class ji_li_zhu_shou_article(Document):
     author = StringField(default='')
     other = DictField(default={})
     usernamelist = ListField(default=[])
-    type1list =  ListField(default=[])
-    type2list =  ListField(default=[])
-    type3list =  ListField(default=[])
+    lan_mu1list =  ListField(default=[])
+    lan_mu2list =  ListField(default=[])
+    lan_mu3list =  ListField(default=[])
     userrolelist = ListField(default=[])
 
 mystate1 = '待确认'
@@ -69,9 +72,9 @@ class ji_li_zhu_shou_userinfo(Document):
     userrole = StringField(default='')
     usertoken = StringField(default='')
     mainid = StringField(default='')
-    type1 = StringField(default='')
-    type2 = StringField(default='')
-    type3 = StringField(default='')
+    lan_mu1 = StringField(default='')
+    lan_mu2 = StringField(default='')
+    lan_mu3 = StringField(default='')
 
 class ji_li_zhu_shou_image(Document):
     col_id = StringField()
@@ -94,7 +97,7 @@ def save_image(id,path):
 
 
 if __name__ == "__main__":
-    # qset1 = qyrd_article_col.objects(type='通知公告').count()
+    # qset1 = qyrd_article_col.objects(lan_mu='通知公告').count()
     # print(qset1)
     # save_image('修身福地灵秀青阳','./qyrd/banner.jpg')
 

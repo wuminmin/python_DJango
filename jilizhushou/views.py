@@ -33,17 +33,17 @@ def 上传新闻(request):
     try:
         article = request.POST['article']
         tittle = request.POST['tittle']
-        mytype = request.POST['type']
+        mytype = request.POST['lan_mu']
         now = request.POST['now']
         当前月 = str(datetime.datetime.now().year) + '年' + \
             str(datetime.datetime.now().month)+'月'
         qset1 = models.ji_li_zhu_shou_article.objects(
-            tittle=tittle, type=mytype).first()
+            tittle=tittle, lan_mu=mylan_mu).first()
         if qset1 == None:
             models.ji_li_zhu_shou_article(
                 article=article,
                 tittle=tittle,
-                type=mytype,
+                lan_mu=mytype,
                 my_time=now,
                 my_date=datetime.datetime.now(),
                 my_month=当前月,
@@ -72,53 +72,6 @@ def 上传新闻(request):
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
-
-    # request_body = request.body
-    # import chardet
-    # request_body_encoding = chardet.detect(request_body)['encoding']
-    # print(request_body_encoding)
-    # if request_body_encoding == None:
-    #     request_body_encoding = 'GB2312'
-    # ano_data = request.body.decode(request_body_encoding)
-    # import re
-    # import time
-    # import datetime
-    # 当前月 = str(datetime.datetime.now().year) + '年'+str(datetime.datetime.now().month)+'月'
-    # n = re.findall(
-    #     r"{\"article\":\"(.+?)\",\"tittle\":\"(.+?)\",\"type\":\"(.+?)\",\"now\":\"(.+?)\"}", ano_data)
-    # if n != []:
-    #     # article = n[0][0]
-    #     tittle = n[0][1]
-    #     type = n[0][2]
-    #     now = n[0][3]
-    #     qset1 = models.qyrd_article_col.objects(
-    #         tittle=tittle, type=type).first()
-    #     if qset1 == None:
-    #         models.qyrd_article_col(
-    #             article=ano_data,
-    #             tittle=tittle,
-    #             type=type,
-    #             my_time = now,
-    #             my_date = datetime.datetime.now(),
-    #             my_month = 当前月,
-    #             other={'request_body_encoding': request_body_encoding}).save()
-    #     else:
-    #         qset1.update(
-    #             article=ano_data,
-    #             my_time = now,
-    #             my_date = datetime.datetime.now(),
-    #             my_month = 当前月,
-    #             other={'request_body_encoding': request_body_encoding})
-    #     response = HttpResponse(ano_data.encode(request_body_encoding))
-    # else:
-    #     response = HttpResponse(
-    #         '{"article":"<p>输入有误！</p>","tittle":"","type":""}')
-    # response["Access-Control-Allow-Origin"] = "*"
-    # response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-    # response["Access-Control-Max-Age"] = "1000"
-    # response["Access-Control-Allow-Headers"] = "*"
-    # return response
-
 
 def images(request):
     from . import models
@@ -158,13 +111,13 @@ def 新闻下载(request):
     from . import models
     from django.http import HttpResponse
     import traceback
-    mytype = request.POST['type']
+    mytype = request.POST['lan_mu']
     import myConfig
     from pymongo import MongoClient
     client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
                          '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     db = client['mydb']
-    r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)])
+    r = db.qyrd_article_col.find({'lan_mu': mytype}).sort([("_id", -1)])
     if r == []:
         response = HttpResponse(
             '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\"}')
@@ -190,13 +143,13 @@ def 新闻列表下载(request):
     from . import models
     from django.http import HttpResponse
     import traceback
-    mytype = request.POST['type']
+    mylan_mu = request.POST['lan_mu']
     import myConfig
     from pymongo import MongoClient
     client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
                          '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     db = client['mydb']
-    r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)]).limit(6)
+    r = db.qyrd_article_col.find({'lan_mu': mytype}).sort([("_id", -1)]).limit(6)
     if r == []:
         response = HttpResponse('[]')
         response["Access-Control-Allow-Origin"] = "*"
@@ -225,7 +178,7 @@ def 根据标题下载文章(request):
     myVar = request.POST['tittle']
     if myVar == '默认':
         myVar2 = request.POST['lan_mu']
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar2).first()
+        qset2 = models.ji_li_zhu_shou_article.objects(lan_mu=myVar2).first()
         if qset2 == None:
             response = HttpResponse('')
         else:
@@ -252,7 +205,7 @@ def 根据标题下载时间(request):
     myVar = request.POST['tittle']
     if myVar == '默认':
         myVar2 = request.POST['lan_mu']
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar2).first()
+        qset2 = models.ji_li_zhu_shou_article.objects(lan_mu=myVar2).first()
         if qset2 == None:
             response = HttpResponse(
                 '{\"tittle\":\"没有文章\",\"my_time\":\"没有文章\"}')
@@ -280,13 +233,13 @@ def 根据栏目下载目录(request):
     from . import models
     from django.http import HttpResponse
     import traceback
-    myVar = request.POST['type']
+    myVar = request.POST['lan_mu']
     print('根据栏目下载目录', myVar)
     # import myConfig
     # from pymongo import MongoClient
     # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     # db = client['mydb']
-    qset1 = models.ji_li_zhu_shou_article.objects(type=myVar)
+    qset1 = models.ji_li_zhu_shou_article.objects(lan_mu=myVar)
     myVar2 = []
     myVar3 = []
     for one in qset1:
@@ -296,7 +249,7 @@ def 根据栏目下载目录(request):
             myVar2.append(one.my_month)
     for one in myVar2:
         myVar4 = []
-        qset2 = models.ji_li_zhu_shou_article.objects(type=myVar, my_month=one)
+        qset2 = models.ji_li_zhu_shou_article.objects(lan_mu=myVar, my_month=one)
         for one2 in qset2:
             myVar4.append({'标题': one2.tittle, })
         myVar3.append({'月份': one, '新闻标题列表': myVar4})
@@ -320,7 +273,7 @@ def 根据板块下载表格(request):
     for one in myVar2:
         i = i+1
         myVar4 = []
-        qset2 = models.ji_li_zhu_shou_article.objects(type=one).limit(10)
+        qset2 = models.ji_li_zhu_shou_article.objects(lan_mu=one).limit(10)
         for one2 in qset2:
             myVar4.append({'key': one2.tittle, 'key2': one2.my_time,
                            'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle})
@@ -352,9 +305,9 @@ def 获取用户信息(request):
                 'userphone': '',
                 'userrole': '',
                 'mainid': '',
-                'type1': '',
-                'type2': '',
-                'type3': ''
+                'lan_mu1': '',
+                'lan_mu2': '',
+                'lan_mu3': ''
             }
             response = HttpResponse(json.dumps(r_dict))
         else:
@@ -366,9 +319,9 @@ def 获取用户信息(request):
                     'userphone': '',
                     'userrole': '',
                     'mainid': '',
-                    'type1': '',
-                    'type2': '',
-                    'type3': ''
+                    'lan_mu1': '',
+                    'lan_mu2': '',
+                    'lan_mu3': ''
                 }
                 response = HttpResponse(json.dumps(r_dict))
             else:
@@ -377,9 +330,9 @@ def 获取用户信息(request):
                     'userphone': qset1.userphone,
                     'userrole': qset1.userrole,
                     'mainid': qset1.mainid,
-                    'type1': qset1.type1,
-                    'type2': qset1.type2,
-                    'type3': qset1.type3
+                    'lan_mu1': qset1.lan_mu1,
+                    'lan_mu2': qset1.lan_mu2,
+                    'lan_mu3': qset1.lan_mu3
                 }
                 response = HttpResponse(json.dumps(r_dict))
     except:
@@ -389,9 +342,9 @@ def 获取用户信息(request):
                 'userphone': '',
                 'userrole': '',
                 'mainid': '',
-                'type1': '',
-                'type2': '',
-                'type3': ''
+                'lan_mu1': '',
+                'lan_mu2': '',
+                'lan_mu3': ''
             })
         )
         import traceback
@@ -436,6 +389,7 @@ def 异步处理兑现激励文件(myfile,tittle):
                     mydate=str(激励账期),
                     bankid=str(银行卡)
                 )
+
         except:
             import traceback
             print(traceback.format_exc())
@@ -443,6 +397,12 @@ def 异步处理兑现激励文件(myfile,tittle):
     df1['主数据工号'] = df1.apply(
         save_row_to_mongo, axis=1
     )
+    qset2 = models.ji_li_zhu_shou_article.objects(tittle=tittle).first()
+    if qset2 == None:
+        pass
+    else:
+        print(qset2.tittle)
+        qset2.update( tittle = '兑现中')
 
 def 兑现激励上传文件(request):
     import json
@@ -682,9 +642,9 @@ def 异步处理人员清单文件(myfile,tittle):
             userphone = row['手机号']
             userrole = row['角色']
             mainid = row['主数据编号']
-            type1 = row['三级单元']
-            type2 = row['四级单元']
-            type3 = row['五级单元']
+            lan_mu1 = row['三级单元']
+            lan_mu2 = row['四级单元']
+            lan_mu3 = row['五级单元']
             qset1 = models.ji_li_zhu_shou_userinfo.objects(userphone=userphone).first()
             if qset1 == None:
                 models.ji_li_zhu_shou_userinfo(
@@ -692,9 +652,9 @@ def 异步处理人员清单文件(myfile,tittle):
                     userphone=str(userphone),
                     userrole=str(userrole),
                     mainid=str(mainid),
-                    type1=str(type1),
-                    type2 = str(type2),
-                    type3 = str(type3)
+                    lan_mu1=str(lan_mu1),
+                    lan_mu2 = str(lan_mu2),
+                    lan_mu3 = str(lan_mu3)
                 ).save()
             else:
                 qset1.update(
@@ -702,9 +662,9 @@ def 异步处理人员清单文件(myfile,tittle):
                     userphone=str(userphone),
                     userrole=str(userrole),
                     mainid=str(mainid),
-                    type1=str(type1),
-                    type2 = str(type2),
-                    type3 = str(type3)
+                    lan_mu1=str(lan_mu1),
+                    lan_mu2 = str(lan_mu2),
+                    lan_mu3 = str(lan_mu3)
                 )
         except:
             import traceback
