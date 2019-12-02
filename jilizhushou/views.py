@@ -33,7 +33,7 @@ def 上传新闻(request):
     try:
         article = request.POST['article']
         tittle = request.POST['tittle']
-        mytype = request.POST['lan_mu']
+        mylan_mu = request.POST['lan_mu']
         now = request.POST['now']
         当前月 = str(datetime.datetime.now().year) + '年' + \
             str(datetime.datetime.now().month)+'月'
@@ -43,7 +43,7 @@ def 上传新闻(request):
             models.ji_li_zhu_shou_article(
                 article=article,
                 tittle=tittle,
-                lan_mu=mytype,
+                lan_mu=mylan_mu,
                 my_time=now,
                 my_date=datetime.datetime.now(),
                 my_month=当前月,
@@ -111,13 +111,13 @@ def 新闻下载(request):
     from . import models
     from django.http import HttpResponse
     import traceback
-    mytype = request.POST['lan_mu']
+    mylan_mu = request.POST['lan_mu']
     import myConfig
     from pymongo import MongoClient
     client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
                          '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     db = client['mydb']
-    r = db.qyrd_article_col.find({'lan_mu': mytype}).sort([("_id", -1)])
+    r = db.qyrd_article_col.find({'lan_mu': mylan_mu}).sort([("_id", -1)])
     if r == []:
         response = HttpResponse(
             '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\"}')
@@ -149,7 +149,7 @@ def 新闻列表下载(request):
     client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
                          '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     db = client['mydb']
-    r = db.qyrd_article_col.find({'lan_mu': mytype}).sort([("_id", -1)]).limit(6)
+    r = db.qyrd_article_col.find({'lan_mu': mylan_mu}).sort([("_id", -1)]).limit(6)
     if r == []:
         response = HttpResponse('[]')
         response["Access-Control-Allow-Origin"] = "*"
