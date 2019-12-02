@@ -613,14 +613,17 @@ def deng_lu(request):
     try:
         myVar1 = request.POST['userphone']
         myVar2 = request.POST['smscode']
-        qset1 = models.ji_li_zhu_shou_userinfo.objects(
-            userphone=myVar1,userpwd=myVar2).first()
-        if qset1 == None:
-            response = HttpResponse(json.dumps({'code':'账号或者密码不正确'}))
+        if myVar2 == '':
+            response = HttpResponse(json.dumps({'code':'验证码不为空'}))
         else:
-            usertoken = myVar1+'_'+str(time.time())
-            qset1.update(usertoken = usertoken )
-            response = HttpResponse(json.dumps({'code':'成功','usertoken':usertoken}))
+            qset1 = models.ji_li_zhu_shou_userinfo.objects(
+                userphone=myVar1,userpwd=myVar2).first()
+            if qset1 == None:
+                response = HttpResponse(json.dumps({'code':'账号或者密码不正确'}))
+            else:
+                usertoken = myVar1+'_'+str(time.time())
+                qset1.update(usertoken = usertoken )
+                response = HttpResponse(json.dumps({'code':'成功','usertoken':usertoken}))
     except:
         response = HttpResponse(json.dumps({'code':'系统错误'}))
         import traceback
