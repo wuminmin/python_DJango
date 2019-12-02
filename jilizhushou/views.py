@@ -401,8 +401,7 @@ def 异步处理兑现激励文件(myfile,tittle):
     if qset2 == None:
         pass
     else:
-        print(qset2.tittle)
-        qset2.update( tittle = '兑现中')
+        qset2.update( lan_mu = models.ban_kuai1_lan_mu2)
 
 def 兑现激励上传文件(request):
     import json
@@ -530,6 +529,18 @@ def 获得兑现详单(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+@deprecated_async
+def 异步归档活动(tittle):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    qset1 = models.ji_li_zhu_shou_dui_xian_qing_dan.objects(tittle = tittle,mystate = models.mystate1).first()
+    if qset1 == None:
+        models.ji_li_zhu_shou_dui_xian_qing_dan.objects(tittle = tittle,mystate = models.mystate2).update(mystate = models.mystate4 )
+        models.ji_li_zhu_shou_article.objects(tittle = tittle).first().update(lan_mu = models.ban_kuai1_lan_mu3)
+
 def 根据销售品编号确认收款(request):
     import json
     from . import models
@@ -550,6 +561,7 @@ def 根据销售品编号确认收款(request):
                     response = HttpResponse(json.dumps({'code':'没有权限'}))
                 else:
                     qset2.update(mystate=models.mystate2)
+                    异步归档活动(qset2.tittle)
                     response = HttpResponse(json.dumps({'code':'成功'}))
             else:
                 response = HttpResponse(json.dumps({'code':'角色错误'}))

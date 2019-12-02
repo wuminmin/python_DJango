@@ -103,6 +103,7 @@ if __name__ == "__main__":
 
     ji_li_zhu_shou_userinfo(
         username = '吴敏民',
+        userpwd = '123456',
         userphone = '13355661100',
-        userrole = '营销活动管理员',
+        userrole = '管理员',
     ).save()
