@@ -85,6 +85,12 @@ sys.path.append(root_path)
 # ] )
 # print(list(r))
 
-from . import models
-qset1 = models.qyrd_article_col.objects(type=myVar)
-print(qset1.to_json())
+# from . import models
+# qset1 = models.qyrd_article_col.objects(type=myVar)
+# print(qset1.to_json())
+
+import requests
+wmmurl = 'http://t.weather.sojson.com/api/weather/city/101221703'
+r = requests.get(url=wmmurl)
+r_json = json.loads(r.text)
+print(r_json)

@@ -23,6 +23,12 @@ urlpatterns = [
     path('zn/', views.zn),
     path('xia_zai_ban_shi', views.下载办事列表),
     path('xia_zai_ban_shi_hui_zong',views.下载办事汇总列表),
-    path('submit_qu_xiao_ban_shi',views.取消办事预约)
+    path('submit_qu_xiao_ban_shi',views.取消办事预约),
+    path('hdjl/',views.互动交流),
+    path('hdjl2/',views.互动交流2),
+
+    path('wst_dl/', views.wst_dl),
+    path('wst_yy/', views.wst_yy),
+
 
 ]

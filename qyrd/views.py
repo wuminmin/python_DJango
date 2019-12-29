@@ -313,3 +313,68 @@ def 根据板块下载表格(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
+
+def upload_img(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        print(request.FILES)
+        print(request.POST)
+        usertoken = request.POST['usertoken']
+        tittle = request.POST['tittle']
+        qset1 = models.qyrd_userinfo.objects(usertoken=usertoken).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'非法用户'}))
+        else:
+            file_object = request.FILES['file'].file
+            qset2 = models.qyrd_image_col.objects(col_id = tittle).first()
+            if qset2 == None:
+                models.qyrd_image_col(
+                    col_id = tittle ,
+                    col_image = file_object
+                ).save()
+            else:
+                qset2.delete()
+                models.wxyl_image_col(
+                    col_id = tittle ,
+                    col_image = file_object
+                ).save()
+            response = HttpResponse(json.dumps({'code':'成功'}))
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+def 天气下载(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        import requests
+        wmmurl = 'http://t.weather.sojson.com/api/weather/city/101221703'
+        r = requests.get(url=wmmurl)
+        r_json = json.loads(r.text)
+        print(r_json)
+        response = HttpResponse(json.dumps(r_json))
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+
+

@@ -25,6 +25,8 @@ urlpatterns = [
     path('tou_piao/', include('tou_piao.urls')),
     path('qyrd/', include('qyrd.urls')),
     path('jilizhushou/', include('jilizhushou.urls')),
+    path('tieta/', include('tieta.urls')),
+    
 
     # 验证码---------------------
     url(r'^$', views.index),
