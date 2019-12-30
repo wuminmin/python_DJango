@@ -859,82 +859,119 @@ def 互动交流2(request):
 
 def wst_dl(request):
     var1 = request.GET['token']
-    access_token = ''
-    refresh_token = ''
-    #
-    openid = var1
-    qset0 = models.微信预约用户表.objects(openid=openid).first()
-    if qset0 == None:
-        # return HttpResponse()
-        # models.微信预约用户表(
-        #     openid=openid,
-        #     access_token=access_token,
-        #     refresh_token=refresh_token
-        # ).save()
-        # return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
-
+    print(var1)
+    url = 'http://61.190.70.197:8800/uccp-service/user/getUserInfo/'+var1
+    r = requests.get(url=url)
+    r_json = json.loads(r.text)
+    if r_json['code'] == '200':
+        手机号 = r_json['data']['accountVo']['phone']
+        姓名 = r_json['data']['accountVo']['userName']
+        身份证号码 =  r_json['data']['accountVo']['credentNo']
+        openid = r_json['data']['accountVo']['userId']
+        access_token = var1
+        refresh_token = var1
+        qset0 = models.微信预约用户表.objects(手机号=手机号).first()
+        if qset0 == None:
+            models.微信预约用户表(
+                openid=openid,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                手机号=手机号,
+                其它 = {'姓名':姓名,'身份证号码':身份证号码}
+            ).save()
+            return redirect(
+                    models.react_url+'userInfo'+'?\
+                    access_token='+access_token+\
+                    '&refresh_token='+refresh_token+\
+                    '&手机号='+手机号+\
+                    '&姓名='+姓名+\
+                    '&身份证号码='+身份证号码)
+            # return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+            # response = HttpResponse('token无效')
+            # response["Access-Control-Allow-Origin"] = "*"
+            # response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            # response["Access-Control-Max-Age"] = "1000"
+            # response["Access-Control-Allow-Headers"] = "*"
+            # return response
+        else:
+            qset0.update(
+                access_token=access_token,
+                refresh_token=refresh_token
+            )
+            if qset0.手机号 == '':
+                return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+            else:
+                手机号 = qset0.手机号
+                姓名 = qset0.其它['姓名']
+                身份证号码 = qset0.其它['身份证号码']
+                return redirect(
+                    models.react_url+'userInfo'+'?\
+                    access_token='+access_token+\
+                    '&refresh_token='+refresh_token+\
+                    '&手机号='+手机号+\
+                    '&姓名='+姓名+\
+                    '&身份证号码='+身份证号码)
+    else:
         response = HttpResponse('token无效')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
-    else:
-        qset0.update(
-            access_token=access_token,
-            refresh_token=refresh_token
-        )
-        if qset0.手机号 == '':
-            return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
-        else:
-            手机号 = qset0.手机号
-            姓名 = qset0.其它['姓名']
-            身份证号码 = qset0.其它['身份证号码']
-            return redirect(
-                models.react_url+'userInfo'+'?\
-                access_token='+access_token+\
-                '&refresh_token='+refresh_token+\
-                '&手机号='+手机号+\
-                '&姓名='+姓名+\
-                '&身份证号码='+身份证号码)
 
 
 def wst_yy(request):
     var1 = request.GET['token']
-    access_token = ''
-    refresh_token = ''
-   
-    openid = var1
-    qset0 = models.微信预约用户表.objects(openid=openid).first()
-    if qset0 == None:
-        # models.微信预约用户表(
-        #     openid=openid,
-        #     access_token=access_token,
-        #     refresh_token=refresh_token
-        # ).save()
-        # return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+    print(var1)
+    url = 'http://61.190.70.197:8800/uccp-service/user/getUserInfo/'+var1
+    r = requests.get(url=url)
+    r_json = json.loads(r.text)
+    if r_json['code'] == '200':
+        手机号 = r_json['data']['accountVo']['phone']
+        姓名 = r_json['data']['accountVo']['userName']
+        身份证号码 =  r_json['data']['accountVo']['credentNo']
+        openid = r_json['data']['accountVo']['userId']
+        access_token = var1
+        refresh_token = var1
+        qset0 = models.微信预约用户表.objects(openid=openid).first()
+        if qset0 == None:
+            models.微信预约用户表(
+                openid=openid,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                手机号=手机号,
+                其它 = {'姓名':姓名,'身份证号码':身份证号码}
+            ).save()
+            return redirect(
+                    models.react_url+'yuyuexuzhi'+'?\
+                    access_token='+access_token+\
+                    '&refresh_token='+refresh_token+\
+                    '&手机号='+手机号+\
+                    '&姓名='+姓名+\
+                    '&身份证号码='+身份证号码)
+        else:
+            qset0.update(
+                access_token=access_token,
+                refresh_token=refresh_token
+            )
+            if qset0.手机号 == '':
+                return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+            else:
+                手机号 = qset0.手机号
+                姓名 = qset0.其它['姓名']
+                身份证号码 = qset0.其它['身份证号码']
+                print('---------------------------------------',access_token)
+                return redirect(
+                    models.react_url+'yuyuexuzhi'+'?\
+                    access_token='+access_token+\
+                    '&refresh_token='+refresh_token+\
+                    '&手机号='+手机号+\
+                    '&姓名='+姓名+\
+                    '&身份证号码='+身份证号码)
+    else:
         response = HttpResponse('token无效')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
-    else:
-        qset0.update(
-            access_token=access_token,
-            refresh_token=refresh_token
-        )
-        if qset0.手机号 == '':
-            return redirect(models.react_url+'zhuce'+'?access_token='+access_token+'&refresh_token='+refresh_token)
-        else:
-            手机号 = qset0.手机号
-            姓名 = qset0.其它['姓名']
-            身份证号码 = qset0.其它['身份证号码']
-            print('---------------------------------------',access_token)
-            return redirect(
-                models.react_url+'yuyuexuzhi'+'?\
-                access_token='+access_token+\
-                '&refresh_token='+refresh_token+\
-                '&手机号='+手机号+\
-                '&姓名='+姓名+\
-                '&身份证号码='+身份证号码)

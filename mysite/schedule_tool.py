@@ -113,9 +113,9 @@ def 发邮件(邮箱, 文件名, 姓名, 附件):
         print('无法发送')
         return False
 
-def 订餐没吃统计发邮件():
+def 订餐没吃统计发邮件(mail_addr):
     try:
-        mail_addr = '15305669706@189.cn'
+       
         子菜单page_name = '市公司食堂'
         当月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month, 1).strftime('%Y-%m-%d')
         上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
@@ -192,7 +192,7 @@ def 发生日短信():
 def 启动订餐提醒定时器():
     # mail_addr = ['15305669601@189.cn','15305669706@189.cn','15305666002@189.cn','18905667300@189.cn']
     # mail_addr = ['buckwmm@qq.com']
-    schedule.every().monday.do(订餐没吃统计发邮件)
+    schedule.every().monday.do(订餐没吃统计发邮件,'15305669706@189.cn')
     # schedule.every().day.at("17:14").do(订餐没吃统计发邮件,mail_addr)
     # schedule.every(10).seconds.do(job)
     # schedule.every(10).minutes.do(job)
@@ -208,7 +208,7 @@ def 启动订餐提醒定时器():
 
 if __name__ == '__main__':
     # 订餐没吃统计发邮件('buckwmm@qq.com' , '市公司食堂')
-    订餐没吃统计发邮件()
+    订餐没吃统计发邮件('743009564@qq.com')
     # 订餐没吃统计发邮件('743009564@qq.com' , '市公司食堂')
     # 订餐没吃统计发邮件('buckwmm@qq.com' , '市局（公司）食堂')
     # 订餐没吃统计发邮件('59559558@qq.com', '市局（公司）食堂')
