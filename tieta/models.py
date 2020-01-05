@@ -11,32 +11,47 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfi
 
 react_url = 'https://oa.wuminmin.top/'
 
-class  微信投票用户表(Document):
+class  铁塔用户表(Document):
     openid = StringField(default='')
     access_token = StringField(default='')
     refresh_token = StringField(default='')
     手机号 = StringField(default='')
     其它 = DictField(default={})
 
-class tou_piao_image_col(Document):
-    wxyl_id = StringField()
-    wxyl_image = ImageField()
+class  铁塔验证码表(Document):
+    验证码 = StringField()
+    手机号 = StringField()
 
-def save_image(id,path):
-    outfile = open(path, 'rb')
-    qset = tou_piao_image_col.objects(wxyl_id=id).first()
-    if qset == None:
-        tou_piao_image_col(
-            wxyl_id = id,
-            wxyl_image = outfile
-        ).save()
-    else:
-        qset.delete()
-        tou_piao_image_col(
-            wxyl_id = id,
-            wxyl_image = outfile
-        ).save()
+class 铁塔资料表(Document):
+    openid = StringField(default='')
+    手机号 = StringField(default='')
+    资料 = DictField(default={})
+
+# class  微信投票用户表(Document):
+#     openid = StringField(default='')
+#     access_token = StringField(default='')
+#     refresh_token = StringField(default='')
+#     手机号 = StringField(default='')
+#     其它 = DictField(default={})
+
+# class tou_piao_image_col(Document):
+#     wxyl_id = StringField()
+#     wxyl_image = ImageField()
+
+# def save_image(id,path):
+#     outfile = open(path, 'rb')
+#     qset = tou_piao_image_col.objects(wxyl_id=id).first()
+#     if qset == None:
+#         tou_piao_image_col(
+#             wxyl_id = id,
+#             wxyl_image = outfile
+#         ).save()
+#     else:
+#         qset.delete()
+#         tou_piao_image_col(
+#             wxyl_id = id,
+#             wxyl_image = outfile
+#         ).save()
 
 if __name__ == '__main__':
-    save_image('1','D:/Gitblit/python_django_server/tou_piao/image/1.jpg')
-    save_image('2','D:/Gitblit/python_django_server/tou_piao/image/2.jpg')
+    pass

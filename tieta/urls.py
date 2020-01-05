@@ -8,4 +8,6 @@ urlpatterns = [
     path('dl/', views.dl),
     path('dl_2/', views.dl_2),
     path('submit_ban_shi',views.提交办事申请),
+    path('sendSms', views.sendSms),
+    path('zhuce', views.zhuce),
 ]

@@ -58,27 +58,27 @@ def dl_2(request):
     access_token = r_json['access_token']
     refresh_token = r_json['refresh_token']
     openid = r_json['openid']
-    qset0 = models.微信投票用户表.objects(openid=openid).first()
+    qset0 = models.铁塔用户表.objects(openid=openid).first()
     if qset0 == None:
-        models.微信投票用户表(
+        models.铁塔用户表(
             openid=openid,
             access_token=access_token,
             refresh_token=refresh_token
         ).save()
-        return redirect(models.react_url+'tieta'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+        return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
     else:
         qset0.update(
             access_token=access_token,
             refresh_token=refresh_token
         )
         if qset0.手机号 == '':
-            return redirect(models.react_url+'tieta'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+            return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
         else:
             手机号 = qset0.手机号
             姓名 = qset0.其它['姓名']
             身份证号码 = qset0.其它['身份证号码']
             return redirect(
-                models.react_url+'userInfo'+'?\
+                models.react_url+'tieta'+'?\
                 access_token='+access_token+\
                 '&refresh_token='+refresh_token+\
                 '&手机号='+手机号+\
@@ -91,7 +91,78 @@ def 提交办事申请(request):
         myState_json = json.loads(myState)
         access_token = myState_json['access_token']
         refresh_token = myState_json['refresh_token']
-        qset0 = models.微信投票用户表.objects(refresh_token=refresh_token).first()
+        qset0 = models.铁塔用户表.objects(refresh_token=refresh_token).first()
+        if qset0 == None:
+            response = HttpResponse('用户不存在')
+        else:
+            qset1 = models.铁塔资料表.objects(openid=qset0.openid).first()
+            if qset1 == None:
+                models.铁塔资料表(
+                    openid = qset0.openid,
+                    手机号 =  qset0.手机号,
+                    资料 = myState_json
+                ).save()
+            else:
+                qset1.update(资料 = myState_json)
+            response = HttpResponse('成功')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+
+def sendSms(request):
+    try:
+        手机号 = str(request.GET['手机号'])
+        if 手机号 == '':
+            # return HttpResponse("手机号为空")
+            response = HttpResponse('手机号为空')
+        else:
+            import random
+            j = 6
+            验证码 = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
+            __business_id = uuid.uuid1()
+            params = "{\"code\":\"" + 验证码 + "\"}"
+            from mysite.demo_sms_send import send_sms
+            r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
+            r2 = json.loads(r)
+            if r2['Code'] == 'OK':
+                r = models.铁塔验证码表(验证码=验证码, 手机号=手机号).save()
+                response = HttpResponse('短信发送成功')
+            response = HttpResponse('请输入正确的手机号')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def zhuce(request):
+    try:
+        myState = str(request.GET['myState'])
+        print(myState)
+        myState_json = json.loads(myState)
+        access_token = myState_json['access_token']
+        refresh_token = myState_json['refresh_token']
+        qset0 = models.铁塔用户表.objects(access_token=access_token).first()
         if qset0 == None:
             response = HttpResponse('用户未注册')
         else:
@@ -99,60 +170,15 @@ def 提交办事申请(request):
             验证码 = myState_json['验证码']
             手机号 = myState_json['手机号']
             身份证号码 = myState_json['身份证号码']
-            部门编号 = myState_json['部门编号']
-            部门名称 = myState_json['部门名称']
-            办事内容 = myState_json['办事内容']
-            办事日期 = myState_json['办事日期']
-            办事区间 = myState_json['办事区间']
-            其它 = {}
-            # 上午办事区间 = ['9:00-10:00','10:00-11:00','11:00-12:00']
-            # 下午办事区间 = ['14:00-15:00','15:00-16:00','16:00-17:30']
-            当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-            当前日期五天后 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 432000))
-            当前小时 = time.strftime('%H:%M:%S', time.localtime(time.time()))
-            print(当前日期,当前小时,办事日期)
-            if 办事区间 == '':
-                response = HttpResponse('未选择，请重新输入')
-                response["Access-Control-Allow-Origin"] = "*"
-                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-                response["Access-Control-Max-Age"] = "1000"
-                response["Access-Control-Allow-Headers"] = "*"
-                return response
-            if '投票结果' in qset0.其它:
-                qset1 = models.微信投票用户表.objects
-                s1 = 0
-                s2 = 0
-                for one in qset1:
-                    if '投票结果' in one.其它:
-                        if one.其它['投票结果'] == '样式1':
-                            s1 = s1+1
-                        if one.其它['投票结果'] == '样式2':
-                            s2 = s2+1
-                response = HttpResponse('您已投了'+qset0.其它['投票结果']+';目前样式一：'+str(s1)+',样式二：'+str(s2)+'.')
-                response["Access-Control-Allow-Origin"] = "*"
-                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-                response["Access-Control-Max-Age"] = "1000"
-                response["Access-Control-Allow-Headers"] = "*"
-                return response
-            if 办事区间 == '样式1':
-                其它 = {'投票结果':'样式1'}
-                qset0.update(其它=其它)
-                response = HttpResponse('投票成功，样式1')
-                response["Access-Control-Allow-Origin"] = "*"
-                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-                response["Access-Control-Max-Age"] = "1000"
-                response["Access-Control-Allow-Headers"] = "*"
-                return response
-            if 办事区间 == '样式2':
-                其它 = {'投票结果':'样式2'}
-                qset0.update(其它=其它)
-                response = HttpResponse('投票成功,样式2')
-                response["Access-Control-Allow-Origin"] = "*"
-                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-                response["Access-Control-Max-Age"] = "1000"
-                response["Access-Control-Allow-Headers"] = "*"
-                return response
-            response = HttpResponse('投票选项有误')
+            qset1 = models.铁塔验证码表.objects(验证码=验证码,手机号=手机号).first()
+            if qset1 == None:
+                response = HttpResponse('验证码错误')
+            else:
+                qset0.update(
+                    手机号=手机号,
+                    其它={'姓名':姓名,'身份证号码':身份证号码}
+                )
+                response = HttpResponse('注册成功')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"

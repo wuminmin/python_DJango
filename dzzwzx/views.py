@@ -860,7 +860,7 @@ def 互动交流2(request):
 def wst_dl(request):
     var1 = request.GET['token']
     print(var1)
-    url = 'http://61.190.70.197:8800/uccp-service/user/getUserInfo/'+var1
+    url = 'https://sso.ahzwfw.gov.cn/uccp-service/user/getUserInfo/'+var1
     r = requests.get(url=url)
     r_json = json.loads(r.text)
     if r_json['code'] == '200':
@@ -923,7 +923,7 @@ def wst_dl(request):
 def wst_yy(request):
     var1 = request.GET['token']
     print(var1)
-    url = 'http://61.190.70.197:8800/uccp-service/user/getUserInfo/'+var1
+    url = 'https://sso.ahzwfw.gov.cn/uccp-service/user/getUserInfo/'+var1
     r = requests.get(url=url)
     r_json = json.loads(r.text)
     if r_json['code'] == '200':
