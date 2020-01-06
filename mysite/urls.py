@@ -26,6 +26,7 @@ urlpatterns = [
     path('qyrd/', include('qyrd.urls')),
     path('jilizhushou/', include('jilizhushou.urls')),
     path('tieta/', include('tieta.urls')),
+    path('canteen/', include('canteen.urls')),
     
 
     # 验证码---------------------
@@ -65,6 +66,9 @@ urlpatterns = [
     url(r'^ding_can_ping_jia_init/$', ding_can_views.订餐评价初始化),
     url(r'^ding_can_image/$', ding_can_views.订餐评价初始化图片),
     url(r'^ding_can_upload_ping_jia/$', ding_can_views.订餐上传评价),
+    # path('ding_can_chinaums_pay_order',ding_can_views.ding_can_chinaums_pay_order ),#银联支付下订单
+
+
 
     # 快乐抽奖888----------------------
     url(r'^chou_jiang_tui_song/$', chou_jiang_views.抽奖推送微信验证),

@@ -23,6 +23,7 @@ class  铁塔验证码表(Document):
     手机号 = StringField()
 
 class 铁塔资料表(Document):
+    上传时间 = DateTimeField(default=None)
     openid = StringField(default='')
     手机号 = StringField(default='')
     资料 = DictField(default={})

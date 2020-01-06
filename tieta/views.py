@@ -95,9 +95,11 @@ def 提交办事申请(request):
         if qset0 == None:
             response = HttpResponse('用户不存在')
         else:
-            qset1 = models.铁塔资料表.objects(openid=qset0.openid).first()
+            上传时间 = datetime.datetime.now()
+            qset1 = models.铁塔资料表.objects(openid=qset0.openid,上传时间=上传时间).first()
             if qset1 == None:
                 models.铁塔资料表(
+                    上传时间 = 上传时间,
                     openid = qset0.openid,
                     手机号 =  qset0.手机号,
                     资料 = myState_json

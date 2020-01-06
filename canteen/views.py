@@ -11,16 +11,15 @@ import time
 from django.http import HttpResponse, FileResponse
 
 import myConfig
-from mysite.chou_jiang_mongo import 建筑物主键分隔符
 from mysite.demo_sms_send import send_sms
-from myConfig import appid, secret, grant_type, django_root_path, ding_can_appid, ding_can_secret, ding_can_grant_type, \
+from myConfig import appid, secret, grant_type, django_root_path, canteen_appid, canteen_secret, canteen_grant_type, \
     sign_name, template_code
-from mysite.ding_can_mongo import 订餐食堂模版表, 订餐结果表, 订餐主界面表, 订餐用户表, 订餐登录状态表, 订餐验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 订餐核销码表, 取消, 订餐部门表, \
+from .models import 订餐食堂模版表, 订餐结果表, 订餐主界面表, 订餐用户表, 订餐登录状态表, 订餐验证码表, 没吃, 吃过, 中餐统计, 晚餐统计, 订餐核销码表, 取消, 订餐部门表, \
     订餐统计结果, 订餐菜单分页, 订餐菜单表, 菜单分隔符, 订餐菜单模版表, 订餐菜单评价表, 订餐评论表, 早餐统计, 青阳食堂, 青阳电信分公司, 池州烟草公司, 池州电信分公司, 早餐外带统计, 中餐外带统计, 晚餐外带统计, \
     烟草公司每月外带上限次数
 import sys
 
-from mysite.schedule_tool import 启动订餐提醒定时器
+# from mysite.schedule_tool import 启动订餐提醒定时器
 
 
 # 异步函数
@@ -33,7 +32,7 @@ def deprecated_async(f):
     return wrapper
 
 
-启动订餐提醒定时器()
+# 启动订餐提醒定时器()
 
 
 def 订餐登录检查(request):
@@ -41,8 +40,8 @@ def 订餐登录检查(request):
 
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
 
@@ -64,8 +63,8 @@ def 订餐下载主界面数据(request):
     try:
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         print(r.text)
         r_json = json.loads(r.text)
@@ -107,8 +106,8 @@ def 下载订餐模版(request):
         子菜单page_desc = request.GET['page_desc']
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -166,8 +165,8 @@ def 下载订餐模版2(request):
         子菜单page_desc = request.GET['page_desc']
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -241,8 +240,8 @@ def 上传订餐结果(request):
     try:
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         # r_json = {'openid':'oPngn4yfqDljEh7wvTMD0NHddOOQ','session_key':'session_key'}
@@ -416,7 +415,8 @@ def 上传订餐结果(request):
                             'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
                             'goodsCategory': '晚餐'}
                         ]
-                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述}
+                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
+                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
                         异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
@@ -467,7 +467,8 @@ def 上传订餐结果(request):
                             'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
                             'goodsCategory': '晚餐'}
                         ]
-                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述}
+                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
+                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
                         异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
@@ -481,8 +482,8 @@ def 上传订餐结果2(request):
     try:
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         当前时间戳 = time.time()
@@ -650,8 +651,8 @@ def 订餐校验验证码(request):
     验证码 = str(request.GET['sms_code'])
     js_code = request.GET['code']
     url = 'https://api.weixin.qq.com/sns/jscode2session'
-    payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-               'grant_type': ding_can_grant_type}
+    payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+               'grant_type': canteen_grant_type}
     r = requests.get(url=url, params=payload)
     r_json = json.loads(r.text)
     openid = r_json['openid']
@@ -894,8 +895,8 @@ def 订餐扫核销码2(request):
         当前小时 = time.strftime('%H', time.localtime(time.time()))
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         session_key = r_json['session_key']
@@ -1000,8 +1001,8 @@ def 订餐扫核销码(request):
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         session_key = r_json['session_key']
@@ -1080,8 +1081,8 @@ def 订餐订单(request):
         日期 = request.GET['date']
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
@@ -1149,8 +1150,8 @@ def 订餐取消(request):
         日期 = request.GET['date']
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         # r_json = {'openid':'oPngn4yfqDljEh7wvTMD0NHddOOQ','session_key':'session_key'}
@@ -1286,8 +1287,8 @@ def 订餐菜单初始化(request):
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -1353,8 +1354,8 @@ def 订餐菜单点击分页(request):
         countries_val = int(request.GET['countries_val'])
 
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -1414,8 +1415,8 @@ def 订餐采集初始化(request):
     try:
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -1489,8 +1490,8 @@ def 订餐评价初始化(request):
     try:
         js_code = request.GET['code']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                   'grant_type': ding_can_grant_type}
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -1520,8 +1521,8 @@ def 订餐上传评价(request):
         if request.method == 'GET':
             js_code = request.GET['code']
             url = 'https://api.weixin.qq.com/sns/jscode2session'
-            payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                       'grant_type': ding_can_grant_type}
+            payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                       'grant_type': canteen_grant_type}
             r = requests.get(url=url, params=payload)
             r_json = json.loads(r.text)
             用户 = 订餐用户表.objects(openid=r_json['openid']).first()
@@ -1540,8 +1541,8 @@ def 订餐上传评价(request):
         if request.method == 'POST':
             js_code = request.POST['code']
             url = 'https://api.weixin.qq.com/sns/jscode2session'
-            payload = {'appid': ding_can_appid, 'secret': ding_can_secret, 'js_code': js_code,
-                       'grant_type': ding_can_grant_type}
+            payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                       'grant_type': canteen_grant_type}
             r = requests.get(url=url, params=payload)
             r_json = json.loads(r.text)
             用户 = 订餐用户表.objects(openid=r_json['openid']).first()
