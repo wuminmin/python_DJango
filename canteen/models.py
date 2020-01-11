@@ -2,14 +2,15 @@ from mongoengine import *
 
 # 数据库连接
 import myConfig
-disconnect()
-connect(db=myConfig.canteen_db, host=myConfig.canteen_host, port=myConfig.canteen_port, username=myConfig.canteen_username, password=myConfig.canteen_password)
+# disconnect(alias='default')
+connect(alias='canteen_alias',db=myConfig.canteen_db, host=myConfig.canteen_host, port=myConfig.canteen_port, username=myConfig.canteen_username, password=myConfig.canteen_password)
 
 池州电信分公司 = '池州市分公司'
 青阳电信分公司 = '青阳分公司'
 池州烟草公司 = '池州烟草公司'
 #食堂订餐123--------------------------------------
 class 订餐主界面表(Document):
+    meta = {"db_alias": "canteen_alias"}
     手机号 = StringField()
     描述 = StringField()
     创建时间 = StringField()
@@ -25,6 +26,7 @@ class 订餐主界面表(Document):
 
 青阳食堂 = '青阳食堂'
 class 订餐食堂模版表(Document):
+    meta = {"db_alias": "canteen_alias"}
     主菜单name = StringField()
     主菜单id = StringField()
     子菜单page_name = StringField()
@@ -56,6 +58,7 @@ class 订餐食堂模版表(Document):
 晚餐外带统计 = '晚餐外带统计'
 烟草公司每月外带上限次数 = 8
 class 订餐结果表(Document):
+    meta = {"db_alias": "canteen_alias"}
     手机号 = StringField(default='')
     主菜单name = StringField(default='')
     子菜单page_name = StringField(default='')
@@ -76,20 +79,70 @@ class 订餐结果表(Document):
     晚餐订餐时间 = StringField(default='')
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
+    
+
+class 订餐结果临时表(Document):
+    meta = {"db_alias": "canteen_alias"}
+    手机号 = StringField(default='')
+    主菜单name = StringField(default='')
+    子菜单page_name = StringField(default='')
+    子菜单page_desc = StringField(default='')
+    用餐日期 = StringField(default='')
+    早餐食堂就餐预订数 = IntField(default=0)
+    早餐食堂就餐签到 = StringField(default=没吃)
+    早餐订餐时间 = StringField(default='')
+    早餐取消时间 = StringField(default='')
+    早餐食堂外带预订数 = IntField(default=0)
+    中餐食堂就餐预订数 = IntField(default=0)
+    中餐食堂就餐签到 = StringField(default=没吃)
+    中餐订餐时间 = StringField(default='')
+    中餐取消时间 = StringField(default='')
+    中餐食堂外带预订数 = IntField(default=0)
+    晚餐食堂就餐预订数 = IntField(default=0)
+    晚餐食堂就餐签到 = StringField(default=没吃)
+    晚餐订餐时间 = StringField(default='')
+    晚餐取消时间 = StringField(default='')
+    晚餐食堂外带预订数 = IntField(default=0)
+ 
+
+
+class 订餐种类表(Document):
+    meta = {"db_alias": "canteen_alias"}
+    名称 = StringField(default='')
+    订餐时间 = StringField(default='')
+    取消时间 = StringField(default='')
+    签到状态 = StringField(default='没吃')
+
+
+class ding_can_chinaums_pay_order_res_col(Document):
+    meta = {"db_alias": "canteen_alias"}
+    json_res = DictField(default={})
+    openid = StringField(default='')
+
+class 订餐钱包表(Document):
+    meta = {"db_alias": "canteen_alias"}
+    openid = StringField(default='')
+    money = IntField(default=0)
 
 class 订餐用户表(Document):
+    meta = {"db_alias": "canteen_alias"}
     openid = StringField()
     手机号 = StringField()
+    钱包金额 = FloatField(default=0)
+    
 
 class 订餐登录状态表(Document):
+    meta = {"db_alias": "canteen_alias"}
     session_key = StringField()
     openid = StringField()
 
 class 订餐验证码表(Document):
+    meta = {"db_alias": "canteen_alias"}
     验证码 = StringField()
     手机号 = StringField()
 
 class 订餐核销码表(Document):
+    meta = {"db_alias": "canteen_alias"}
     主菜单name = StringField()
     子菜单page_name = StringField()
     子菜单page_desc = StringField()
@@ -101,16 +154,19 @@ class 订餐核销码表(Document):
     四级部门 = StringField(default='')
 
 class 订餐部门表(Document):
+    meta = {"db_alias": "canteen_alias"}
     二级部门 = StringField(default='')
     三级部门列表 = ListField(default=[])
 
 class 订餐统计结果(Document):
+    meta = {"db_alias": "canteen_alias"}
     日期 = StringField()
     子菜单page_name = StringField()
     子菜单page_desc = StringField()
     订餐结果 = DictField()
 
 class 订餐提醒短信锁(Document):
+    meta = {"db_alias": "canteen_alias"}
     日期 = StringField()
     短信锁 = BooleanField(default=False)
 
@@ -121,12 +177,14 @@ class 订餐提醒短信锁(Document):
 好评 = 'placeholder_green'
 订餐菜单分页 = 10
 class 订餐菜单表(Document):
+    meta = {"db_alias": "canteen_alias"}
     # 订餐日期 = StringField()
     # 订餐类型 = StringField()
     食堂名称 = StringField()
     菜单列表 = ListField()
 
 class 订餐菜单模版表(Document):
+    meta = {"db_alias": "canteen_alias"}
     订餐日期 = StringField()
     食堂名称 = StringField()
     订餐类型 = StringField()
@@ -136,6 +194,7 @@ class 订餐菜单模版表(Document):
     上传时间 = StringField()
 
 class 订餐菜单评价表(Document):
+    meta = {"db_alias": "canteen_alias"}
     订餐日期 = StringField()
     食堂名称 = StringField()
     订餐类型 = StringField()
@@ -146,6 +205,7 @@ class 订餐菜单评价表(Document):
     评价备注 = DictField(default={})
 
 class 订餐评论表(Document):
+    meta = {"db_alias": "canteen_alias"}
     手机号 = StringField()
     姓名 = StringField(default='')
     二级部门 = StringField(default='')

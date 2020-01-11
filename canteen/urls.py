@@ -25,4 +25,6 @@ urlpatterns = [
     url(r'^ding_can_image/$', views.订餐评价初始化图片),
     url(r'^ding_can_upload_ping_jia/$', views.订餐上传评价),
 
+    path('wx_pay_success',views.wx_pay_success),
+
 ]
