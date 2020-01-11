@@ -173,6 +173,7 @@ def 下载订餐模版2(request):
                    'grant_type': canteen_grant_type}
         r = requests.get(url=url, params=payload)
         r_json = json.loads(r.text)
+        openid=r_json['openid']
         用户 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 用户 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
@@ -229,8 +230,12 @@ def 下载订餐模版2(request):
                         {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 晚餐食堂就餐预订数, }, ]
                 else:
                     ding_can_list = []
+
+                from . import models
+                qset4 = models.订餐钱包表.objects(openid = openid).first()
+                钱包 = '已充值:'+ str(qset4.已充值/100) +'元,已消费'+ str(qset4.已消费/100)+'元,预消费' +str(qset4.预消费/100) +'元。'
                 自定义登录状态 = {'ding_can_list': ding_can_list, '描述': 描述, '会话': 会话, '预订开始日期': 预订开始日期, '预订结束日期': 预订结束日期,
-                    '主菜单name': 主菜单name, '子菜单page_name': 子菜单page_name, '子菜单page_desc': 子菜单page_desc, '食堂地址': 食堂地址,
+                    '主菜单name': 主菜单name, '子菜单page_name': 子菜单page_name, '子菜单page_desc': 钱包, '食堂地址': 食堂地址,
                     '用餐日期': 用餐日期, }
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
@@ -484,6 +489,22 @@ def 上传订餐结果(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+@deprecated_async
+def 异步计算消费金额(openid):
+    from . import models
+    早餐食堂就餐已消费 = models.订餐结果表.objects(早餐食堂就餐签到='吃过').sum('早餐食堂就餐预订数')*400
+    中餐食堂就餐已消费 = models.订餐结果表.objects(中餐食堂就餐签到='吃过').sum('中餐食堂就餐预订数')*800
+    晚餐食堂就餐已消费 = models.订餐结果表.objects(晚餐食堂就餐签到='吃过').sum('晚餐食堂就餐预订数')*700
+
+    早餐食堂就餐预消费 = models.订餐结果表.objects(早餐食堂就餐签到='没吃').sum('早餐食堂就餐预订数')*400
+    中餐食堂就餐预消费 = models.订餐结果表.objects(中餐食堂就餐签到='没吃').sum('中餐食堂就餐预订数')*800
+    晚餐食堂就餐预消费 = models.订餐结果表.objects(晚餐食堂就餐签到='没吃').sum('晚餐食堂就餐预订数')*700
+    qset1 = models.订餐钱包表.objects(openid=openid).first()
+    if qset1 == None:
+        pass
+    else:
+        qset1.update(已消费 = 早餐食堂就餐已消费+中餐食堂就餐已消费+晚餐食堂就餐已消费,
+        预消费 = 早餐食堂就餐预消费+中餐食堂就餐预消费+晚餐食堂就餐预消费)
 
 def 上传订餐结果2(request):
     from . import models
@@ -593,7 +614,7 @@ def 上传订餐结果2(request):
             下月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month + 1, 1).strftime('%Y-%m-%d')
             for ding_can_list_one in ding_can_list:
                 tittle = ding_can_list_one['tittle']
-                index = ding_can_list_one['input_index']
+                index = int (ding_can_list_one['input_index'] )
                 if index == 0:
                     pass
                 else:
@@ -749,12 +770,12 @@ def 上传订餐结果2(request):
             子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
             qset11 = models.订餐钱包表.objects(openid=openid).first()
             if qset11 == None:
-                models.订餐钱包表(openid=openid,money=0).save()
+                models.订餐钱包表(openid=openid,已充值=0).save()
                 qset11 = models.订餐钱包表.objects(openid=openid).first()
-                money = qset11.money
+                已充值 = qset11.已充值
             else:
-                money = qset11.money
-            if money - totalAmount_int >= 0:
+                已充值 = qset11.已充值
+            if 已充值 - totalAmount_int - qset11.已消费 - qset11.预消费  >= 0:
                 qset22 = models.订餐结果表.objects(
                 手机号=queryset10.手机号,
                 主菜单name=queryset10.主菜单name,
@@ -784,6 +805,8 @@ def 上传订餐结果2(request):
                         晚餐取消时间 = queryset10.晚餐取消时间,
                         晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数
                     ).save()
+                    异步计算消费金额(openid)
+
                 else:
                     qset22.update(
                         早餐食堂就餐预订数 = queryset10.早餐食堂就餐预订数,
@@ -802,17 +825,20 @@ def 上传订餐结果2(request):
                         晚餐取消时间 = queryset10.晚餐取消时间,
                         晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数
                     )
+                    异步计算消费金额(openid)
                 描述 = '上传成功'
                 订餐结果描述 = '上传成功'
                 自定义登录状态 = {'描述': 描述, '会话': '123456', '订餐结果描述': 订餐结果描述}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
-                异步计算订餐结果(子菜单page_name, 二级部门)
+                异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                return HttpResponse(自定义登录状态)
             else:
                 ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(1),goods,openid)
                 描述 = '银联下单'
                 订餐结果描述 = '银联下单'
                 其他参数 = {
+                    'totalAmount':totalAmount_int,
                     'oid':str( queryset10.id ) ,
                     '子菜单page_name':子菜单page_name,
                     '二级部门':订餐主界面表_first.二级部门
@@ -1107,6 +1133,7 @@ def 订餐扫核销码2(request):
             if 当前小时 > '05' and 当前小时 < '09':
                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(早餐食堂就餐签到=吃过)
+                    异步计算消费金额(openid)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -1125,6 +1152,7 @@ def 订餐扫核销码2(request):
             elif 当前小时 > '10' and 当前小时 < '15':
                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(中餐食堂就餐签到=吃过)
+                    异步计算消费金额(openid)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -1143,6 +1171,7 @@ def 订餐扫核销码2(request):
             elif 当前小时 > '16' and 当前小时 < '20':
                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(晚餐食堂就餐签到=吃过)
+                    异步计算消费金额(openid)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -1347,6 +1376,7 @@ def 订餐取消(request):
             日期 = 当前日期
         开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() - 864000))
         结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
+        openid=r_json['openid']
         订餐用户表_one = 订餐用户表.objects(openid=r_json['openid']).first()
         if 订餐用户表_one == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
@@ -1396,6 +1426,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(早餐食堂就餐预订数=0, 早餐食堂就餐签到=取消, 早餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步计算消费金额(openid)
                                     描述 = '早餐取消成功'
                                 else:
                                     描述 = '早餐已吃过，不能取消'
@@ -1412,6 +1443,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(中餐食堂就餐预订数=0, 中餐食堂就餐签到=取消, 中餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步计算消费金额(openid)
                                     描述 = '中餐取消成功'
                                 else:
                                     描述 = '中餐已吃过，不能取消'
@@ -1428,6 +1460,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(晚餐食堂就餐预订数=0, 晚餐食堂就餐签到=取消, 晚餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步计算消费金额(openid)
                                     描述 = '晚餐取消成功'
                                 else:
                                     描述 = '晚餐已吃过，不能取消'
@@ -1864,6 +1897,7 @@ def wx_pay_success(request):
         state = request.GET['state']
         state_json = json.loads(state)
         oid = state_json['oid']
+        totalAmount = state_json['totalAmount']
         子菜单page_name = state_json['子菜单page_name']
         二级部门 = state_json['二级部门']
         from bson import ObjectId
@@ -1872,6 +1906,9 @@ def wx_pay_success(request):
             描述 = '订单不存在'
             订餐结果描述 = '订单不存在'
         else:
+            qset4 = models.订餐用户表.objects(手机号=qset1.手机号).first()
+            openid = qset4.openid
+            qset3 = models.订餐钱包表.objects(openid = openid).first()
             qset2 = models.订餐结果表.objects(
                 手机号=qset1.手机号,
                 主菜单name=qset1.主菜单name,
@@ -1901,6 +1938,7 @@ def wx_pay_success(request):
                     晚餐取消时间 = qset1.晚餐取消时间,
                     晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数
                 ).save()
+                异步计算消费金额(openid)
             else:
                 qset2.update(
                     早餐食堂就餐预订数 = qset1.早餐食堂就餐预订数,
@@ -1919,11 +1957,12 @@ def wx_pay_success(request):
                     晚餐取消时间 = qset1.晚餐取消时间,
                     晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数
                 )
-            qset3 = models.订餐钱包表.objects(openid=openid).first()
+                异步计算消费金额(openid)
+            
             if qset3 == None:
-                models.订餐钱包表(openid=openid,money=totalAmount).save()
+                models.订餐钱包表(openid=qset4.openid,已充值=totalAmount).save()
             else:
-                qset3.update(money = qset3.money+totalAmount)
+                qset3.update(已充值 = qset3.已充值+totalAmount)
             描述 = '上传成功'
             订餐结果描述 = '上传成功'
         自定义登录状态 = {'描述': 描述, '会话': '123456', '订餐结果描述': 订餐结果描述}

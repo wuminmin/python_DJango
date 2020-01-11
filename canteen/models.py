@@ -122,7 +122,9 @@ class ding_can_chinaums_pay_order_res_col(Document):
 class 订餐钱包表(Document):
     meta = {"db_alias": "canteen_alias"}
     openid = StringField(default='')
-    money = IntField(default=0)
+    已充值 = IntField(default=0)
+    已消费 = IntField(default=0)
+    预消费 = IntField(default=0)
 
 class 订餐用户表(Document):
     meta = {"db_alias": "canteen_alias"}
