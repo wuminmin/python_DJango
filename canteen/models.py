@@ -47,6 +47,17 @@ class 订餐食堂模版表(Document):
     取消晚餐提前秒 = IntField()
     创建时间 = StringField()
 
+产品名称列表 = ['包子']
+产品列表 = [
+    {
+        '名称':'包子',
+        '预定数量条件':['无', '预定1份','预定2份','预定3份','预定4份','预定5份'],
+        '取消提前秒':7200,
+        '价格':100,
+        '就餐时间':'18:00:00'
+    }
+]
+
 没吃 = '没吃'
 吃过 = '吃过'
 取消 = '取消'
@@ -79,6 +90,7 @@ class 订餐结果表(Document):
     晚餐订餐时间 = StringField(default='')
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
+    产品 = DictField(default={})
     
 
 class 订餐结果临时表(Document):
@@ -103,7 +115,7 @@ class 订餐结果临时表(Document):
     晚餐订餐时间 = StringField(default='')
     晚餐取消时间 = StringField(default='')
     晚餐食堂外带预订数 = IntField(default=0)
- 
+    产品 = DictField(default={})
 
 
 class 订餐种类表(Document):

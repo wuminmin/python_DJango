@@ -1,21 +1,40 @@
+from canteen import models
+from django.test import TestCase
 
-def is_holiday(riqi):
-    riqi_2 = riqi.replace('-','')
-    print(riqi_2)
-    import requests
-    import json
-    payload = {'date': riqi_2}
-    r = requests.get("http://api.goseek.cn/Tools/holiday", params=payload)
-    r_text = r.text
-    r_json = json.loads(r_text)
-    print(r_json['data'])
-    if r_json['data'] == 0 or r_json['data'] == 2:
-        return False
-    elif r_json['data'] == 1 or r_json['data'] == 3:
-        return True
-    else:
-        return 'error'
+# Create your tests here.
+import sys
+import os
+root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(root_path)
 
-if __name__ == "__main__":
-    r = is_holiday('2019-11-10')
-    print(r)
+# r = models.订餐结果临时表.objects(__raw__ = {
+#     "$aggregate":{
+#     "产品.包子.签到":"没吃",
+
+#     }
+#     })
+
+# from . import models
+pipeline = [
+    {
+        "$match": {
+            "产品.包子.签到": "没吃"
+        }
+    }
+    ,
+    {
+        "$group": {
+            "_id": "null",
+            "myCount": {
+                "$sum": "$产品.包子.预定数量"
+            }
+        }
+    }
+]
+r = models.订餐结果临时表.objects.aggregate(*pipeline)
+print(list(r))
+# print(r.to_json().encode('utf-8').decode('unicode_escape'))
+
+
+lll = [{'_id': 'null', '包子': 7}]
+print(lll[0]['包子'])
