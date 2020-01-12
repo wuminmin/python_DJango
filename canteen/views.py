@@ -460,6 +460,7 @@ def 上传订餐结果(request):
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
                         异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                         return HttpResponse(自定义登录状态)
                     else:
                         if 早餐食堂就餐预订数 > 0:
@@ -512,6 +513,7 @@ def 上传订餐结果(request):
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
                         异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                         return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -834,15 +836,31 @@ def 上传订餐结果2(request):
                         for one in models.产品列表:
                             if tittle == one['名称']:
                                 产品 = queryset1.产品
-                                产品[tittle] = {
-                                    '预定时间':当前时间,
-                                    '预定数量':index,
-                                    '签到':'没吃',
-                                    '价格':one['价格']
-                                }
-                                totalAmount_int = totalAmount_int + index*one['价格']
-                                queryset1.update(产品=产品)
-
+                                qset2 = models.订餐结果表.objects(
+                                    手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                                    子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期
+                                ).first()
+                                if qset2 == None:
+                                    产品[tittle] = {
+                                        '预定时间':当前时间,
+                                        '预定数量':index,
+                                        '签到':'没吃',
+                                        '价格':one['价格']
+                                    }
+                                    totalAmount_int = totalAmount_int + index*one['价格']
+                                    queryset1.update(产品=产品)
+                                else:
+                                    if index == qset2.产品[tittle]['预定数量']:
+                                        pass
+                                    else:
+                                        产品[tittle] = {
+                                            '预定时间':当前时间,
+                                            '预定数量':index,
+                                            '签到':'没吃',
+                                            '价格':one['价格']
+                                        }
+                                        totalAmount_int = totalAmount_int + index*one['价格']
+                                        queryset1.update(产品=产品)
                     else:
                         描述 = '系统错误'
                         自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
@@ -895,7 +913,6 @@ def 上传订餐结果2(request):
                         产品 = queryset10.产品
                     ).save()
                     异步计算消费金额(openid)
-
                 else:
                     qset22.update(
                         早餐食堂就餐预订数 = queryset10.早餐食堂就餐预订数,
@@ -922,10 +939,11 @@ def 上传订餐结果2(request):
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                 return HttpResponse(自定义登录状态)
             else:
                 print('----------------------------------------',totalAmount_int)
-                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(1),goods,openid)
+                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,openid)
                 描述 = '银联下单'
                 订餐结果描述 = '银联下单'
                 其他参数 = {
@@ -1142,6 +1160,165 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
             else:
                 订餐统计结果_first.update(订餐结果=自定义登录状态)
 
+@deprecated_async
+def 异步统计产品(食堂名称,二级部门):
+    第一天 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
+    第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400 + 86400))
+    日期_list = [第一天, 第二天, 第三天]
+    订餐部门表_first = 订餐部门表.objects(二级部门=二级部门).first()
+    if 订餐部门表_first == None:
+        name_list = []
+    else:
+        name_list = 订餐部门表_first.三级部门列表
+    for 日期_list_one in 日期_list:
+        日期 = 日期_list_one
+        from . import models
+        for 产品 in models.产品列表:
+            产品名称 = 产品['名称']
+            pipeline = [
+                {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "用餐日期":日期
+                    }
+                }
+            ]
+            总人数 = len(list(models.订餐结果表.objects.aggregate(*pipeline)))
+            pipeline2 = [
+                    {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "产品."+产品名称+".签到":"没吃",
+                        "用餐日期":日期_list_one
+                    }
+                }
+            ]
+            没吃人数 = len(list(models.订餐结果表.objects.aggregate(*pipeline2)))
+            pipeline3 = [
+                    {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "产品."+产品名称+".签到":"吃过",
+                        "用餐日期":日期_list_one
+                    }
+                }
+            ]
+            吃过人数 = len(list(models.订餐结果表.objects.aggregate(*pipeline3)))
+            pipeline4 = [
+                {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "用餐日期":日期_list_one
+                    }
+                }
+                ,
+                {
+                    "$group": {
+                        "_id": "null",
+                        产品名称: {
+                            "$sum": "$产品."+产品名称+".预定数量"
+                        }
+                    }
+                }
+            ]
+            总份数 = 0
+            for r in list(models.订餐结果表.objects.aggregate(*pipeline4)):
+                print(r[产品名称])
+                总份数 = r[产品名称]
+            pipeline5 = [
+                {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "产品."+产品名称+".签到":"没吃",
+                        "用餐日期":日期_list_one
+                    }
+                }
+                ,
+                {
+                    "$group": {
+                        "_id": "null",
+                        产品名称: {
+                            "$sum": "$产品."+产品名称+".预定数量"
+                        }
+                    }
+                }
+            ]
+            没吃份数 = 0
+            for r in list(models.订餐结果表.objects.aggregate(*pipeline5)):
+                print(r[产品名称])
+                没吃份数 = r[产品名称]
+            pipeline6 = [
+                {
+                    "$match": {
+                        "产品."+产品名称+".预定数量": {
+                            "$gte":1
+                        },
+                        "产品."+产品名称+".签到":"吃过",
+                        "用餐日期":日期_list_one
+                    }
+                }
+                ,
+                {
+                    "$group": {
+                        "_id": "null",
+                        产品名称: {
+                            "$sum": "$产品."+产品名称+".预定数量"
+                        }
+                    }
+                }
+            ]
+            吃过份数 = 0
+            for r in list(models.订餐结果表.objects.aggregate(*pipeline6)):
+                print(r[产品名称])
+                吃过份数 = r[产品名称]
+            r_list = []
+            id = 1
+            for name_one in name_list:
+                r_dict = {}
+                r_dict['id'] = id
+                id = id + 1
+                r_dict['name'] = name_one
+                pages = []
+                for p in list(models.订餐结果表.objects.aggregate(*pipeline)):
+                    订餐主界面表_first = models.订餐主界面表.objects(手机号=p['手机号'], 三级部门=name_one).first()
+                    if 订餐主界面表_first == None:
+                        continue
+                    else:
+                        rr_dict = {}
+                        if p['产品'][产品名称]['签到'] == 没吃:
+                            rr_dict['page_name'] = 订餐主界面表_first.姓名
+                            rr_dict['shu_liang'] = p['产品'][产品名称]['预定数量']
+                            rr_dict['page_desc'] = p['产品'][产品名称]['签到']
+                            pages.append(rr_dict)
+                r_dict['num'] = len(pages)
+                if r_dict['num'] == 0:
+                    pass
+                else:
+                    r_dict['pages'] = pages
+                    r_list.append(r_dict)
+            描述 = '下载成功'
+            app_tittle = 产品名称
+            app_des = '总人数 ' + str(总人数) + ';总份数' + str(总份数)
+            app_code_des = '吃过人数 ' + str(吃过人数) + ';吃过份数' + str(吃过份数)
+            app_code = '没吃人数' + str(没吃人数) + ';没吃份数' + str(没吃份数)
+            自定义登录状态 = {'描述': 描述, '会话': '23456', 'list': r_list, 'app_tittle': app_tittle, 'app_des': app_des,
+                'app_code_des': app_code_des, 'app_code': app_code, 'date': 日期, 'start_date': 第一天, 'end_date': 第三天}
+            订餐统计结果_first = 订餐统计结果.objects(日期=日期, 子菜单page_name=食堂名称, 子菜单page_desc=产品名称).first()
+            if 订餐统计结果_first == None:
+                订餐统计结果(日期=日期, 子菜单page_name=食堂名称, 子菜单page_desc=产品名称, 订餐结果=自定义登录状态).save()
+            else:
+                订餐统计结果_first.update(订餐结果=自定义登录状态)
 
 def 订餐统计(request):
     日期 = str(request.GET['date'])
@@ -1229,6 +1406,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.早餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
@@ -1248,6 +1426,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.中餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
@@ -1267,6 +1446,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.晚餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
@@ -1517,6 +1697,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(早餐食堂就餐预订数=0, 早餐食堂就餐签到=取消, 早餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '早餐取消成功'
                                 else:
@@ -1534,6 +1715,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(中餐食堂就餐预订数=0, 中餐食堂就餐签到=取消, 中餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '中餐取消成功'
                                 else:
@@ -1551,6 +1733,7 @@ def 订餐取消(request):
                                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(晚餐食堂就餐预订数=0, 晚餐食堂就餐签到=取消, 晚餐取消时间=当前时间)
                                     异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '晚餐取消成功'
                                 else:
@@ -2062,6 +2245,7 @@ def wx_pay_success(request):
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         自定义登录状态 = str(自定义登录状态)
         异步计算订餐结果(子菜单page_name, 二级部门)
+        异步统计产品(子菜单page_name, 二级部门)
         return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
