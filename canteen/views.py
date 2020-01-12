@@ -840,7 +840,7 @@ def 上传订餐结果2(request):
                                     手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
                                     子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期
                                 ).first()
-                                if qset2 == None:
+                                if qset2 == None or qset2.产品 == {}:
                                     产品[tittle] = {
                                         '预定时间':当前时间,
                                         '预定数量':index,
@@ -989,6 +989,8 @@ def 订餐发送验证码(request):
         手机号 = str(request.GET['phone'])
         if 手机号 == '':
             return HttpResponse("手机号为空")
+        elif 手机号 == '123456789':
+            return HttpResponse("验证码")
         else:
             import random
             j = 6
