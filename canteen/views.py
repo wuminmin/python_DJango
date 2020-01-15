@@ -89,14 +89,11 @@ def 订餐下载主界面数据(request):
                 主界内容 = []
                 自定义登录状态 = {'描述': 描述, '会话': 会话,'主页标题':主页标题,'主页描述':主页描述,'验证码标题':验证码标题,
                            '验证码描述':验证码描述,'主界内容':主界内容}
-                print(自定义登录状态)
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
             else:
                 自定义登录状态 = 主界面.to_json().encode('utf-8').decode('unicode_escape')
-                print(自定义登录状态)
-
                 return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -551,7 +548,6 @@ def 异步计算消费金额(openid):
         ]
         r = list(models.订餐结果表.objects.aggregate(*pipeline))
         for one2 in r:
-            print(one2)
             已消费 = 已消费 + one2[one['名称']]*one['价格']
         pipeline2 = [
             {
@@ -571,7 +567,6 @@ def 异步计算消费金额(openid):
         ]
         r2 = list(models.订餐结果表.objects.aggregate(*pipeline2))
         for one2 in r2:
-            print(one2)
             预消费 = 预消费 + one2[one['名称']]*one['价格']
     qset1 = models.订餐钱包表.objects(openid=openid).first()
     if qset1 == None:
@@ -942,7 +937,6 @@ def 上传订餐结果2(request):
                 异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                 return HttpResponse(自定义登录状态)
             else:
-                print('----------------------------------------',totalAmount_int)
                 ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,openid)
                 描述 = '银联下单'
                 订餐结果描述 = '银联下单'
@@ -1234,7 +1228,6 @@ def 异步统计产品(食堂名称,二级部门):
             ]
             总份数 = 0
             for r in list(models.订餐结果表.objects.aggregate(*pipeline4)):
-                print(r[产品名称])
                 总份数 = r[产品名称]
             pipeline5 = [
                 {
@@ -1258,7 +1251,6 @@ def 异步统计产品(食堂名称,二级部门):
             ]
             没吃份数 = 0
             for r in list(models.订餐结果表.objects.aggregate(*pipeline5)):
-                print(r[产品名称])
                 没吃份数 = r[产品名称]
             pipeline6 = [
                 {
@@ -1282,7 +1274,6 @@ def 异步统计产品(食堂名称,二级部门):
             ]
             吃过份数 = 0
             for r in list(models.订餐结果表.objects.aggregate(*pipeline6)):
-                print(r[产品名称])
                 吃过份数 = r[产品名称]
             r_list = []
             id = 1
@@ -1931,7 +1922,6 @@ def 订餐采集初始化(request):
             四级部门 = 抽奖主界面表first.四级部门
         bindMenPaiHao_id = request.GET['bindMenPaiHao_id']
         bindMenPaiHao_id_list = bindMenPaiHao_id.split(菜单分隔符)
-        print(bindMenPaiHao_id_list)
         订餐日期 = bindMenPaiHao_id_list[0]
         食堂名称 = bindMenPaiHao_id_list[1]
         订餐类型 = bindMenPaiHao_id_list[2]
@@ -2137,35 +2127,24 @@ def ding_can_chinaums_pay_order(totalAmount,goods,openid):
                     wmm_str = wmm_str+one+'='+wmm_json[one]+'&'
         wmm_str = wmm_str.rstrip('&')
         wmm_str = wmm_str + scrit_key
-        print(wmm_str)
         import hashlib
         wmm_sign = hashlib.md5(wmm_str.encode('utf-8')).hexdigest()
-        print(wmm_sign)
         wmm_json['sign'] = wmm_sign
-        print(wmm_json)
         import requests
         r = requests.post(
             'https://qr.chinaums.com/netpay-route-server/api/', json=wmm_json)
-        print(r.status_code)
         json_res = r.json()
         from . import models
         models.ding_can_chinaums_pay_order_res_col(json_res=json_res,openid=openid).save()
-     
-        print(json.dumps(json_res))
         if json_res['errCode'] == 'SUCCESS':
-         
             自定义登录状态 = {'描述': '成功', 'miniPayRequest': json_res['miniPayRequest']}
         else:
             自定义登录状态 = {'描述': '失败', 'miniPayRequest': {}}
         return 自定义登录状态
-        # 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-        # return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
         自定义登录状态 = {'描述': '500', 'miniPayRequest': {}}
         return 自定义登录状态
-        # 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-        # return HttpResponse(自定义登录状态)
 
 def wx_pay_success(request):
     from . import models
@@ -2260,9 +2239,7 @@ def async_import_excel(mydata,flag):
     from . import models as ding_can_mongo #老版订餐后台
     # from . import models as ding_can_mongo  #新版订餐后台
     try:
-        print(mydata)
         df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
-
         手机号_list = []
         主菜单id_list = []
         for row_main in df_main.iterrows():
@@ -2327,7 +2304,6 @@ def async_import_excel(mydata,flag):
                 else:
                     主界面表_one.update(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
                         , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容)
-        print('导入成功')
         ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
         if ding_can_mongo1 == None:
             ding_can_mongo.订餐导入时间戳表(
@@ -2338,6 +2314,7 @@ def async_import_excel(mydata,flag):
             ding_can_mongo1.update(isOk=True)
     except:
         r = traceback.format_exc()
+        print(r)
         ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
         if ding_can_mongo1 == None:
             ding_can_mongo.订餐导入时间戳表(
@@ -2347,14 +2324,12 @@ def async_import_excel(mydata,flag):
             ).save()
         else:
             ding_can_mongo1.update(isOk=False,eLog={'log':r})
-        print(r)
 
 def userInfoUpload(request):
     from . import models as ding_can_mongo #老版订餐后台
     # from . import models as ding_can_mongo  #新版订餐后台
     try:
         access_token = request.POST['access_token']
-        print(access_token)
         ding_can_mongo1 = ding_can_mongo.订餐主界面表.objects(手机号=access_token).first()
         if ding_can_mongo1 == None:
             response = HttpResponse('认证失败')
