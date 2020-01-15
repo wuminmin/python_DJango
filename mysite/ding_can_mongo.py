@@ -5,6 +5,11 @@ import myConfig
 
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
 
+class 订餐导入时间戳表(Document):
+    flag = StringField(default='')
+    isOk = BooleanField(default=None)
+    eLog = DictField(default={'log':''})
+
 池州电信分公司 = '池州市分公司'
 青阳电信分公司 = '青阳分公司'
 池州烟草公司 = '池州烟草公司'

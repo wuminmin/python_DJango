@@ -5,6 +5,12 @@ import myConfig
 # disconnect(alias='default')
 connect(alias='canteen_alias',db=myConfig.canteen_db, host=myConfig.canteen_host, port=myConfig.canteen_port, username=myConfig.canteen_username, password=myConfig.canteen_password)
 
+class 订餐导入时间戳表(Document):
+    flag = StringField(default='')
+    isOk = BooleanField(default=None)
+    eLog = DictField(default={'log':''})
+
+
 池州电信分公司 = '池州市分公司'
 青阳电信分公司 = '青阳分公司'
 池州烟草公司 = '池州烟草公司'

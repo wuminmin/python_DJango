@@ -1,49 +1,55 @@
-from canteen import models
-from django.test import TestCase
 
-# Create your tests here.
-import sys
-import os
-root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-sys.path.append(root_path)
 
-# r = models.订餐结果临时表.objects(__raw__ = {
-#     "$aggregate":{
-#     "产品.包子.签到":"没吃",
+r = '''[
+  {
+    "手机号": 18956661109,
+    "描述": "下载成功",
+    "主页标题": "订餐123",
+    "主页描述": "一、用餐时间前2.5小时停止接受订餐， 用餐时间前2小时停止取消订餐。二、食堂根据当天订餐人数烹饪食材，请需要就餐人
+员及时在微信订餐小程序发起订餐，在食堂就餐时扫码核销，如需取消就餐请在上午10：00前取消中餐，下午16：00之前取消晚餐。    三、为进
+一步减少浪费，未订餐人员每餐费用上浮2元。",
+    "验证码标题": "百荷城市营业部",
+    "验证码描述": "凌欢",
+    "二级部门": "池州市分公司",
+    "三级部门": "百荷城市营业部",
+    "姓名": "凌欢",
+    "主菜单name": "食堂订餐",
+    "主菜单id": "dingcan",
+    "子菜单page_name": "市公司食堂",
+    "子菜单page_desc": "订餐",
+    "子菜单url": "dingcan"
+  },
+  {
+    "手机号": 18905661789,
+    "描述": "下载成功",
+    "主页标题": "订餐123",
+    "主页描述": "一、用餐时间前2.5小时停止接受订餐， 用餐时间前2小时停止取消订餐。二、食堂根据当天订餐人数烹饪食材，请需要就餐人
+员及时在微信订餐小程序发起订餐，在食堂就餐时扫码核销，如需取消就餐请在上午10：00前取消中餐，下午16：00之前取消晚餐。    三、为进
+一步减少浪费，未订餐人员每餐费用上浮2元。",
+    "验证码标题": "百荷城市营业部",
+    "验证码描述": "王镇",
+    "二级部门": "池州市分公司",
+    "三级部门": "百荷城市营业部",
+    "四级部门": "中国电信股份有限公司池州分公司",
+    "姓名": "王镇",
+    "主菜单name": "食堂订餐",
+    "主菜单id": "dingcan",
+    "子菜单page_name": "市公司食堂",
+    "子菜单page_desc": "订单",
+    "子菜单url": "ding_dan"
+  }
+]'''
+import pandas
+df_main = pandas.read_json(r,encoding="utf-8", orient='records')
+a = df_main.head()
+# print(a)
+for row_main in df_main.iterrows():
+    # print(row_main)
+    # print(type(row_main))
 
-#     }
-#     })
-
-# from . import models
-产品名称 = '包子'
-日期_list_one = '2020-01-13'
-pipeline = [
-    {
-        "$match": {
-            "产品."+产品名称+".预定数量": {
-                "$gte":1
-            },
-            # "产品."+产品名称+".签到":"没吃",
-            "用餐日期":日期_list_one
-        }
-    }
-    ,
-    {
-        "$group": {
-            "_id": "null",
-            产品名称: {
-                "$sum": "$产品."+产品名称+".预定数量"
-            }
-        }
-    }
-]
-for r in list(models.订餐结果表.objects.aggregate(*pipeline)):
-    print(r)
+    print( row_main[1]['手机号'] )
+    print(type( row_main[1]['手机号'] ))
     
-# r = models.订餐结果表.objects.aggregate(*pipeline)
-# print((list(r)))
-# print(r.to_json().encode('utf-8').decode('unicode_escape'))
-
-
-# lll = [{'_id': 'null', '包子': 7}]
-# print(lll[0]['包子'])
+            # print(row_main['手机号'])
+            # 手机号 = str(row_main['手机号'])
+            # 主菜单id = row_main['主菜单id']

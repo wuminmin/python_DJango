@@ -2255,5 +2255,161 @@ def wx_pay_success(request):
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         return HttpResponse(自定义登录状态)
 
+@deprecated_async
+def async_import_excel(mydata,flag):
+    from . import models as ding_can_mongo #老版订餐后台
+    # from . import models as ding_can_mongo  #新版订餐后台
+    try:
+        print(mydata)
+        df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
+
+        手机号_list = []
+        主菜单id_list = []
+        for row_main in df_main.iterrows():
+            手机号 = str(row_main[1]['手机号'])
+            主菜单id = row_main[1]['主菜单id']
+            if 手机号 in 手机号_list:
+                pass
+            else:
+                手机号_list.append(手机号)
+            if 主菜单id in 主菜单id_list:
+                pass
+            else:
+                主菜单id_list.append(主菜单id)
+
+        for 手机号 in 手机号_list:
+            主界内容 = []
+            df_手机号 = df_main.loc[(df_main['手机号'] == 手机号)]
+            for row in df_手机号.iterrows():
+                创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                描述 = str(row[1]['描述'])
+                主页标题 = str(row[1]['主页标题'])
+                主页描述 = str(row[1]['主页描述'])
+                验证码标题 = str(row[1]['验证码标题'])
+                验证码描述 = str(row[1]['验证码描述'])
+                二级部门 = str(row[1]['二级部门'])
+                三级部门 = str(row[1]['三级部门'])
+                四级部门 = str(row[1]['四级部门'])
+                姓名 = str(row[1]['姓名'])
+                主菜单name = str(row[1]['主菜单name'])
+                主菜单id = str(row[1]['主菜单id'])
+
+                df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == 手机号) & (df_main['主菜单name'] == 主菜单name)]
+                pages = []
+                for index, row in df_手机号_主菜单name.iterrows():
+
+                    子菜单page_name = row['子菜单page_name']
+                    子菜单page_desc = row['子菜单page_desc']
+                    子菜单url = row['子菜单url']
+                    page = {}
+                    page['url'] = 子菜单url
+                    page['page_name'] = 子菜单page_name
+                    page['page_desc'] = 子菜单page_desc
+                    if page in pages:
+                        pass
+                    else:
+                        pages.append(page)
+
+                主菜单id_dict = {
+                    'id': 主菜单id,
+                    'name': 主菜单name,
+                    'open': False,
+                    'pages': pages
+                }
+                if 主菜单id_dict in 主界内容:
+                    pass
+                else:
+                    主界内容.append(主菜单id_dict)
+                主界面表_one = ding_can_mongo.订餐主界面表.objects(手机号=str(手机号)).first()
+                if 主界面表_one == None:
+                    ding_can_mongo.订餐主界面表(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
+                        , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容).save()
+                else:
+                    主界面表_one.update(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
+                        , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容)
+        print('导入成功')
+        ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+        if ding_can_mongo1 == None:
+            ding_can_mongo.订餐导入时间戳表(
+                flag=flag,
+                isOk=True
+            ).save()
+        else:
+            ding_can_mongo1.update(isOk=True)
+    except:
+        r = traceback.format_exc()
+        ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+        if ding_can_mongo1 == None:
+            ding_can_mongo.订餐导入时间戳表(
+                flag=flag,
+                isOk=False,
+                eLog={'log':r}
+            ).save()
+        else:
+            ding_can_mongo1.update(isOk=False,eLog={'log':r})
+        print(r)
+
+def userInfoUpload(request):
+    from . import models as ding_can_mongo #老版订餐后台
+    # from . import models as ding_can_mongo  #新版订餐后台
+    try:
+        access_token = request.POST['access_token']
+        print(access_token)
+        ding_can_mongo1 = ding_can_mongo.订餐主界面表.objects(手机号=access_token).first()
+        if ding_can_mongo1 == None:
+            response = HttpResponse('认证失败')
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        elif ding_can_mongo1.三级部门  == '综合管理部/安全保卫部':
+            pass
+        else:
+            response = HttpResponse('没有权限')
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+
+        action = request.POST['action']
+        if action == '上传':
+            flag = request.POST['flag']
+            mydata = request.POST['excel']
+            async_import_excel(mydata,flag)
+            response = HttpResponse('正在处理')
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        elif action == '查询结果':
+            flag = request.POST['flag']
+            from mysite import ding_can_mongo
+            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+            if ding_can_mongo1 == None:
+                res = '正在处理'
+            else:
+                if ding_can_mongo1.isOk :
+                    res = '成功'
+                else:
+                    res = '失败'+ding_can_mongo1.eLog['log']
+            response = HttpResponse(res)
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+    except:
+        r = traceback.format_exc()
+        print(r)
+        response = HttpResponse(r)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
 if __name__ == '__main__':
     异步计算订餐结果('市公司食堂', '池州市分公司')
