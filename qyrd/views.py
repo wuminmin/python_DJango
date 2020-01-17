@@ -1,7 +1,5 @@
 from django.shortcuts import render
-
 # Create your views here.
-
 
 def 人大要闻(request):
     from . import models
@@ -14,7 +12,6 @@ def 人大要闻(request):
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
-
 
 def 上传新闻(request):
     from . import models
@@ -110,7 +107,6 @@ def 上传新闻(request):
     # response["Access-Control-Allow-Headers"] = "*"
     # return response
 
-
 def images(request):
     from . import models
     from django.http import HttpResponse, FileResponse
@@ -142,7 +138,6 @@ def images(request):
         response['Content-Type'] = 'application/octet-stream'
         response['Content-Disposition'] = 'attachment;filename="%s"' % "image.jpg"
         return response
-
 
 def 新闻下载(request):
     import json
@@ -364,7 +359,6 @@ def 天气下载(request):
         wmmurl = 'http://t.weather.sojson.com/api/weather/city/101221703'
         r = requests.get(url=wmmurl)
         r_json = json.loads(r.text)
-        print(r_json)
         response = HttpResponse(json.dumps(r_json))
     except:
         import traceback
@@ -376,5 +370,52 @@ def 天气下载(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
-
+def get_headermenu_list_data(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        mylist = []
+        首页 = models.ban_kuai_lan_mu_dict['首页']
+        新闻中心 = models.ban_kuai_lan_mu_dict['新闻中心']
+        人大概况 = models.ban_kuai_lan_mu_dict['人大概况']
+        依法履职 = models.ban_kuai_lan_mu_dict['依法履职']
+        代表工作 = models.ban_kuai_lan_mu_dict['代表工作']
+        会议之窗 = models.ban_kuai_lan_mu_dict['会议之窗']
+        一府一委两院 = models.ban_kuai_lan_mu_dict['一府一委两院']
+        乡镇人大 = models.ban_kuai_lan_mu_dict['乡镇人大']
+        mylist.append({'name':'首页','mymenu':首页})
+        mylist.append({'name':'新闻中心','mymenu':新闻中心})
+        mylist.append({'name':'人大概况','mymenu':人大概况})
+        mylist.append({'name':'依法履职','mymenu':依法履职})
+        mylist.append({'name':'代表工作','mymenu':代表工作})
+        mylist.append({'name':'会议之窗','mymenu':会议之窗})
+        mylist.append({'name':'一府一委两院','mymenu':一府一委两院})
+        mylist.append({'name':'乡镇人大','mymenu':乡镇人大})
+        headermenu_list_data = []
+        for one in mylist:
+            myMenu = []
+            for one2 in one['mymenu']:
+                if one2 == '首页':
+                    myMenu.append({ 'subname': one2, 'subUrl': '/' })
+                else:
+                    myMenu.append({ 'subname': one2, 'subUrl': '/mynews?ban_kuai='+one['name']+'&lan_mu='+one2+'&tittle=默认'})
+            headermenu_list_data.append(
+                {
+                    'name':one['name'],
+                    'myMenu':myMenu
+                }
+            )
+        response = HttpResponse(json.dumps(headermenu_list_data))
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps([]))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
 
