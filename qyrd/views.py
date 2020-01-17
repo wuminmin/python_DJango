@@ -50,7 +50,7 @@ def 上传新闻(request):
                     my_month = 当前月,
                     other={'request_body_encoding': 'utf-8'}
                 )
-            response = HttpResponse('<p>上传成功！</p>')
+            response = HttpResponse(json.dumps({'code':'上传成功'}))
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
