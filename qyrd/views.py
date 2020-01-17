@@ -20,37 +20,43 @@ def 上传新闻(request):
     import json
     import datetime
     try:
-        article = request.POST['article']
-        tittle = request.POST['tittle']
-        type = request.POST['type']
-        now = request.POST['now']
-        当前月 = str(datetime.datetime.now().year) + '年'+str(datetime.datetime.now().month)+'月'
-        qset1 = models.qyrd_article_col.objects(
-            tittle=tittle, type=type).first()
+        usertoken = request.POST['usertoken']
+        qset1 = models.qyrd_userinfo.objects(usertoken=usertoken).first()
         if qset1 == None:
-            models.qyrd_article_col(
-                article=article,
-                tittle=tittle,
-                type=type,
-                my_time = now,
-                my_date = datetime.datetime.now(),
-                my_month = 当前月,
-                other={'request_body_encoding': 'utf-8'}
-            ).save()
+            response = HttpResponse(json.dumps({'code':'非法用户'}))
         else:
-            qset1.update(
-                article = article,
-                my_time = now,
-                my_date = datetime.datetime.now(),
-                my_month = 当前月,
-                other={'request_body_encoding': 'utf-8'}
-            )
-        response = HttpResponse('<p>上传成功！</p>')
+            article = request.POST['article']
+            tittle = request.POST['tittle']
+            type = request.POST['type']
+            now = request.POST['now']
+            当前月 = str(datetime.datetime.now().year) + '年'+str(datetime.datetime.now().month)+'月'
+            qset1 = models.qyrd_article_col.objects(
+                tittle=tittle, type=type).first()
+            if qset1 == None:
+                models.qyrd_article_col(
+                    article=article,
+                    tittle=tittle,
+                    type=type,
+                    my_time = now,
+                    my_date = datetime.datetime.now(),
+                    my_month = 当前月,
+                    other={'request_body_encoding': 'utf-8'}
+                ).save()
+            else:
+                qset1.update(
+                    article = article,
+                    my_time = now,
+                    my_date = datetime.datetime.now(),
+                    my_month = 当前月,
+                    other={'request_body_encoding': 'utf-8'}
+                )
+            response = HttpResponse('<p>上传成功！</p>')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
+        
     except:
         import traceback
         print(traceback.format_exc())
@@ -333,7 +339,7 @@ def upload_img(request):
                 ).save()
             else:
                 qset2.delete()
-                models.wxyl_image_col(
+                models.qyrd_image_col(
                     col_id = tittle ,
                     col_image = file_object
                 ).save()

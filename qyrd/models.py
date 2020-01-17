@@ -19,6 +19,8 @@ sys.path.append(root_path)
 connect(db=myConfig.db, host=myConfig.host, port=myConfig.port,username=myConfig.username, password=myConfig.password)
 react_url = 'https://oa.wuminmin.top/'
 
+qyrd_usertoken = 'LhPAxsEJm3LihsU0siCH5Q=='
+
 ban_kuai_lan_mu_dict = {
     '首页':['首页'],
     '人大概况':['人大简介','组织机构','组成人员','委室职责','换届选举'],
