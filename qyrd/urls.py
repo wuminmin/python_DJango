@@ -15,4 +15,5 @@ urlpatterns = [
     path('upload_img', views.upload_img),
     path('tian_qi_xia_zai',views.天气下载),
     path('get_header_menu_list_data',views.get_headermenu_list_data),
+    path('login',views.login),
 ]
