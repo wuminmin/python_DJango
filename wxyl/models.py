@@ -15,9 +15,16 @@ ban_kuai_lan_mu_dict = {
     '资讯动态':['行业资讯','企业资讯'],
     '关于我们':['关于我们'],
 }
+
 class wxyl_image_col(Document):
     wxyl_id = StringField()
     wxyl_image = ImageField()
+
+class wxyl_img_grid(Document):
+    ban_kuai = StringField(default='')
+    mo_kuai = StringField(default='')
+    tu_pian_name = StringField(default='')
+    tu_pian_url = StringField(default='')
 
 class wxyl_article(Document):
     article = StringField(default='')

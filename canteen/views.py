@@ -2236,8 +2236,9 @@ def wx_pay_success(request):
 
 @deprecated_async
 def async_import_excel(mydata,flag):
-    from . import models as ding_can_mongo #老版订餐后台
+    from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
     # from . import models as ding_can_mongo  #新版订餐后台
+    print(mydata)
     try:
         df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
         手机号_list = []
@@ -2256,7 +2257,7 @@ def async_import_excel(mydata,flag):
 
         for 手机号 in 手机号_list:
             主界内容 = []
-            df_手机号 = df_main.loc[(df_main['手机号'] == 手机号)]
+            df_手机号 = df_main.loc[(df_main['手机号'] == int(手机号))]
             for row in df_手机号.iterrows():
                 创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                 描述 = str(row[1]['描述'])
@@ -2270,11 +2271,9 @@ def async_import_excel(mydata,flag):
                 姓名 = str(row[1]['姓名'])
                 主菜单name = str(row[1]['主菜单name'])
                 主菜单id = str(row[1]['主菜单id'])
-
-                df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == 手机号) & (df_main['主菜单name'] == 主菜单name)]
+                df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == int(手机号)) & (df_main['主菜单name'] == 主菜单name)]
                 pages = []
                 for index, row in df_手机号_主菜单name.iterrows():
-
                     子菜单page_name = row['子菜单page_name']
                     子菜单page_desc = row['子菜单page_desc']
                     子菜单url = row['子菜单url']
@@ -2286,7 +2285,6 @@ def async_import_excel(mydata,flag):
                         pass
                     else:
                         pages.append(page)
-
                 主菜单id_dict = {
                     'id': 主菜单id,
                     'name': 主菜单name,

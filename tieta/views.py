@@ -39,57 +39,126 @@ def images(request):
         return response
 
 def dl(request):
-    from . import models
-    from urllib import parse
-    myOtherUrl = parse.quote('https://wx.wuminmin.top/tieta/dl_2')
-    my_url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='+myConfig.mskj_appid+'&redirect_uri='+myOtherUrl+'&response_type=code&scope=snsapi_userinfo&state=123#wechat_redirect'
-    from django.shortcuts import redirect
-    return redirect(my_url)
+    try:
+        from . import models
+        from urllib import parse
+        import json
+        try:
+            myurl = request.GET['myurl']
+            mykey1 = request.GET['mykey1']
+            mykey2 = request.GET['mykey2']
+            mykey3 = request.GET['mykey3']
+        except:
+            myurl='myurl'
+            mykey1='mykey1'
+            mykey2='mykey2'
+            mykey3='mykey3'
+        state_json  = {'myurl':myurl,'mykey1':mykey1,'mykey2':mykey2,'mykey3':mykey3}
+        state_str = json.dumps(state_json)
+        state_str = myurl+'-'+mykey1+'-'+mykey2+'-'+mykey3
+        print(state_str)
+        myOtherUrl = parse.quote('https://wx.wuminmin.top/tieta/dl_2')
+        my_url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='+myConfig.mskj_appid+'&redirect_uri='+myOtherUrl+'&response_type=code&scope=snsapi_userinfo&state='+state_str+'#wechat_redirect'
+        from django.shortcuts import redirect
+        return redirect(my_url)
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
 
 def dl_2(request):
-    from . import models
-    from django.shortcuts import redirect
-    js_code = request.GET['code']
-    url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
-    payload = {'appid': myConfig.mskj_appid, 'secret': myConfig.mskj_scrit, 'code': js_code,
-                'grant_type': myConfig.mskj_grant_type}
-    r = requests.get(url=url, params=payload)
-    r_json = json.loads(r.text)
-    access_token = r_json['access_token']
-    refresh_token = r_json['refresh_token']
-    openid = r_json['openid']
-    qset0 = models.铁塔用户表.objects(openid=openid).first()
-    if qset0 == None:
-        models.铁塔用户表(
-            openid=openid,
-            access_token=access_token,
-            refresh_token=refresh_token
-        ).save()
-        return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
-    else:
-        qset0.update(
-            access_token=access_token,
-            refresh_token=refresh_token
-        )
-        if qset0.手机号 == '':
-            return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
-        else:
-            手机号 = qset0.手机号
-            姓名 = qset0.其它['姓名']
-            身份证号码 = qset0.其它['身份证号码']
+    try:
+        import json
+        from . import models
+        from django.shortcuts import redirect
+        js_code = request.GET['code']
+        state = request.GET['state']
+        state_list = state.split('-')
+        # state_url = json.loads(state)['myurl']
+        state_url = state_list[0]
+        url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
+        payload = {'appid': myConfig.mskj_appid, 'secret': myConfig.mskj_scrit, 'code': js_code,
+                    'grant_type': myConfig.mskj_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        access_token = r_json['access_token']
+        refresh_token = r_json['refresh_token']
+        openid = r_json['openid']
+        qset0 = models.铁塔用户表.objects(openid=openid).first()
+        if state_url in models.属性字典:
+            if qset0 == None:
+                models.铁塔用户表(
+                    openid=openid,
+                    access_token=access_token,
+                    refresh_token=refresh_token
+                ).save()
+            else:
+                qset0.update(
+                    access_token=access_token,
+                    refresh_token=refresh_token
+                )
+            手机号 = ''
+            姓名 = ''
+            身份证号码 = ''
             return redirect(
-                models.react_url+'tieta'+'?\
+                models.react_url+state_url+'?\
                 access_token='+access_token+\
                 '&refresh_token='+refresh_token+\
+                '&state='+state+\
                 '&手机号='+手机号+\
                 '&姓名='+姓名+\
-                '&身份证号码='+身份证号码)
+                '&身份证号码='+身份证号码
+            )
+            
+
+        else:
+            if qset0 == None:
+                models.铁塔用户表(
+                    openid=openid,
+                    access_token=access_token,
+                    refresh_token=refresh_token
+                ).save()
+                return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+            else:
+                qset0.update(
+                    access_token=access_token,
+                    refresh_token=refresh_token
+                )
+                if qset0.手机号 == '':
+                    return redirect(models.react_url+'tietazhuche'+'?access_token='+access_token+'&refresh_token='+refresh_token)
+                else:
+                    手机号 = qset0.手机号
+                    姓名 = qset0.其它['姓名']
+                    身份证号码 = qset0.其它['身份证号码']
+                    return redirect(
+                        models.react_url+state_url+'?\
+                        access_token='+access_token+\
+                        '&refresh_token='+refresh_token+\
+                        '&state='+state+\
+                        '&手机号='+手机号+\
+                        '&姓名='+姓名+\
+                        '&身份证号码='+身份证号码
+                    )
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse('系统故障')
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
 
 def 提交办事申请(request):
     try:
         myState = str(request.GET['myState'])
         myState_json = json.loads(myState)
-        access_token = myState_json['access_token']
+        # access_token = myState_json['access_token']
         refresh_token = myState_json['refresh_token']
         qset0 = models.铁塔用户表.objects(refresh_token=refresh_token).first()
         if qset0 == None:
@@ -137,11 +206,13 @@ def sendSms(request):
             params = "{\"code\":\"" + 验证码 + "\"}"
             from mysite.demo_sms_send import send_sms
             r = send_sms(__business_id, 手机号, myConfig.sign_name, myConfig.template_code, params)
+            print(r)
             r2 = json.loads(r)
             if r2['Code'] == 'OK':
                 r = models.铁塔验证码表(验证码=验证码, 手机号=手机号).save()
                 response = HttpResponse('短信发送成功')
-            response = HttpResponse('请输入正确的手机号')
+            else:
+                response = HttpResponse('请输入正确的手机号')
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"

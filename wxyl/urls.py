@@ -17,5 +17,9 @@ urlpatterns = [
     path('get_tittle_list',views.获得活动列表),
     path('get_tables_by_tittle',views.获得兑现详单),
     path('upload_img', views.upload_img),
+    path('upload_img2', views.upload_img2),
+    path('get_caidan_by_bankuai',views.get_caidan_by_bankuai),
+    path('get_imggrid_by_lanmu',views.get_imggrid_by_lanmu),
+    path('delete_img',views.delete_img),
 
 ]

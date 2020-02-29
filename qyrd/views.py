@@ -157,11 +157,13 @@ def 新闻下载(request):
     import traceback
     mytype = request.POST['type']
     import myConfig
-    from pymongo import MongoClient
-    client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
-                         '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-    db = client['mydb']
-    r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)])
+    # from pymongo import MongoClient
+    # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
+    #                      '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
+    # db = client['mydb']
+    # qyrd_article_col2 = list( models.qyrd_article_col.objects(type=mytype).limit(10).order_by('-my_date') )
+    # r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)])
+    r = list( models.qyrd_article_col.objects(type=mytype).limit(10).order_by('-my_date') )
     if r == []:
         response = HttpResponse(
             '{\"article\":\"<p>没有文章</p>\",\"tittle\":\"没有文章\"}')
@@ -220,6 +222,7 @@ def 根据标题下载文章(request):
     from django.http import HttpResponse
     import traceback
     myVar = request.POST['tittle']
+    print(myVar)
     if myVar == '默认':
         myVar2 = request.POST['lan_mu']
         qset2 = models.qyrd_article_col.objects(type=myVar2).first()
@@ -251,20 +254,40 @@ def 根据标题下载时间(request):
         myVar2 = request.POST['lan_mu']
         qset2 = models.qyrd_article_col.objects(type=myVar2).first()
         if qset2 == None:
-            response = HttpResponse(
-                '{\"tittle\":\"没有文章\",\"my_time\":\"没有文章\"}')
+            res = {'tittle':'没有文章','my_time':'没有文章','count':0}
+            response = HttpResponse(json.dumps(res).encode('utf-8').decode('unicode_escape'))
         else:
-            response = HttpResponse(
-                '{\"tittle\":\"' + qset2.tittle + '\",\"my_time\":\"'+qset2.my_time+'\"}')
+            if 'count' in qset2.other:
+                count = qset2.other['count']+1
+                other = qset2.other
+                other['count'] = count
+                qset2.update(other=other)
+            else:
+                count = 1
+                other = qset2.other
+                other['count'] = count
+                qset2.update(other=other)
+            res = {'tittle':qset2.tittle,'my_time':qset2.my_time,'count':count}
+            response = HttpResponse(json.dumps(res).encode('utf-8').decode('unicode_escape'))
     else:
         import myConfig
         qset1 = models.qyrd_article_col.objects(tittle=myVar).first()
         if qset1 == None:
-            response = HttpResponse(
-                '{\"tittle\":\"' + myVar + '\",\"my_time\":\"\"}')
+            res = {'tittle':'没有文章','my_time':'没有文章','count':0}
+            response = HttpResponse(json.dumps(res).encode('utf-8').decode('unicode_escape'))
         else:
-            response = HttpResponse(
-                '{\"tittle\":\"' + myVar + '\",\"my_time\":\"'+qset1.my_time+'\"}')
+            if 'count' in qset1.other:
+                count = qset1.other['count']+1
+                other = qset1.other
+                other['count'] = count
+                qset1.update(other=other)
+            else:
+                count = 1
+                other = qset1.other
+                other['count'] = count
+                qset1.update(other=other)
+            res = {'tittle':myVar,'my_time':qset1.my_time,'count':count}
+            response = HttpResponse(json.dumps(res).encode('utf-8').decode('unicode_escape'))
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
     response["Access-Control-Max-Age"] = "1000"
@@ -283,7 +306,7 @@ def 根据栏目下载目录(request):
     # from pymongo import MongoClient
     # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
     # db = client['mydb']
-    qset1 = models.qyrd_article_col.objects(type=myVar)
+    qset1 = models.qyrd_article_col.objects(type=myVar).order_by('-my_date')
     myVar2 = []
     myVar3 = []
     for one in qset1:
@@ -293,7 +316,7 @@ def 根据栏目下载目录(request):
             myVar2.append(one.my_month)
     for one in myVar2:
         myVar4 = []
-        qset2 = models.qyrd_article_col.objects(type=myVar, my_month=one)
+        qset2 = models.qyrd_article_col.objects(type=myVar, my_month=one).order_by('-my_date')
         for one2 in qset2:
             myVar4.append({'标题': one2.tittle, })
         myVar3.append({'月份': one, '新闻标题列表': myVar4})
@@ -314,15 +337,19 @@ def 根据板块下载表格(request):
     myVar2 = models.ban_kuai_lan_mu_dict[myVar]
     myVar3 = []
     i = 0
+    if myVar == '新闻中心':
+        limit1 = 8
+    elif myVar == '':
+        limit1 = 5
+    else:
+        limit1 = 5
+    
     for one in myVar2:
-        i = i+1
         myVar4 = []
-        qset2 = models.qyrd_article_col.objects(type=one).limit(10)
+        qset2 = models.qyrd_article_col.objects(type=one).limit(limit1).order_by('-my_date')
         for one2 in qset2:
-            print(one2.my_date.month)
-            print(one2.my_date.day)
             myVar4.append({'key': one2.tittle,
-                           'key2': str(one2.my_date.month)+'-'+str(one2.my_date.day),
+                           'key2': str(one2.my_date.year)+'-'+str(one2.my_date.month)+'-'+str(one2.my_date.day),
                            'img_src':'https://wx.wuminmin.top/qyrd/image?id=新闻图片1',
                            'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle
                            })
@@ -331,6 +358,7 @@ def 根据板块下载表格(request):
             'table_name': one,
             'list_data': myVar4
         })
+        i = i+1
     response = HttpResponse(json.dumps(myVar3))
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"

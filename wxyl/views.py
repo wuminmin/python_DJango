@@ -82,6 +82,61 @@ def upload_img(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+def upload_img2(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        print(request.FILES)
+        print(request.POST)
+        usertoken = request.POST['usertoken']
+        当前模块 = request.POST['当前模块']
+        当前图片名称 = request.POST['当前图片名称']
+        qset1 = models.wxyl_userinfo.objects(usertoken=usertoken).first()
+        if qset1 == None:
+            response = HttpResponse(json.dumps({'code':'非法用户'}))
+        else:
+            file_object = request.FILES['file'].file
+            # my_file_name = request.FILES['file'].name
+            # print(file_object)
+            # fo = open(my_file_name, "wb")
+            # fo.write(request.FILES['file'].file.read())
+            # fo.close()
+            qset3 = models.wxyl_article.objects(type=当前模块,tittle=当前图片名称).first()
+            if qset3 == None:
+                models.wxyl_article(
+                    my_month=当前模块,
+                    type=当前模块,
+                    tittle=当前图片名称
+                ).save()
+            else:
+                pass
+            wxyl_id = 当前模块+'-'+当前图片名称
+            qset2 = models.wxyl_image_col.objects(wxyl_id = wxyl_id).first()
+            if qset2 == None:
+                models.wxyl_image_col(
+                    wxyl_id = wxyl_id ,
+                    wxyl_image = file_object
+                ).save()
+            else:
+                qset2.delete()
+                models.wxyl_image_col(
+                    wxyl_id = wxyl_id ,
+                    wxyl_image = file_object
+                ).save()
+            response = HttpResponse(json.dumps({'code':'成功'}))
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps({'code':'系统错误'}))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
 def deprecated_async(f):
     def wrapper(*args, **kwargs):
         from threading import Thread
@@ -313,10 +368,19 @@ def 根据板块下载表格(request):
     for one in myVar2:
         i = i+1
         myVar4 = []
-        qset2 = models.wxyl_article.objects(type=one).limit(10)
+        qset2 = models.wxyl_article.objects(type=one).limit(5)
+        j=0
         for one2 in qset2:
-            myVar4.append({'key': one2.tittle, 'key2': one2.my_time,
-                           'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle})
+            myVar4.append({
+                'key': one2.tittle,
+                'key2': one2.my_time,
+                'url': '/#/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle,
+                '图片名称':one2.tittle,
+                '网页地址':'/#/myimggrid?ban_kuai='+myVar+'&lan_mu='+one+'&tittle=默认',
+                '图片地址':'https://wx.wuminmin.top/wxyl/image?id='+one+'-'+one2.tittle,
+                '偏移量':str(j)+'%'
+            })
+            j=j+20
         myVar3.append({
             'table_key': i,
             'table_name': one,
@@ -549,3 +613,110 @@ def 获得兑现详单(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+def get_caidan_by_bankuai(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        myVar1 = request.POST['ban_kuai']
+        lan_mu_list = models.ban_kuai_lan_mu_dict[myVar1]
+        response = HttpResponse(json.dumps(lan_mu_list))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        response = HttpResponse(json.dumps([]))
+        import traceback
+        print(traceback.format_exc())
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def get_imggrid_by_lanmu(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        # ban_kuai = request.POST['ban_kuai']
+        lan_mu = request.POST['lan_mu']
+        qset0 = models.wxyl_article.objects(type=lan_mu)
+        print(qset0)
+        res_list = []
+        tmp_list = []
+        for one in qset0:
+            tmp_list.append({
+                '图片名称':one.tittle,
+                '图片地址':'https://wx.wuminmin.top/wxyl/image?id='+one.type+'-'+one.tittle
+            })
+            if len(res_list) == 4:
+                res_list.append(
+                    tmp_list
+                )
+                tmp_list = []
+        res_list.append(
+                    tmp_list
+                )    
+        response = HttpResponse(json.dumps(res_list))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        response = HttpResponse(json.dumps([]))
+        import traceback
+        print(traceback.format_exc())
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def delete_img(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        tittle = request.POST['tittle']
+        lan_mu = request.POST['lan_mu']
+        print(tittle,lan_mu)
+        qset0 = models.wxyl_article.objects(type=lan_mu , tittle=tittle).first()
+        if  qset0 == None:
+            response = HttpResponse(json.dumps('图片不存在'))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        else:
+            qset0.delete()
+            qset1 = models.wxyl_image_col.objects(wxyl_id=lan_mu+'-'+tittle).first()
+            if qset1 == None:
+                pass
+            else:
+                qset1.delete()
+            response = HttpResponse(json.dumps('删除成功'))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+    except:
+        response = HttpResponse(json.dumps('系统错误'))
+        import traceback
+        print(traceback.format_exc())
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

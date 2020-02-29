@@ -7,7 +7,8 @@ root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(root_path)
 import myConfig
 
-connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
+# connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfig.username, password=myConfig.password)
+connect(alias='canteen_alias',db=myConfig.canteen_db, host=myConfig.canteen_host, port=myConfig.canteen_port, username=myConfig.canteen_username, password=myConfig.canteen_password)
 
 react_url = 'https://oa.wuminmin.top/'
 
@@ -18,15 +19,33 @@ class  铁塔用户表(Document):
     手机号 = StringField(default='')
     其它 = DictField(default={})
 
+
 class  铁塔验证码表(Document):
     验证码 = StringField()
     手机号 = StringField()
 
+# 属性字典 = {
+#     '贵池区师生提速':'gcq_shisheng_tisu',
+#     '贵池区师生新装':'gcq_shisheng_xinzhuang',
+#     '九华山师生提速':'jhs_shisheng_tisu',
+#     '九华山师生新装':'jhs_shisheng_xinzhuang',
+#     '青阳县师生提速':'qyx_shisheng_tisu',
+#     '青阳县师生新装':'qyx_shisheng_xinzhuang',
+#     '石台县师生提速':'stx_shisheng_tisu',
+#     '石台县师生新装':'stx_shisheng_xinzhuang',
+#     '东至县师生提速':'dzx_shisheng_tisu',
+#     '东至县师生新装':'dzx_shisheng_xinzhuang',
+#     }
+属性字典 = {
+    'shi_sheng_ti_su':'师生提速',
+    'shi_sheng_xin_zhuang':'师生新装',
+    }
 class 铁塔资料表(Document):
     上传时间 = DateTimeField(default=None)
     openid = StringField(default='')
     手机号 = StringField(default='')
     资料 = DictField(default={})
+    属性 = StringField(default='')
 
 # class  微信投票用户表(Document):
 #     openid = StringField(default='')

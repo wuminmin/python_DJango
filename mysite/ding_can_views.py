@@ -77,7 +77,8 @@ def 订餐下载主界面数据(request):
             return HttpResponse(自定义登录状态)
         else:
             手机号 = 用户.手机号
-            主界面 = 订餐主界面表.objects(手机号=用户.手机号).first()
+            print(手机号)
+            主界面 = 订餐主界面表.objects(手机号=手机号).first()
             if 主界面 == None:
                 用户.delete()
                 描述 = '没有数据'
@@ -90,10 +91,11 @@ def 订餐下载主界面数据(request):
                 自定义登录状态 = {'描述': 描述, '会话': 会话,'主页标题':主页标题,'主页描述':主页描述,'验证码标题':验证码标题,
                            '验证码描述':验证码描述,'主界内容':主界内容}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
+                print(自定义登录状态)
                 return HttpResponse(自定义登录状态)
             else:
                 自定义登录状态 = 主界面.to_json().encode('utf-8').decode('unicode_escape')
+                print(自定义登录状态)
                 return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
