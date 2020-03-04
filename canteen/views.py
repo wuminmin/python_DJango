@@ -224,9 +224,9 @@ def 下载订餐模版2(request):
                             'input_index': 晚餐食堂就餐预订数, }, ]
                 elif 订餐主界面表first.二级部门 == 池州电信分公司:
                     ding_can_list = [
-                        {'tittle': "早餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 早餐食堂就餐预订数, },
-                        {'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 中餐食堂就餐预订数, },
-                        {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 晚餐食堂就餐预订数, },
+                        # {'tittle': "早餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 早餐食堂就餐预订数, },
+                        # {'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 中餐食堂就餐预订数, },
+                        # {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 晚餐食堂就餐预订数, },
                         # {'tittle': "包子外带预订数", 'input_list': ['无', '预定1份'], 'input_index': 包子外带预订数, },
                     ]
                     from . import models
@@ -845,14 +845,24 @@ def 上传订餐结果2(request):
                                     totalAmount_int = totalAmount_int + index*one['价格']
                                     queryset1.update(产品=产品)
                                 else:
-                                    if index == qset2.产品[tittle]['预定数量']:
-                                        pass
+                                    if tittle in qset2.产品:
+                                        if index == qset2.产品[tittle]['预定数量']:
+                                            pass
+                                        else:
+                                            产品[tittle] = {
+                                                '预定时间':当前时间,
+                                                '预定数量':index,
+                                                '签到':'没吃',
+                                                '价格':one['价格']
+                                            }
+                                            totalAmount_int = totalAmount_int + index*one['价格']
+                                            queryset1.update(产品=产品)
                                     else:
                                         产品[tittle] = {
-                                            '预定时间':当前时间,
-                                            '预定数量':index,
-                                            '签到':'没吃',
-                                            '价格':one['价格']
+                                                '预定时间':当前时间,
+                                                '预定数量':index,
+                                                '签到':'没吃',
+                                                '价格':one['价格']
                                         }
                                         totalAmount_int = totalAmount_int + index*one['价格']
                                         queryset1.update(产品=产品)
@@ -1380,7 +1390,7 @@ def 订餐扫核销码2(request):
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
         手机号 = 订餐用户表_first.手机号
-        订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
+        # 订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
         # 订餐结果表_first = 订餐结果表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 手机号=手机号, 用餐日期=当前日期).first()
         订餐结果表_first = 订餐结果表.objects(手机号=手机号, 用餐日期=当前日期).first()
         if 订餐结果表_first == None:
@@ -1463,6 +1473,100 @@ def 订餐扫核销码2(request):
         自定义登录状态 = str(自定义登录状态)
         return HttpResponse(自定义登录状态)
 
+def 订餐扫动态核销码(request):
+    from bson.objectid import ObjectId
+    from . import models as ding_can_mongo  #新版订餐后台
+    try:
+        核销码 = str(request.GET['er_wei_ma'])
+        主菜单name = str(request.GET['name'])
+        子菜单page_name = str(request.GET['page_name'])
+        子菜单page_desc = str(request.GET['page_desc'])
+        js_code = request.GET['code']
+        核销码 = 核销码.encode('utf8')[3:].decode('utf8')
+        print(核销码)
+        核销码json = json.loads(核销码)
+        日期 = 核销码json['date']
+        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        if 日期 == '':
+            日期 = 当前日期
+        产品名称 = 核销码json['name']
+        oid = 核销码json['oid']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                   'grant_type': canteen_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        订餐用户表_one = 订餐用户表.objects(openid=r_json['openid']).first()
+        if 订餐用户表_one == None:
+            自定义登录状态 = {'描述': '管理员未注册', '姓名': '', '当前日期': '', '类型': ''}
+            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            自定义登录状态 = str(自定义登录状态)
+            return HttpResponse(自定义登录状态)
+        else:
+            # print('微信校验码--------------',微信校验码)
+            # payload2 = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': 微信校验码,
+            #        'grant_type': canteen_grant_type}
+            # r2 = requests.get(url=url, params=payload)
+            # r_json2 = json.loads(r2.text)
+            # print(r_json2)
+            # 订餐用户表_one2 = 订餐用户表.objects(openid=r_json2['openid']).first()
+            # if 订餐用户表_one2 == None:
+            #     自定义登录状态 = {'描述': '用户不存在', '姓名': '', '当前日期': '', '类型': ''}
+            #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            #     自定义登录状态 = str(自定义登录状态)
+            #     return HttpResponse(自定义登录状态)
+            # else:
+            #     手机号2 = 订餐用户表_one2.手机号
+                # qset3 = ding_can_mongo.订餐主界面表.objects(手机号=手机号2).first()
+                # if qset3 == None:
+                #     自定义登录状态 = {'描述': '无权限', '姓名': '', '当前日期': '', '类型': ''}
+                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                #     自定义登录状态 = str(自定义登录状态)
+                #     return HttpResponse(自定义登录状态)
+                # else:
+            qset1 = ding_can_mongo.订餐结果表.objects(
+                id=ObjectId(oid)
+            ).first()
+            if qset1 == None:
+                自定义登录状态 = {'描述': '无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+            else:
+                产品 = qset1.产品
+                产品[产品名称]['签到'] = '吃过'
+                产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                qset1.update(产品=产品)
+                订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
+                qset2 = ding_can_mongo.订餐钱包表.objects(openid=订餐用户表1.openid).first()
+                if qset2 == None:
+                    pass
+                else:
+                    已消费 = qset2.已消费
+                    预消费 = qset2.预消费
+                    已消费 = 已消费 + ( 产品[产品名称]['价格'] * 产品[产品名称]['预定数量'] )
+                    预消费 = 预消费 - ( 产品[产品名称]['价格'] * 产品[产品名称]['预定数量'] )
+                    qset2.update(已消费=已消费,预消费=预消费)
+                    订餐主界面表1 = ding_can_mongo.订餐主界面表.objects(手机号=qset1.手机号).first()
+                    食堂名称 = qset1.子菜单page_name
+                    二级部门 = 订餐主界面表1.二级部门
+                    异步统计产品(食堂名称=食堂名称,二级部门=二级部门)
+                    自定义登录状态 = {'描述': '成功', 
+                        '订餐结果': '姓名'+订餐主界面表1.姓名+',预定数量'+str(产品[产品名称]['预定数量'])+',产品名称'+产品名称
+                    }
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+        自定义登录状态 = {'描述': '核销码错误', '姓名': '', '当前日期': '', '类型': ''}
+        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+        自定义登录状态 = str(自定义登录状态)
+        return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        自定义登录状态 = {'描述': '系统错误', '姓名': '', '当前日期': '', '类型': ''}
+        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+        自定义登录状态 = str(自定义登录状态)
+        return HttpResponse(自定义登录状态)
 
 def 订餐扫核销码(request):
     核销码 = str(request.GET['er_wei_ma'])
@@ -2378,6 +2482,84 @@ def userInfoUpload(request):
         r = traceback.format_exc()
         print(r)
         response = HttpResponse(r)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+
+def get_ding_dan(request):
+    import json
+    from bson.objectid import ObjectId
+    # from . import models as ding_can_mongo #老版订餐后台
+    from . import models as ding_can_mongo  #新版订餐后台
+    try:
+        code = request.GET['code']
+        日期 = request.GET['date']
+        if 日期 == '':
+            日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        name = request.GET['name']
+        page_name = request.GET['page_name']
+        page_desc = request.GET['page_desc']
+        js_code = request.GET['code']
+        print(code,日期,name,page_name,page_desc)
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
+                    'grant_type': canteen_grant_type}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        if 用户 == None:
+            response = HttpResponse(json.dumps({'描述':'无手机号','数据':[]}))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        else:
+            手机号 = 用户.手机号
+            ding_can_mongo1 = ding_can_mongo.订餐主界面表.objects(手机号=手机号).first()
+            if ding_can_mongo1 == None:
+                response = HttpResponse(json.dumps({'描述':'无权限','数据':[]}))
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            ding_can_mongo2 = ding_can_mongo.订餐结果表.objects(手机号=手机号,用餐日期=日期,
+            子菜单page_name=page_name).first()
+            if ding_can_mongo2 == None:
+                response = HttpResponse(json.dumps({'描述':'无订餐记录','数据':[]}))
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            else:
+                订餐结果列表 = []
+                for one in ding_can_mongo.产品名称列表:
+                    if one in ding_can_mongo2.产品:
+                        订餐结果列表.append(
+                             {
+                                'oid':str(ding_can_mongo2.id),
+                                'name':one,
+                                'number':ding_can_mongo2.产品[one]['预定数量'],
+                                'ordertime':ding_can_mongo2.产品[one]['预定时间'],
+                                'price':ding_can_mongo2.产品[one]['价格'],
+                                'mark':ding_can_mongo2.产品[one]['签到']
+                            }
+                        )
+                response = HttpResponse(json.dumps({'描述':'成功','数据':订餐结果列表}))
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+
+    except:
+        r = traceback.format_exc()
+        print(r)
+        response = HttpResponse(json.dumps({'描述':'系统错误','数据':[]}))
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
         response["Access-Control-Max-Age"] = "1000"

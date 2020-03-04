@@ -720,3 +720,44 @@ def delete_img(request):
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
+
+def delete_wz(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        tittle = request.POST['tittle']
+        lan_mu = request.POST['lan_mu']
+        print(tittle,lan_mu)
+        qset0 = models.wxyl_article.objects(type=lan_mu , tittle=tittle).first()
+        if  qset0 == None:
+            response = HttpResponse(json.dumps('文章不存在'))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        else:
+            qset0.delete()
+            qset1 = models.wxyl_image_col.objects(wxyl_id=lan_mu+'-'+tittle).first()
+            if qset1 == None:
+                pass
+            else:
+                qset1.delete()
+            response = HttpResponse(json.dumps('删除成功'))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+    except:
+        response = HttpResponse(json.dumps('系统错误'))
+        import traceback
+        print(traceback.format_exc())
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

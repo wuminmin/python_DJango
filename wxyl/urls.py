@@ -21,5 +21,6 @@ urlpatterns = [
     path('get_caidan_by_bankuai',views.get_caidan_by_bankuai),
     path('get_imggrid_by_lanmu',views.get_imggrid_by_lanmu),
     path('delete_img',views.delete_img),
+    path('delete_wz',views.delete_wz),
 
 ]

@@ -120,14 +120,14 @@ def 订餐没吃统计发邮件(mail_addr,子菜单page_name):
         上月第一天 = datetime.date(2019, 12, 1).strftime('%Y-%m-%d')
        
         # 上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
-        dcjg = 订餐结果表.objects(
-            用餐日期__gte=上月第一天,
-            用餐日期__lt=当月第一天,
-            子菜单page_name = 子菜单page_name
-        )
         # dcjg = 订餐结果表.objects(
+        #     用餐日期__gte=上月第一天,
+        #     用餐日期__lt=当月第一天,
         #     子菜单page_name = 子菜单page_name
         # )
+        dcjg = 订餐结果表.objects(
+            子菜单page_name = 子菜单page_name
+        )
         l1 = []
         l2 = []
         l3 = []
@@ -208,9 +208,9 @@ def 启动订餐提醒定时器():
         time.sleep(1)
 
 if __name__ == '__main__':
-    订餐没吃统计发邮件('15305669706@189.cn' , '市公司食堂')
+    # 订餐没吃统计发邮件('15305669706@189.cn' , '市公司食堂')
     # 订餐没吃统计发邮件('743009564@qq.com')
-    # 订餐没吃统计发邮件('743009564@qq.com' , '市公司食堂')
+    订餐没吃统计发邮件('743009564@qq.com' , '市公司食堂')
     # 订餐没吃统计发邮件('buckwmm@qq.com' , '市局（公司）食堂')
     # 订餐没吃统计发邮件('59559558@qq.com', '市局（公司）食堂')
 
