@@ -195,7 +195,7 @@ def 下载订餐模版2(request):
                 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
                 会话 = r_json['session_key']
                 描述 = '下载成功'
-                queryset0 = 订餐结果表.objects(手机号=手机号, 用餐日期=用餐日期, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+                queryset0 = 订餐结果表.objects(手机号=手机号, 用餐日期=用餐日期,子菜单page_name=子菜单page_name,
                     子菜单page_desc=子菜单page_desc, ).first()
                 if queryset0 == None:
                     早餐食堂就餐预订数 = 0
@@ -244,7 +244,7 @@ def 下载订餐模版2(request):
                                 ding_can_list.append(
                                     {
                                         'tittle':one['名称'],'input_list': one['预定数量条件'],
-                                        'input_index': queryset0.产品['包子']['预定数量']
+                                        'input_index': queryset0.产品[one['名称']]['预定数量']
                                     }
                                 )
                             else:
@@ -560,7 +560,7 @@ def 异步计算消费金额(openid):
                 "$group": {
                     "_id": "null",
                     one['名称']: {
-                        "$sum": "$产品.包子.预定数量"
+                        "$sum": "$产品."+one['名称']+".预定数量"
                     }
                 }
             }
@@ -686,199 +686,123 @@ def 上传订餐结果2(request):
             for ding_can_list_one in ding_can_list:
                 tittle = ding_can_list_one['tittle']
                 index = int (ding_can_list_one['input_index'] )
-                if index == 0:
+                qset2 = models.订餐结果表.objects(
+                        手机号=手机号,  
+                        子菜单page_name=子菜单page_name,
+                        用餐日期=用餐日期
+                    ).first()
+                if qset2 == None:
                     pass
                 else:
-                    if tittle == '早餐食堂就餐预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定早餐提前截止时间:
-                            if queryset1.早餐食堂就餐预订数 == index:
-                                pass
-                            else:
-                                totalAmount_int = totalAmount_int+int(index)*400
-                                goods.append(
-                                    {'body':tittle,
-                                    'price': '4',
-                                    'goodsName': tittle,
-                                    'goodsId': '1',
-                                    'quantity': index,
-                                    'goodsCategory': tittle
-                                    }
-                                )
-                                queryset1.update(早餐食堂就餐预订数=index, 早餐订餐时间=当前时间)
+                    if tittle in qset2.产品:
+                        if index == qset2.产品[tittle]['预定数量']:
+                            pass
                         else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle == '早餐食堂外带预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定早餐提前截止时间:
-                            if index == '0' or index == 0 :
-                                pass
-                            else:
-                                queryset2 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '早餐食堂外带预订数')
-                                queryset3 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '中餐食堂外带预订数')
-                                queryset4 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '晚餐食堂外带预订数')
-                                if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                                    自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                                    return HttpResponse(自定义登录状态)
-                            if queryset1.早餐食堂外带预订数 == 0:
-                                queryset1.update(早餐食堂外带预订数=index, 早餐订餐时间=当前时间)
-                            else:
-                                自定义登录状态 = "{\"描述\":\"已重复，不接受预订\",\"会话\":\"\"}"
+                            if qset2.产品[tittle]['签到'] == '吃过':
+                                自定义登录状态 = {'描述': tittle+'吃过,不能修改', '会话': r_json['session_key']}
+                                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                自定义登录状态 = str(自定义登录状态)
                                 return HttpResponse(自定义登录状态)
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle == '中餐食堂就餐预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定中餐提前截止时间:
-                            if queryset1.中餐食堂就餐预订数 == index:
-                                pass
-                            else:
-                                totalAmount_int = totalAmount_int+int(index)*800
-                                goods.append(
-                                    {'body':tittle,
-                                    'price': '8',
-                                    'goodsName': tittle,
-                                    'goodsId': '1',
-                                    'quantity': index,
-                                    'goodsCategory': tittle
-                                    }
-                                )
-                                queryset1.update(中餐食堂就餐预订数=index, 中餐订餐时间=当前时间)
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle == '中餐食堂外带预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定中餐提前截止时间:
-                            if index == '0' or index == 0:
-                                pass
-                            else:
-                                queryset2 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '早餐食堂外带预订数')
-                                queryset3 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '中餐食堂外带预订数')
-                                queryset4 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '晚餐食堂外带预订数')
-                                if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                                    自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                                    return HttpResponse(自定义登录状态)
-                            queryset1.update(中餐食堂外带预订数=index, 中餐订餐时间=当前时间)
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle == '晚餐食堂就餐预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定晚餐提前截止时间:
-                            if queryset1.晚餐食堂就餐预订数 == index:
-                                pass
-                            else:
-                                totalAmount_int = totalAmount_int+int(index)*700
-                                goods.append(
-                                    {'body':tittle,
-                                    'price': '7',
-                                    'goodsName': tittle,
-                                    'goodsId': '1',
-                                    'quantity': index,
-                                    'goodsCategory': tittle
-                                    }
-                                )
-                            queryset1.update(晚餐食堂就餐预订数=index, 晚餐订餐时间=当前时间)
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle == '晚餐食堂外带预订数':
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        if 当前时间戳 < 预定晚餐提前截止时间:
-                            if index == '0' or index == 0:
-                                pass
-                            else:
-                                queryset2 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '早餐食堂外带预订数')
-                                queryset3 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '中餐食堂外带预订数')
-                                queryset4 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                        子菜单page_desc=子菜单page_desc, 用餐日期__gte=当月第一天, 用餐日期__lt=下月第一天, ).sum(
-                                    '晚餐食堂外带预订数')
-                                if queryset2 + queryset3 + queryset4 >= 烟草公司每月外带上限次数:
-                                    自定义登录状态 = "{\"描述\":\"已超过外带上限，不接受预订\",\"会话\":\"\"}"
-                                    return HttpResponse(自定义登录状态)
-                            queryset1.update(晚餐食堂外带预订数=index, 晚餐订餐时间=当前时间)
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接受预订\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                    elif tittle in models.产品名称列表:
-                        queryset1 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
-                        for one in models.产品列表:
-                            if tittle == one['名称']:
-                                产品 = queryset1.产品
-                                qset2 = models.订餐结果表.objects(
-                                    手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                    子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期
-                                ).first()
-                                if qset2 == None or qset2.产品 == {}:
-                                    产品[tittle] = {
-                                        '预定时间':当前时间,
-                                        '预定数量':index,
-                                        '签到':'没吃',
-                                        '价格':one['价格']
-                                    }
-                                    totalAmount_int = totalAmount_int + index*one['价格']
-                                    queryset1.update(产品=产品)
-                                else:
-                                    if tittle in qset2.产品:
-                                        if index == qset2.产品[tittle]['预定数量']:
-                                            pass
-                                        else:
-                                            产品[tittle] = {
-                                                '预定时间':当前时间,
-                                                '预定数量':index,
-                                                '签到':'没吃',
-                                                '价格':one['价格']
-                                            }
-                                            totalAmount_int = totalAmount_int + index*one['价格']
-                                            queryset1.update(产品=产品)
-                                    else:
-                                        产品[tittle] = {
-                                                '预定时间':当前时间,
-                                                '预定数量':index,
-                                                '签到':'没吃',
-                                                '价格':one['价格']
-                                        }
-                                        totalAmount_int = totalAmount_int + index*one['价格']
-                                        queryset1.update(产品=产品)
-                    else:
-                        描述 = '系统错误'
-                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
-                        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                        自定义登录状态 = str(自定义登录状态)
-                        return HttpResponse(自定义登录状态)
-            if totalAmount_int == 0:
-                自定义登录状态 = {'描述': '无需重复订餐', '会话': r_json['session_key']}
-                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
-                return HttpResponse(自定义登录状态)
-            queryset10 = models.订餐结果临时表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期, ).first()
+
+                queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
+                            用餐日期=用餐日期, ).first()
+                for one in models.产品列表:
+                    if tittle == one['名称']:
+                        产品 = queryset1.产品
+                        产品[tittle] = {
+                            '预定时间':当前时间,
+                            '预定数量':index,
+                            '签到':'没吃',
+                            '价格':one['价格']
+                        }
+                        totalAmount_int = totalAmount_int + index*one['价格']
+                        queryset1.update(产品=产品)
+                                
+            #     if index == 0:
+            #         qset2 = models.订餐结果表.objects(
+            #             手机号=手机号,  
+            #             子菜单page_name=子菜单page_name,
+            #             用餐日期=用餐日期
+            #         ).first()
+            #         if qset2 == None:
+            #             pass
+            #         else:
+            #             if qset2.产品[tittle]['预定数量'] == 0:
+            #                 pass
+            #             else:
+            #                 queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
+            #                 用餐日期=用餐日期, ).first()
+            #                 产品 = queryset1.产品
+            #                 产品[tittle] = {
+            #                                     '预定时间':当前时间,
+            #                                     '预定数量':index,
+            #                                     '签到':'没吃',
+            #                                     '价格':one['价格']
+            #                                 }
+            #                 totalAmount_int = totalAmount_int + index*one['价格']
+            #                 queryset1.update(产品=产品)
+            #     else:
+            #         print(ding_can_list_one)
+            #         if tittle in models.产品名称列表:
+            #             queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
+            #                 用餐日期=用餐日期, ).first()
+            #             for one in models.产品列表:
+            #                 if tittle == one['名称']:
+            #                     产品 = queryset1.产品
+            #                     qset2 = models.订餐结果表.objects(
+            #                         手机号=手机号,  
+            #                         子菜单page_name=子菜单page_name,
+            #                         用餐日期=用餐日期
+            #                     ).first()
+            #                     if qset2 == None or qset2.产品 == {}:
+            #                         产品[tittle] = {
+            #                             '预定时间':当前时间,
+            #                             '预定数量':index,
+            #                             '签到':'没吃',
+            #                             '价格':one['价格']
+            #                         }
+            #                         totalAmount_int = totalAmount_int + index*one['价格']
+            #                         queryset1.update(产品=产品)
+            #                     else:
+            #                         print('index',index)
+            #                         print('qset2.产品[tittle][预定数量]',qset2.产品[tittle]['预定数量'])
+            #                         if tittle in qset2.产品:
+            #                             if index == qset2.产品[tittle]['预定数量']:
+            #                                 pass
+            #                             else:
+            #                                 产品[tittle] = {
+            #                                     '预定时间':当前时间,
+            #                                     '预定数量':index,
+            #                                     '签到':'没吃',
+            #                                     '价格':one['价格']
+            #                                 }
+            #                                 totalAmount_int = totalAmount_int + index*one['价格']
+            #                                 queryset1.update(产品=产品)
+            #                         else:
+            #                             产品[tittle] = {
+            #                                     '预定时间':当前时间,
+            #                                     '预定数量':index,
+            #                                     '签到':'没吃',
+            #                                     '价格':one['价格']
+            #                             }
+            #                             totalAmount_int = totalAmount_int + index*one['价格']
+            #                             queryset1.update(产品=产品)
+            #         else:
+            #             描述 = '系统错误'
+            #             自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+            #             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            #             自定义登录状态 = str(自定义登录状态)
+            #             return HttpResponse(自定义登录状态)
+            # if totalAmount_int == 0:
+            #     自定义登录状态 = {'描述': '无需重复订餐', '会话': r_json['session_key']}
+            #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+            #     自定义登录状态 = str(自定义登录状态)
+            #     return HttpResponse(自定义登录状态)
+            queryset10 = models.订餐结果临时表.objects(
+                手机号=手机号,
+                子菜单page_name=子菜单page_name,
+                用餐日期=用餐日期, 
+            ).first()
             qset11 = models.订餐钱包表.objects(openid=openid).first()
             if qset11 == None:
                 models.订餐钱包表(openid=openid,已充值=0).save()
@@ -1535,6 +1459,11 @@ def 订餐扫动态核销码(request):
             else:
                 产品 = qset1.产品
                 产品[产品名称]['签到'] = '吃过'
+                if 产品[产品名称]['预定数量'] == 0:
+                    自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
                 产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                 qset1.update(产品=产品)
                 订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
