@@ -9,7 +9,7 @@ import pytz
 import requests
 import time
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 import myConfig
 from myConfig import appid, secret, grant_type, sign_name, template_code, django_root_path
@@ -36,13 +36,13 @@ from mysite.yi_cha_mongo import 易查试卷模版表
 def index(request):
     try:
         print(request)
-        return render_to_response("login.html")
+        return render("login.html")
     except:
         print(traceback.format_exc())
         return HttpResponse('500')
 
 def 检查经纬度(request):
-    return render_to_response("form_file_upload.html")
+    return render("form_file_upload.html")
 
 def 给定经纬度计算两点之间距离(lon1, lat1, lon2, lat2): # 经度1，纬度1，经度2，纬度2 （十进制度数）
     from math import radians, cos, sin, asin, sqrt

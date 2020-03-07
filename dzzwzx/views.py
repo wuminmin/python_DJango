@@ -9,7 +9,7 @@ import pytz
 import requests
 import time
 from django.http import HttpResponse, FileResponse
-from django.shortcuts import render_to_response,render
+from django.shortcuts import render,render
 import myConfig
 import sys
 from django.shortcuts import redirect

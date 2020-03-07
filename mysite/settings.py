@@ -74,19 +74,19 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'djongo',
-         'NAME': myConfig.db,
-        'USER': myConfig.username,
-        'PASSWORD': myConfig.password,
-        'HOST': myConfig.host,
-        'PORT': myConfig.port,
-        'AUTH_SOURCE': myConfig.db,
-        'AUTH_MECHANISM': 'SCRAM-SHA-1',
-        # 'SUPPORTS_TRANSACTIONS': False,
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': myConfig.db,
+#         'USER': myConfig.username,
+#         'PASSWORD': myConfig.password,
+#         'HOST': myConfig.host,
+#         'PORT': myConfig.port,
+#         'AUTH_SOURCE': myConfig.db,
+#         'AUTH_MECHANISM': 'SCRAM-SHA-1',
+#         # 'SUPPORTS_TRANSACTIONS': False,
+#     }
+# }
 
 
 # Password validation
