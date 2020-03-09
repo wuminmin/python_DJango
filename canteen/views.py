@@ -48,7 +48,6 @@ def 订餐登录检查(request):
 
         查询结果 = 订餐用户表.objects(openid=r_json['openid']).first()
         if 查询结果 == None:
-
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
         else:
@@ -212,56 +211,84 @@ def 下载订餐模版2(request):
                     早餐食堂外带预订数 = queryset0.早餐食堂外带预订数
                     中餐食堂外带预订数 = queryset0.中餐食堂外带预订数
                     晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
-                if 订餐主界面表first.二级部门 == 池州烟草公司:
-                    ding_can_list = [{'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '订1份'], 'input_index': 中餐食堂就餐预订数, },
-                        {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '订1份', ], 'input_index': 晚餐食堂就餐预订数, },
-                        {'tittle': "中餐食堂外带预订数", 'input_list': ['无', '订1份'], 'input_index': 中餐食堂外带预订数, },
-                        {'tittle': "晚餐食堂外带预订数", 'input_list': ['无', '订1份'], 'input_index': 晚餐食堂外带预订数, }, ]
-                elif 订餐主界面表first.二级部门 == 青阳电信分公司:
-                    ding_can_list = [{'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份', '预定2份', '预定3份'],
-                        'input_index': 中餐食堂就餐预订数, },
-                        {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份', '预定2份', '预定3份'],
-                            'input_index': 晚餐食堂就餐预订数, }, ]
-                elif 订餐主界面表first.二级部门 == 池州电信分公司:
-                    ding_can_list = [
-                        # {'tittle': "早餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 早餐食堂就餐预订数, },
-                        # {'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 中餐食堂就餐预订数, },
-                        # {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 晚餐食堂就餐预订数, },
-                        # {'tittle': "包子外带预订数", 'input_list': ['无', '预定1份'], 'input_index': 包子外带预订数, },
-                    ]
-                    from . import models
-                    for one in models.产品列表:
-                        if queryset0 == None:
+                # if 订餐主界面表first.二级部门 == 池州烟草公司:
+                #     ding_can_list = [{'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '订1份'], 'input_index': 中餐食堂就餐预订数, },
+                #         {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '订1份', ], 'input_index': 晚餐食堂就餐预订数, },
+                #         {'tittle': "中餐食堂外带预订数", 'input_list': ['无', '订1份'], 'input_index': 中餐食堂外带预订数, },
+                #         {'tittle': "晚餐食堂外带预订数", 'input_list': ['无', '订1份'], 'input_index': 晚餐食堂外带预订数, }, ]
+                # elif 订餐主界面表first.二级部门 == 青阳电信分公司:
+                #     ding_can_list = [{'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份', '预定2份', '预定3份'],
+                #         'input_index': 中餐食堂就餐预订数, },
+                #         {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份', '预定2份', '预定3份'],
+                #             'input_index': 晚餐食堂就餐预订数, }, ]
+                # elif 订餐主界面表first.二级部门 == 池州电信分公司:
+                ding_can_list = [
+                    # {'tittle': "早餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 早餐食堂就餐预订数, },
+                    # {'tittle': "中餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 中餐食堂就餐预订数, },
+                    # {'tittle': "晚餐食堂就餐预订数", 'input_list': ['无', '预定1份'], 'input_index': 晚餐食堂就餐预订数, },
+                    # {'tittle': "包子外带预订数", 'input_list': ['无', '预定1份'], 'input_index': 包子外带预订数, },
+                ]
+                from . import models
+                for one in models.产品列表:
+                    if queryset0 == None:
+                        ding_can_list.append(
+                            {
+                                'tittle':one['名称'],'input_list': one['预定数量条件'],
+                                    'input_index': 0
+                            }
+                        )
+                    else:
+                        if one['名称'] in queryset0.产品:
+                            # if '预定数量' in queryset0.产品[one['名称']]:
+                            ding_can_list.append(
+                                {
+                                    'tittle':one['名称'],'input_list': one['预定数量条件'],
+                                    'input_index': queryset0.产品[one['名称']]['预定数量']
+                                }
+                            )
+                        else:
                             ding_can_list.append(
                                 {
                                     'tittle':one['名称'],'input_list': one['预定数量条件'],
                                         'input_index': 0
                                 }
                             )
-                        else:
-                            if one['名称'] in queryset0.产品:
-                                # if '预定数量' in queryset0.产品[one['名称']]:
-                                ding_can_list.append(
-                                    {
-                                        'tittle':one['名称'],'input_list': one['预定数量条件'],
-                                        'input_index': queryset0.产品[one['名称']]['预定数量']
-                                    }
-                                )
-                            else:
-                                ding_can_list.append(
-                                    {
-                                        'tittle':one['名称'],'input_list': one['预定数量条件'],
-                                            'input_index': 0
-                                    }
-                                )
-                else:
-                    ding_can_list = []
+                # else:
+                #     ding_can_list = []
                 from . import models
                 qset4 = models.订餐钱包表.objects(openid = openid).first()
-                钱包 = '已充值:'+ str(qset4.已充值/100) +'元,已消费'+ str(qset4.已消费/100)+'元,预消费' +str(qset4.预消费/100) +'元。'
-                自定义登录状态 = {'ding_can_list': ding_can_list, '描述': 描述, '会话': 会话, '预订开始日期': 预订开始日期, '预订结束日期': 预订结束日期,
-                    '主菜单name': 主菜单name, '子菜单page_name': 子菜单page_name, '子菜单page_desc': 子菜单page_desc, '食堂地址': 食堂地址+钱包,
-                    '用餐日期': 用餐日期, }
+                if qset4 == None:
+                    qset5 = models.订餐钱包充值表.objects(手机号=手机号,充值成功标识=False).first()
+                    if qset5 == None:
+                        充值金额=0
+                        models.订餐钱包表(openid = openid,已充值=充值金额).save()
+                    else:
+                        充值金额 = qset5.充值金额
+                        models.订餐钱包表(openid = openid,已充值=充值金额).save()
+                        qset5.update(充值成功标识=True)
+                    钱包 = '已充值:'+ str(充值金额) +'元,已消费'+ str(0)+'元,预消费' +str(0) +'元。'
+                else:
+                    qset5 = models.订餐钱包充值表.objects(手机号=手机号,充值成功标识=False).first()
+                    if qset5 == None:
+                        充值金额=0
+                        已充值 = qset4.已充值+充值金额
+                    else:
+                        充值金额 = qset5.充值金额
+                        已充值 = qset4.已充值+充值金额
+                        qset4.update(已充值=已充值)
+                        qset5.update(充值成功标识=True)
+                    钱包 = '已充值:'+ str(已充值/100) +'元,已消费'+ str(qset4.已消费/100)+'元,预消费' +str(qset4.预消费/100) +'元。'
+                自定义登录状态 = {
+                    'ding_can_list': ding_can_list, 
+                    '描述': 描述, '会话': 会话, 
+                    '预订开始日期': 预订开始日期, 
+                    '预订结束日期': 预订结束日期,
+                    '主菜单name': 主菜单name, 
+                    '子菜单page_name': 子菜单page_name, 
+                    '子菜单page_desc': 子菜单page_desc, 
+                    '食堂地址': 钱包,
+                    '用餐日期': 用餐日期, 
+                }
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
@@ -1097,10 +1124,11 @@ def 异步统计产品(食堂名称,二级部门):
     第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400 + 86400))
     日期_list = [第一天, 第二天, 第三天]
     订餐部门表_first = 订餐部门表.objects(二级部门=二级部门).first()
-    if 订餐部门表_first == None:
-        name_list = []
-    else:
-        name_list = 订餐部门表_first.三级部门列表
+    from . import models
+    qset1 = models.订餐主界面表.objects(二级部门=二级部门)
+    name_list = []
+    for one in qset1:
+        name_list.append(one.三级部门)
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
         from . import models
@@ -1332,7 +1360,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
-                    异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.早餐食堂就餐签到 == 吃过:
@@ -1352,7 +1380,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
-                    异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.中餐食堂就餐签到 == 吃过:
@@ -1372,7 +1400,7 @@ def 订餐扫核销码2(request):
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
-                    异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.晚餐食堂就餐签到 == 吃过:
@@ -1449,10 +1477,11 @@ def 订餐扫动态核销码(request):
                 #     return HttpResponse(自定义登录状态)
                 # else:
             qset1 = ding_can_mongo.订餐结果表.objects(
-                id=ObjectId(oid)
+                id=ObjectId(oid),
+                用餐日期=当前日期
             ).first()
             if qset1 == None:
-                自定义登录状态 = {'描述': '无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
+                自定义登录状态 = {'描述': '今日无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
@@ -1722,7 +1751,7 @@ def 订餐取消(request):
                             if 当前时间戳 < 取消早餐提前截止时间:
                                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(早餐食堂就餐预订数=0, 早餐食堂就餐签到=取消, 早餐取消时间=当前时间)
-                                    异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
                                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '早餐取消成功'
@@ -1740,7 +1769,7 @@ def 订餐取消(request):
                             if 当前时间戳 < 取消中餐提前截止时间:
                                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(中餐食堂就餐预订数=0, 中餐食堂就餐签到=取消, 中餐取消时间=当前时间)
-                                    异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
                                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '中餐取消成功'
@@ -1758,7 +1787,7 @@ def 订餐取消(request):
                             if 当前时间戳 < 取消晚餐提前截止时间:
                                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(晚餐食堂就餐预订数=0, 晚餐食堂就餐签到=取消, 晚餐取消时间=当前时间)
-                                    异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
+                                    # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
                                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
                                     异步计算消费金额(openid)
                                     描述 = '晚餐取消成功'
@@ -2258,7 +2287,7 @@ def wx_pay_success(request):
         自定义登录状态 = {'描述': 描述, '会话': '123456', '订餐结果描述': 订餐结果描述}
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         自定义登录状态 = str(自定义登录状态)
-        异步计算订餐结果(子菜单page_name, 二级部门)
+        # 异步计算订餐结果(子菜单page_name, 二级部门)
         异步统计产品(子菜单page_name, 二级部门)
         return HttpResponse(自定义登录状态)
     except:
@@ -2268,81 +2297,102 @@ def wx_pay_success(request):
         return HttpResponse(自定义登录状态)
 
 @deprecated_async
-def async_import_excel(mydata,flag):
-    from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
-    # from . import models as ding_can_mongo  #新版订餐后台
+def async_import_excel(mydata,flag,action):
+    # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
+    from . import models as ding_can_mongo  #新版订餐后台
     print(mydata)
     try:
-        df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
-        手机号_list = []
-        主菜单id_list = []
-        for row_main in df_main.iterrows():
-            手机号 = str(row_main[1]['手机号'])
-            主菜单id = row_main[1]['主菜单id']
-            if 手机号 in 手机号_list:
-                pass
-            else:
-                手机号_list.append(手机号)
-            if 主菜单id in 主菜单id_list:
-                pass
-            else:
-                主菜单id_list.append(主菜单id)
-
-        for 手机号 in 手机号_list:
-            主界内容 = []
-            df_手机号 = df_main.loc[(df_main['手机号'] == int(手机号))]
-            for row in df_手机号.iterrows():
-                创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                描述 = str(row[1]['描述'])
-                主页标题 = str(row[1]['主页标题'])
-                主页描述 = str(row[1]['主页描述'])
-                验证码标题 = str(row[1]['验证码标题'])
-                验证码描述 = str(row[1]['验证码描述'])
-                二级部门 = str(row[1]['二级部门'])
-                三级部门 = str(row[1]['三级部门'])
-                四级部门 = str(row[1]['四级部门'])
-                姓名 = str(row[1]['姓名'])
-                主菜单name = str(row[1]['主菜单name'])
-                主菜单id = str(row[1]['主菜单id'])
-                df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == int(手机号)) & (df_main['主菜单name'] == 主菜单name)]
-                pages = []
-                for index, row in df_手机号_主菜单name.iterrows():
-                    子菜单page_name = row['子菜单page_name']
-                    子菜单page_desc = row['子菜单page_desc']
-                    子菜单url = row['子菜单url']
-                    page = {}
-                    page['url'] = 子菜单url
-                    page['page_name'] = 子菜单page_name
-                    page['page_desc'] = 子菜单page_desc
-                    if page in pages:
-                        pass
-                    else:
-                        pages.append(page)
-                主菜单id_dict = {
-                    'id': 主菜单id,
-                    'name': 主菜单name,
-                    'open': False,
-                    'pages': pages
-                }
-                if 主菜单id_dict in 主界内容:
+        if action == '上传用餐人员清单':
+            df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
+            手机号_list = []
+            主菜单id_list = []
+            for row_main in df_main.iterrows():
+                手机号 = str(row_main[1]['手机号'])
+                主菜单id = row_main[1]['主菜单id']
+                if 手机号 in 手机号_list:
                     pass
                 else:
-                    主界内容.append(主菜单id_dict)
-                主界面表_one = ding_can_mongo.订餐主界面表.objects(手机号=str(手机号)).first()
-                if 主界面表_one == None:
-                    ding_can_mongo.订餐主界面表(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
-                        , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容).save()
+                    手机号_list.append(手机号)
+                if 主菜单id in 主菜单id_list:
+                    pass
                 else:
-                    主界面表_one.update(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
-                        , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容)
-        ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-        if ding_can_mongo1 == None:
-            ding_can_mongo.订餐导入时间戳表(
-                flag=flag,
-                isOk=True
-            ).save()
+                    主菜单id_list.append(主菜单id)
+            for 手机号 in 手机号_list:
+                主界内容 = []
+                df_手机号 = df_main.loc[(df_main['手机号'] == int(手机号))]
+                for row in df_手机号.iterrows():
+                    创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    描述 = str(row[1]['描述'])
+                    主页标题 = str(row[1]['主页标题'])
+                    主页描述 = str(row[1]['主页描述'])
+                    验证码标题 = str(row[1]['验证码标题'])
+                    验证码描述 = str(row[1]['验证码描述'])
+                    二级部门 = str(row[1]['二级部门'])
+                    三级部门 = str(row[1]['三级部门'])
+                    四级部门 = str(row[1]['四级部门'])
+                    姓名 = str(row[1]['姓名'])
+                    主菜单name = str(row[1]['主菜单name'])
+                    主菜单id = str(row[1]['主菜单id'])
+                    df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == int(手机号)) & (df_main['主菜单name'] == 主菜单name)]
+                    pages = []
+                    for index, row in df_手机号_主菜单name.iterrows():
+                        子菜单page_name = row['子菜单page_name']
+                        子菜单page_desc = row['子菜单page_desc']
+                        子菜单url = row['子菜单url']
+                        page = {}
+                        page['url'] = 子菜单url
+                        page['page_name'] = 子菜单page_name
+                        page['page_desc'] = 子菜单page_desc
+                        if page in pages:
+                            pass
+                        else:
+                            pages.append(page)
+                    主菜单id_dict = {
+                        'id': 主菜单id,
+                        'name': 主菜单name,
+                        'open': False,
+                        'pages': pages
+                    }
+                    if 主菜单id_dict in 主界内容:
+                        pass
+                    else:
+                        主界内容.append(主菜单id_dict)
+                    主界面表_one = ding_can_mongo.订餐主界面表.objects(手机号=str(手机号)).first()
+                    if 主界面表_one == None:
+                        ding_can_mongo.订餐主界面表(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
+                            , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容).save()
+                    else:
+                        主界面表_one.update(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
+                            , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容)
+            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+            if ding_can_mongo1 == None:
+                ding_can_mongo.订餐导入时间戳表(
+                    flag=flag,
+                    isOk=True
+                ).save()
+            else:
+                ding_can_mongo1.update(isOk=True)
+        elif action == '上传充值清单':
+            df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
+            for row_main in df_main.iterrows():
+                手机号 = str(row_main[1]['手机号'])
+                充值金额 = row_main[1]['充值金额']
+                ding_can_mongo.订餐钱包充值表(
+                    手机号=手机号,
+                    充值金额 = int(充值金额),
+                    充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                ).save()
+            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+            if ding_can_mongo1 == None:
+                ding_can_mongo.订餐导入时间戳表(
+                    flag=flag,
+                    isOk=True
+                ).save()
+            else:
+                ding_can_mongo1.update(isOk=True)
         else:
-            ding_can_mongo1.update(isOk=True)
+            print('无效请求')
+
     except:
         r = traceback.format_exc()
         print(r)
@@ -2372,18 +2422,23 @@ def userInfoUpload(request):
         elif ding_can_mongo1.三级部门  == '综合管理部/安全保卫部':
             pass
         else:
-            response = HttpResponse('没有权限')
+            pass
+
+        action = request.POST['action']
+        if action == '上传用餐人员清单':
+            flag = request.POST['flag']
+            mydata = request.POST['excel']
+            async_import_excel(mydata,flag,action)
+            response = HttpResponse('正在处理')
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
             response["Access-Control-Max-Age"] = "1000"
             response["Access-Control-Allow-Headers"] = "*"
             return response
-
-        action = request.POST['action']
-        if action == '上传':
+        elif action == '上传充值清单':
             flag = request.POST['flag']
             mydata = request.POST['excel']
-            async_import_excel(mydata,flag)
+            async_import_excel(mydata,flag,action)
             response = HttpResponse('正在处理')
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -2407,6 +2462,14 @@ def userInfoUpload(request):
             response["Access-Control-Max-Age"] = "1000"
             response["Access-Control-Allow-Headers"] = "*"
             return response
+        else:
+            response = HttpResponse('无效请求')
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        
     except:
         r = traceback.format_exc()
         print(r)

@@ -165,6 +165,13 @@ class 订餐钱包表(Document):
     已消费 = IntField(default=0)
     预消费 = IntField(default=0)
 
+class 订餐钱包充值表(Document):
+    meta = {"db_alias": "canteen_alias"}
+    手机号 = StringField(default='')
+    充值金额 = IntField(default=0)
+    充值时间 = StringField(default='')
+    充值成功标识 = BooleanField(default=False)
+
 class 订餐用户表(Document):
     meta = {"db_alias": "canteen_alias"}
     openid = StringField()
@@ -255,3 +262,4 @@ class 订餐评论表(Document):
     创建时间 = StringField()
     评论内容 = StringField()
     评论图片 = ImageField()
+
