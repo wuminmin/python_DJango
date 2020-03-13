@@ -22,6 +22,20 @@ from . import models
 
 # from mysite.schedule_tool import 启动订餐提醒定时器
 
+def wx_login_get_openid(request):
+    try:
+        js_code = request.GET['code']
+        app_id = request.GET['app_id']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': js_code,
+                    'grant_type': 'authorization_code'}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        openid = r_json['openid']
+        return {'openid':openid,'app_id':app_id}
+    except:
+        print(traceback.format_exc())
+        return None
 
 # 异步函数
 def deprecated_async(f):
@@ -29,29 +43,17 @@ def deprecated_async(f):
         from threading import Thread
         thr = Thread(target=f, args=args, kwargs=kwargs)
         thr.start()
-
     return wrapper
-
-
-# 启动订餐提醒定时器()
-
 
 def 订餐登录检查(request):
     try:
-
-        js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-
-        查询结果 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        查询结果 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 查询结果 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
         else:
-            r = 订餐登录状态表(session_key=r_json['session_key'], openid=r_json['openid']).save()
+            r = 订餐登录状态表(session_key='', openid=wx_login_get_openid_dict['openid']).save()
             自定义登录状态 = "{\"描述\":\"新界面\",\"会话\":\"" + str(r.id) + "\"}"
             return HttpResponse(自定义登录状态)
     except:
@@ -62,13 +64,8 @@ def 订餐登录检查(request):
 def 订餐下载主界面数据(request):
     try:
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        print(r.text)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', '姓名': '', '当前日期': '', '类型': ''}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -105,25 +102,21 @@ def 下载订餐模版(request):
         子菜单page_name = request.GET['page_name']
         子菜单page_desc = request.GET['page_desc']
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
-            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
+            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + '' + "\"}"
             return HttpResponse(自定义登录状态)
         else:
             手机号 = 用户.手机号
             订餐主界面表first = 订餐主界面表.objects(手机号=手机号).first()
             if 订餐主界面表first == None:
-                自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + '' + "\"}"
                 return HttpResponse(自定义登录状态)
 
             订餐模版表_one = 订餐食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 订餐模版表_one == None:
-                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + '' + "\"}"
                 return HttpResponse(自定义登录状态)
             else:
                 食堂地址 = 订餐模版表_one.食堂地址
@@ -131,7 +124,7 @@ def 下载订餐模版(request):
                 用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
-                会话 = r_json['session_key']
+                会话 = ''
                 描述 = '下载成功'
                 if 订餐主界面表first.二级部门 == '青阳分公司':
                     countries = ['无', '预定1份', '预定2份', '预定3份']
@@ -164,26 +157,21 @@ def 下载订餐模版2(request):
         子菜单page_name = request.GET['page_name']
         子菜单page_desc = request.GET['page_desc']
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        openid=r_json['openid']
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
-            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + r_json['session_key'] + "\"}"
+            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + '' + "\"}"
             return HttpResponse(自定义登录状态)
         else:
             手机号 = 用户.手机号
             订餐主界面表first = 订餐主界面表.objects(手机号=手机号).first()
             if 订餐主界面表first == None:
-                自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + '' + "\"}"
                 return HttpResponse(自定义登录状态)
 
             订餐模版表_one = 订餐食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 订餐模版表_one == None:
-                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + r_json['session_key'] + "\"}"
+                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + '' + "\"}"
                 return HttpResponse(自定义登录状态)
             else:
                 食堂地址 = 订餐模版表_one.食堂地址
@@ -192,7 +180,7 @@ def 下载订餐模版2(request):
                     用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
-                会话 = r_json['session_key']
+                会话 = ''
                 描述 = '下载成功'
                 queryset0 = 订餐结果表.objects(手机号=手机号, 用餐日期=用餐日期,子菜单page_name=子菜单page_name,
                     子菜单page_desc=子菜单page_desc, ).first()
@@ -229,7 +217,7 @@ def 下载订餐模版2(request):
                     # {'tittle': "包子外带预订数", 'input_list': ['无', '预定1份'], 'input_index': 包子外带预订数, },
                 ]
                 from . import models
-                for one in models.产品列表:
+                for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
                     if queryset0 == None:
                         ding_can_list.append(
                             {
@@ -256,15 +244,15 @@ def 下载订餐模版2(request):
                 # else:
                 #     ding_can_list = []
                 from . import models
-                qset4 = models.订餐钱包表.objects(openid = openid).first()
+                qset4 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
                 if qset4 == None:
                     qset5 = models.订餐钱包充值表.objects(手机号=手机号,充值成功标识=False).first()
                     if qset5 == None:
                         充值金额=0
-                        models.订餐钱包表(openid = openid,已充值=充值金额).save()
+                        models.订餐钱包表(openid=wx_login_get_openid_dict['openid'],已充值=充值金额).save()
                     else:
                         充值金额 = qset5.充值金额
-                        models.订餐钱包表(openid = openid,已充值=充值金额).save()
+                        models.订餐钱包表(openid=wx_login_get_openid_dict['openid'],已充值=充值金额).save()
                         qset5.update(充值成功标识=True)
                     钱包 = '已充值:'+ str(充值金额) +'元,已消费'+ str(0)+'元,预消费' +str(0) +'元。'
                 else:
@@ -300,18 +288,12 @@ def 下载订餐模版2(request):
 def 上传订餐结果(request):
     try:
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        # r_json = {'openid':'oPngn4yfqDljEh7wvTMD0NHddOOQ','session_key':'session_key'}
-        openid = r_json['openid']
+        wx_login_get_openid_dict = wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        订餐用户表_one = 订餐用户表.objects(openid=openid).first()
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         手机号 = 订餐用户表_one.手机号
         订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
         食堂就餐订餐选项 = [0, 1, 2, 3]
@@ -360,7 +342,7 @@ def 上传订餐结果(request):
             订餐食堂模版表_one = 订餐食堂模版表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
             if 订餐食堂模版表_one == None:
                 描述 = '没有食堂数据'
-                自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                自定义登录状态 = {'描述': 描述, '会话': ''}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
@@ -480,11 +462,11 @@ def 上传订餐结果(request):
                             'goodsCategory': '晚餐'}
                         ]
                         ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
-                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
+                        自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
-                        异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                        # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                         return HttpResponse(自定义登录状态)
                     else:
                         if 早餐食堂就餐预订数 > 0:
@@ -533,18 +515,18 @@ def 上传订餐结果(request):
                             'goodsCategory': '晚餐'}
                         ]
                         ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
-                        自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
+                        自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
-                        异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                        # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                         return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
         return HttpResponse('500')
 
 @deprecated_async
-def 异步计算消费金额(openid):
+def 异步计算消费金额(wx_login_get_openid_dict):
     from . import models
     早餐食堂就餐已消费 = models.订餐结果表.objects(早餐食堂就餐签到='吃过').sum('早餐食堂就餐预订数')*400
     中餐食堂就餐已消费 = models.订餐结果表.objects(中餐食堂就餐签到='吃过').sum('中餐食堂就餐预订数')*800
@@ -556,7 +538,7 @@ def 异步计算消费金额(openid):
 
     已消费 = 0
     预消费 = 0
-    for one in models.产品列表:
+    for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
         pipeline = [
             {
                 "$match": {
@@ -595,7 +577,7 @@ def 异步计算消费金额(openid):
         r2 = list(models.订餐结果表.objects.aggregate(*pipeline2))
         for one2 in r2:
             预消费 = 预消费 + one2[one['名称']]*one['价格']
-    qset1 = models.订餐钱包表.objects(openid=openid).first()
+    qset1 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
     if qset1 == None:
         pass
     else:
@@ -608,17 +590,12 @@ def 上传订餐结果2(request):
     from . import models
     try:
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        openid = r_json['openid']
+        wx_login_get_openid_dict = wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        订餐用户表_one = 订餐用户表.objects(openid=openid).first()
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         手机号 = 订餐用户表_one.手机号
         订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
         if 订餐用户表_one == None:
@@ -686,30 +663,10 @@ def 上传订餐结果2(request):
                         晚餐取消时间 = queryset0.晚餐取消时间,
                         晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
                     )
-            订餐食堂模版表_one = 订餐食堂模版表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
-            if 订餐食堂模版表_one == None:
-                描述 = '没有食堂数据'
-                自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
-                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
-                return HttpResponse(自定义登录状态)
-            else:
-                早餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.早餐就餐时间
-                中餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.中餐就餐时间
-                晚餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.晚餐就餐时间
-                预定早餐提前秒 = 订餐食堂模版表_one.预定早餐提前秒
-                预定中餐提前秒 = 订餐食堂模版表_one.预定中餐提前秒
-                预定晚餐提前秒 = 订餐食堂模版表_one.预定晚餐提前秒
-                预定早餐提前截止时间 = time.mktime(time.strptime(早餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定早餐提前秒
-                预定中餐提前截止时间 = time.mktime(time.strptime(中餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定中餐提前秒
-                预定晚餐提前截止时间 = time.mktime(time.strptime(晚餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定晚餐提前秒
-
             ding_can_list = request.GET.get('ding_can_list')
             ding_can_list = json.loads(ding_can_list)
             totalAmount_int = 0
             goods = []
-            当月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month, 1).strftime('%Y-%m-%d')
-            下月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month + 1, 1).strftime('%Y-%m-%d')
             for ding_can_list_one in ding_can_list:
                 tittle = ding_can_list_one['tittle']
                 index = int (ding_can_list_one['input_index'] )
@@ -726,114 +683,39 @@ def 上传订餐结果2(request):
                             pass
                         else:
                             if qset2.产品[tittle]['签到'] == '吃过':
-                                自定义登录状态 = {'描述': tittle+'吃过,不能修改', '会话': r_json['session_key']}
+                                自定义登录状态 = {'描述': tittle+'吃过,不能修改', '会话': ''}
                                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                                 自定义登录状态 = str(自定义登录状态)
                                 return HttpResponse(自定义登录状态)
-
                 queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
                             用餐日期=用餐日期, ).first()
-                for one in models.产品列表:
+                for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
                     if tittle == one['名称']:
+                        if qset2 == None:
+                            签到 = '没吃'
+                        else:
+                            if tittle in qset2.产品:
+                                签到 = qset2.产品[tittle]['签到']
+                            else:
+                                签到 = '没吃'
                         产品 = queryset1.产品
                         产品[tittle] = {
                             '预定时间':当前时间,
                             '预定数量':index,
-                            '签到':'没吃',
+                            '签到':签到,
                             '价格':one['价格']
                         }
                         totalAmount_int = totalAmount_int + index*one['价格']
                         queryset1.update(产品=产品)
-                                
-            #     if index == 0:
-            #         qset2 = models.订餐结果表.objects(
-            #             手机号=手机号,  
-            #             子菜单page_name=子菜单page_name,
-            #             用餐日期=用餐日期
-            #         ).first()
-            #         if qset2 == None:
-            #             pass
-            #         else:
-            #             if qset2.产品[tittle]['预定数量'] == 0:
-            #                 pass
-            #             else:
-            #                 queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
-            #                 用餐日期=用餐日期, ).first()
-            #                 产品 = queryset1.产品
-            #                 产品[tittle] = {
-            #                                     '预定时间':当前时间,
-            #                                     '预定数量':index,
-            #                                     '签到':'没吃',
-            #                                     '价格':one['价格']
-            #                                 }
-            #                 totalAmount_int = totalAmount_int + index*one['价格']
-            #                 queryset1.update(产品=产品)
-            #     else:
-            #         print(ding_can_list_one)
-            #         if tittle in models.产品名称列表:
-            #             queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
-            #                 用餐日期=用餐日期, ).first()
-            #             for one in models.产品列表:
-            #                 if tittle == one['名称']:
-            #                     产品 = queryset1.产品
-            #                     qset2 = models.订餐结果表.objects(
-            #                         手机号=手机号,  
-            #                         子菜单page_name=子菜单page_name,
-            #                         用餐日期=用餐日期
-            #                     ).first()
-            #                     if qset2 == None or qset2.产品 == {}:
-            #                         产品[tittle] = {
-            #                             '预定时间':当前时间,
-            #                             '预定数量':index,
-            #                             '签到':'没吃',
-            #                             '价格':one['价格']
-            #                         }
-            #                         totalAmount_int = totalAmount_int + index*one['价格']
-            #                         queryset1.update(产品=产品)
-            #                     else:
-            #                         print('index',index)
-            #                         print('qset2.产品[tittle][预定数量]',qset2.产品[tittle]['预定数量'])
-            #                         if tittle in qset2.产品:
-            #                             if index == qset2.产品[tittle]['预定数量']:
-            #                                 pass
-            #                             else:
-            #                                 产品[tittle] = {
-            #                                     '预定时间':当前时间,
-            #                                     '预定数量':index,
-            #                                     '签到':'没吃',
-            #                                     '价格':one['价格']
-            #                                 }
-            #                                 totalAmount_int = totalAmount_int + index*one['价格']
-            #                                 queryset1.update(产品=产品)
-            #                         else:
-            #                             产品[tittle] = {
-            #                                     '预定时间':当前时间,
-            #                                     '预定数量':index,
-            #                                     '签到':'没吃',
-            #                                     '价格':one['价格']
-            #                             }
-            #                             totalAmount_int = totalAmount_int + index*one['价格']
-            #                             queryset1.update(产品=产品)
-            #         else:
-            #             描述 = '系统错误'
-            #             自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
-            #             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            #             自定义登录状态 = str(自定义登录状态)
-            #             return HttpResponse(自定义登录状态)
-            # if totalAmount_int == 0:
-            #     自定义登录状态 = {'描述': '无需重复订餐', '会话': r_json['session_key']}
-            #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            #     自定义登录状态 = str(自定义登录状态)
-            #     return HttpResponse(自定义登录状态)
             queryset10 = models.订餐结果临时表.objects(
                 手机号=手机号,
                 子菜单page_name=子菜单page_name,
                 用餐日期=用餐日期, 
             ).first()
-            qset11 = models.订餐钱包表.objects(openid=openid).first()
+            qset11 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
             if qset11 == None:
-                models.订餐钱包表(openid=openid,已充值=0).save()
-                qset11 = models.订餐钱包表.objects(openid=openid).first()
+                models.订餐钱包表(openid=wx_login_get_openid_dict['openid'],已充值=0).save()
+                qset11 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
                 已充值 = qset11.已充值
             else:
                 已充值 = qset11.已充值
@@ -868,7 +750,7 @@ def 上传订餐结果2(request):
                         晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数,
                         产品 = queryset10.产品
                     ).save()
-                    异步计算消费金额(openid)
+                    异步计算消费金额(wx_login_get_openid_dict)
                 else:
                     qset22.update(
                         早餐食堂就餐预订数 = queryset10.早餐食堂就餐预订数,
@@ -888,14 +770,14 @@ def 上传订餐结果2(request):
                         晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数,
                         产品 = queryset10.产品
                     )
-                    异步计算消费金额(openid)
+                    异步计算消费金额(wx_login_get_openid_dict)
                 描述 = '上传成功'
                 订餐结果描述 = '上传成功'
                 自定义登录状态 = {'描述': 描述, '会话': '123456', '订餐结果描述': 订餐结果描述}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                 return HttpResponse(自定义登录状态)
             else:
                 ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,openid)
@@ -908,7 +790,7 @@ def 上传订餐结果2(request):
                     '二级部门':订餐主界面表_first.二级部门
                 }
                 自定义登录状态 = {
-                    '描述': 描述, '会话': r_json['session_key'],
+                    '描述': 描述, '会话': '',
                     '订餐结果描述': 订餐结果描述,
                     'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest'],
                     'state': 其他参数 
@@ -920,21 +802,15 @@ def 上传订餐结果2(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
-
 def 订餐校验验证码(request):
     手机号 = str(request.GET['phone'])
     验证码 = str(request.GET['sms_code'])
     js_code = request.GET['code']
-    url = 'https://api.weixin.qq.com/sns/jscode2session'
-    payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-               'grant_type': canteen_grant_type}
-    r = requests.get(url=url, params=payload)
-    r_json = json.loads(r.text)
-    openid = r_json['openid']
+    wx_login_get_openid_dict = wx_login_get_openid(request)
     r = 订餐验证码表.objects(手机号=手机号)
     for rr in r:
         if rr.验证码 == 验证码:
-            订餐用户表(手机号=手机号, openid=openid).save()
+            订餐用户表(手机号=手机号, openid=wx_login_get_openid_dict['openid']).save()
             return HttpResponse('绑定成功')
     return HttpResponse('绑定失败')
 
@@ -1118,7 +994,7 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 订餐统计结果_first.update(订餐结果=自定义登录状态)
 
 @deprecated_async
-def 异步统计产品(食堂名称,二级部门):
+def 异步统计产品(食堂名称,二级部门,wx_login_get_openid_dict):
     第一天 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
     第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400 + 86400))
@@ -1128,11 +1004,15 @@ def 异步统计产品(食堂名称,二级部门):
     qset1 = models.订餐主界面表.objects(二级部门=二级部门)
     name_list = []
     for one in qset1:
-        name_list.append(one.三级部门)
+        三级部门 = one.三级部门
+        if 三级部门 in name_list:
+            pass
+        else:
+            name_list.append(三级部门)
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
         from . import models
-        for 产品 in models.产品列表:
+        for 产品 in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
             产品名称 = 产品['名称']
             pipeline = [
                 {
@@ -1328,14 +1208,10 @@ def 订餐扫核销码2(request):
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         当前小时 = time.strftime('%H', time.localtime(time.time()))
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        session_key = r_json['session_key']
-        openid = r_json['openid']
-        订餐用户表_first = 订餐用户表.objects(openid=openid).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        session_key = ''
+        openid=wx_login_get_openid_dict['openid']
+        订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_first == None:
             自定义登录状态 = {'描述': '未注册手机号', '姓名': '', '当前日期': '', '类型': ''}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -1356,12 +1232,12 @@ def 订餐扫核销码2(request):
             if 当前小时 > '05' and 当前小时 < '09':
                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(早餐食堂就餐签到=吃过)
-                    异步计算消费金额(openid)
+                    异步计算消费金额(wx_login_get_openid_dict)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.早餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
@@ -1376,12 +1252,12 @@ def 订餐扫核销码2(request):
             elif 当前小时 > '10' and 当前小时 < '15':
                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(中餐食堂就餐签到=吃过)
-                    异步计算消费金额(openid)
+                    异步计算消费金额(wx_login_get_openid_dict)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.中餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
@@ -1396,12 +1272,12 @@ def 订餐扫核销码2(request):
             elif 当前小时 > '16' and 当前小时 < '20':
                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                     订餐结果表_first.update(晚餐食堂就餐签到=吃过)
-                    异步计算消费金额(openid)
+                    异步计算消费金额(wx_login_get_openid_dict)
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
+                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                     return HttpResponse(自定义登录状态)
                 elif 订餐结果表_first.晚餐食堂就餐签到 == 吃过:
                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
@@ -1443,12 +1319,8 @@ def 订餐扫动态核销码(request):
             日期 = 当前日期
         产品名称 = 核销码json['name']
         oid = 核销码json['oid']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        订餐用户表_one = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_one == None:
             自定义登录状态 = {'描述': '管理员未注册', '姓名': '', '当前日期': '', '类型': ''}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
@@ -1487,12 +1359,17 @@ def 订餐扫动态核销码(request):
                 return HttpResponse(自定义登录状态)
             else:
                 产品 = qset1.产品
-                产品[产品名称]['签到'] = '吃过'
                 if 产品[产品名称]['预定数量'] == 0:
                     自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
+                if 产品[产品名称]['签到'] == '吃过':
+                    自定义登录状态 = {'描述': '已吃过，不能重复核销', '姓名': '', '当前日期': '', '类型': ''}
+                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                    自定义登录状态 = str(自定义登录状态)
+                    return HttpResponse(自定义登录状态)
+                产品[产品名称]['签到'] = '吃过'
                 产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                 qset1.update(产品=产品)
                 订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
@@ -1508,9 +1385,9 @@ def 订餐扫动态核销码(request):
                     订餐主界面表1 = ding_can_mongo.订餐主界面表.objects(手机号=qset1.手机号).first()
                     食堂名称 = qset1.子菜单page_name
                     二级部门 = 订餐主界面表1.二级部门
-                    异步统计产品(食堂名称=食堂名称,二级部门=二级部门)
+                    异步统计产品(食堂名称=食堂名称,二级部门=二级部门,wx_login_get_openid_dict=wx_login_get_openid_dict)
                     自定义登录状态 = {'描述': '成功', 
-                        '订餐结果': '姓名'+订餐主界面表1.姓名+',预定数量'+str(产品[产品名称]['预定数量'])+',产品名称'+产品名称
+                        '订餐结果': '姓名：'+订餐主界面表1.姓名+',预定数量：'+str(产品[产品名称]['预定数量'])+',产品名称：'+产品名称
                     }
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
@@ -1540,14 +1417,8 @@ def 订餐扫核销码(request):
     else:
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        session_key = r_json['session_key']
-        openid = r_json['openid']
-        订餐用户表_first = 订餐用户表.objects(openid=openid).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         手机号 = 订餐用户表_first.手机号
         订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
         订餐结果表_first = 订餐结果表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 手机号=手机号, 用餐日期=当前日期).first()
@@ -1620,20 +1491,16 @@ def 订餐订单(request):
         page_name = request.GET['page_name']
         日期 = request.GET['date']
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
+        wx_login_get_openid_dict = wx_login_get_openid(request)
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         if 日期 == '':
             日期 = 当前日期
         开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() - 864000))
         结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
-        订餐用户表_one = 订餐用户表.objects(openid=r_json['openid']).first()
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_one == None:
             描述 = '用户不存在'
-            自定义登录状态 = {'描述': 描述, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期, '会话': r_json['session_key']}
+            自定义登录状态 = {'描述': 描述, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期, '会话': ''}
             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
             自定义登录状态 = str(自定义登录状态)
             return HttpResponse(自定义登录状态)
@@ -1642,7 +1509,7 @@ def 订餐订单(request):
             订餐结果表_first = 订餐结果表.objects(手机号=手机号, 用餐日期=日期).first()
             if 订餐结果表_first == None:
                 描述 = '没有订餐记录'
-                自定义登录状态 = {'描述': 描述, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期, '会话': r_json['session_key']}
+                自定义登录状态 = {'描述': 描述, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期, '会话': ''}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
@@ -1651,18 +1518,18 @@ def 订餐订单(request):
                 订餐食堂模版表_first = 订餐食堂模版表.objects(子菜单page_name=page_name).first()
                 if 订餐食堂模版表_first == None:
                     描述 = '没有食堂数据'
-                    自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                    自定义登录状态 = {'描述': 描述, '会话': ''}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
                 if 订餐主界面表_first == None:
                     描述 = '您没有权限'
-                    自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                    自定义登录状态 = {'描述': 描述, '会话': ''}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
                 描述 = '下载成功'
-                自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '主菜单name': 订餐结果表_first.主菜单name,
+                自定义登录状态 = {'描述': 描述, '会话': '', '主菜单name': 订餐结果表_first.主菜单name,
                            '子菜单page_name': 订餐结果表_first.子菜单page_name, '子菜单page_desc': 订餐结果表_first.子菜单page_desc,
                            '姓名': 订餐主界面表_first.姓名, '食堂地址': 订餐食堂模版表_first.食堂地址, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期,
 
@@ -1689,12 +1556,7 @@ def 订餐取消(request):
         page_name = request.GET['page_name']
         日期 = request.GET['date']
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        # r_json = {'openid':'oPngn4yfqDljEh7wvTMD0NHddOOQ','session_key':'session_key'}
+        wx_login_get_openid_dict = wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -1702,8 +1564,8 @@ def 订餐取消(request):
             日期 = 当前日期
         开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() - 864000))
         结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
-        openid=r_json['openid']
-        订餐用户表_one = 订餐用户表.objects(openid=r_json['openid']).first()
+        openid=wx_login_get_openid_dict['openid']
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_one == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
             return HttpResponse(自定义登录状态)
@@ -1712,7 +1574,7 @@ def 订餐取消(request):
             订餐结果表_first = 订餐结果表.objects(手机号=手机号, 用餐日期=日期).first()
             if 订餐结果表_first == None:
                 描述 = '没有订餐记录'
-                自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                自定义登录状态 = {'描述': 描述, '会话': ''}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
@@ -1721,13 +1583,13 @@ def 订餐取消(request):
                 订餐食堂模版表_first = 订餐食堂模版表.objects(子菜单page_name=page_name).first()
                 if 订餐食堂模版表_first == None:
                     描述 = '没有食堂数据'
-                    自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                    自定义登录状态 = {'描述': 描述, '会话': ''}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
                 if 订餐主界面表_first == None:
                     描述 = '您没有权限'
-                    自定义登录状态 = {'描述': 描述, '会话': r_json['session_key']}
+                    自定义登录状态 = {'描述': 描述, '会话': ''}
                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
@@ -1752,8 +1614,8 @@ def 订餐取消(request):
                                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(早餐食堂就餐预订数=0, 早餐食堂就餐签到=取消, 早餐取消时间=当前时间)
                                     # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
-                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
-                                    异步计算消费金额(openid)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+                                    异步计算消费金额(wx_login_get_openid_dict)
                                     描述 = '早餐取消成功'
                                 else:
                                     描述 = '早餐已吃过，不能取消'
@@ -1770,8 +1632,8 @@ def 订餐取消(request):
                                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(中餐食堂就餐预订数=0, 中餐食堂就餐签到=取消, 中餐取消时间=当前时间)
                                     # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
-                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
-                                    异步计算消费金额(openid)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+                                    异步计算消费金额(wx_login_get_openid_dict)
                                     描述 = '中餐取消成功'
                                 else:
                                     描述 = '中餐已吃过，不能取消'
@@ -1788,8 +1650,8 @@ def 订餐取消(request):
                                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
                                     订餐结果表_first.update(晚餐食堂就餐预订数=0, 晚餐食堂就餐签到=取消, 晚餐取消时间=当前时间)
                                     # 异步计算订餐结果(page_name, 订餐主界面表_first.二级部门)
-                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门)
-                                    异步计算消费金额(openid)
+                                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+                                    异步计算消费金额(wx_login_get_openid_dict)
                                     描述 = '晚餐取消成功'
                                 else:
                                     描述 = '晚餐已吃过，不能取消'
@@ -1800,7 +1662,7 @@ def 订餐取消(request):
                     else:
                         描述 = '晚餐已取消，不能重复操作'
                 订餐结果表_second = 订餐结果表.objects(手机号=手机号, 用餐日期=日期).first()
-                自定义登录状态 = {'描述': 描述, '会话': r_json['session_key'], '主菜单name': 订餐结果表_second.主菜单name,
+                自定义登录状态 = {'描述': 描述, '会话': '', '主菜单name': 订餐结果表_second.主菜单name,
                            '子菜单page_name': 订餐结果表_second.子菜单page_name, '子菜单page_desc': 订餐结果表_second.子菜单page_desc,
                            '姓名': 订餐主界面表_first.姓名, '食堂地址': 订餐食堂模版表_first.食堂地址, '日期': 日期, '开始日期': 开始日期, '结束日期': 结束日期,
 
@@ -1833,12 +1695,8 @@ def 订餐菜单初始化(request):
         name = request.GET['name']
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'name': name, 'page_name': page_name, 'page_desc': page_desc,
                 'lou_yu_list': [], }
@@ -1899,13 +1757,8 @@ def 订餐菜单点击分页(request):
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
         countries_val = int(request.GET['countries_val'])
-
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'name': name, 'page_name': page_name, 'page_desc': page_desc,
                 'lou_yu_list': [], }
@@ -1961,12 +1814,8 @@ def 订餐菜单点击分页(request):
 def 订餐采集初始化(request):
     try:
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'countries': [''], 'countries2': [''], 'countries3': [''],
                 'chang_suo_lou_yu_zong_dong_shu': '', 'xian_chang_jing_du': '', 'xian_chang_wei_du': '',
@@ -2035,12 +1884,8 @@ def 订餐采集初始化(request):
 def 订餐评价初始化(request):
     try:
         js_code = request.GET['code']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                   'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         queryset0 = 订餐主界面表.objects(手机号=用户.手机号).first()
         if queryset0 == None:
             自定义登录状态 = {'描述': '用户未授权', 'ping_jia_list': []}
@@ -2066,12 +1911,8 @@ def 订餐上传评价(request):
     try:
         if request.method == 'GET':
             js_code = request.GET['code']
-            url = 'https://api.weixin.qq.com/sns/jscode2session'
-            payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                       'grant_type': canteen_grant_type}
-            r = requests.get(url=url, params=payload)
-            r_json = json.loads(r.text)
-            用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+            wx_login_get_openid_dict = wx_login_get_openid(request)
+            用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
             if 用户 == None:
                 return HttpResponse('未注册手机号')
             订餐主界面表first = 订餐主界面表.objects(手机号=用户.手机号).first()
@@ -2086,12 +1927,8 @@ def 订餐上传评价(request):
             return HttpResponse('成功')
         if request.method == 'POST':
             js_code = request.POST['code']
-            url = 'https://api.weixin.qq.com/sns/jscode2session'
-            payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                       'grant_type': canteen_grant_type}
-            r = requests.get(url=url, params=payload)
-            r_json = json.loads(r.text)
-            用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+            wx_login_get_openid_dict = wx_login_get_openid(request)
+            用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
             if 用户 == None:
                 return HttpResponse('未注册手机号')
             订餐主界面表first = 订餐主界面表.objects(手机号=用户.手机号).first()
@@ -2162,7 +1999,7 @@ def ding_can_chinaums_pay_order(totalAmount,goods,openid):
         instMid = myConfig.chinaums_instMid
         tradeType = myConfig.chinaums_tradeType
         subAppId = myConfig.chinaums_subAppId
-        subOpenId = openid
+        subopenid=wx_login_get_openid_dict['openid']
         # subOpenId = myConfig.chinaums_subOpenId
         # goods = [
         #     {'body':'微信二维码测试',
@@ -2197,7 +2034,7 @@ def ding_can_chinaums_pay_order(totalAmount,goods,openid):
             'https://qr.chinaums.com/netpay-route-server/api/', json=wmm_json)
         json_res = r.json()
         from . import models
-        models.ding_can_chinaums_pay_order_res_col(json_res=json_res,openid=openid).save()
+        models.ding_can_chinaums_pay_order_res_col(json_res=json_res,openid=wx_login_get_openid_dict['openid']).save()
         if json_res['errCode'] == 'SUCCESS':
             自定义登录状态 = {'描述': '成功', 'miniPayRequest': json_res['miniPayRequest']}
         else:
@@ -2225,7 +2062,7 @@ def wx_pay_success(request):
         else:
             qset4 = models.订餐用户表.objects(手机号=qset1.手机号).first()
             openid = qset4.openid
-            qset3 = models.订餐钱包表.objects(openid = openid).first()
+            qset3 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
             qset2 = models.订餐结果表.objects(
                 手机号=qset1.手机号,
                 主菜单name=qset1.主菜单name,
@@ -2256,7 +2093,7 @@ def wx_pay_success(request):
                     晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数,
                     产品 = qset1.产品
                 ).save()
-                异步计算消费金额(openid)
+                异步计算消费金额(wx_login_get_openid_dict)
             else:
                 qset2.update(
                     早餐食堂就餐预订数 = qset1.早餐食堂就餐预订数,
@@ -2276,7 +2113,7 @@ def wx_pay_success(request):
                     晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数,
                     产品 = qset1.产品
                 )
-                异步计算消费金额(openid)
+                异步计算消费金额(wx_login_get_openid_dict)
             
             if qset3 == None:
                 models.订餐钱包表(openid=qset4.openid,已充值=totalAmount).save()
@@ -2288,7 +2125,7 @@ def wx_pay_success(request):
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         自定义登录状态 = str(自定义登录状态)
         # 异步计算订餐结果(子菜单page_name, 二级部门)
-        异步统计产品(子菜单page_name, 二级部门)
+        异步统计产品(子菜单page_name, 二级部门,wx_login_get_openid_dict)
         return HttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
@@ -2377,10 +2214,12 @@ def async_import_excel(mydata,flag,action):
             for row_main in df_main.iterrows():
                 手机号 = str(row_main[1]['手机号'])
                 充值金额 = row_main[1]['充值金额']
+                备注 = row_main[1]['备注']
                 ding_can_mongo.订餐钱包充值表(
                     手机号=手机号,
                     充值金额 = int(充值金额),
-                    充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                    备注 = 备注
                 ).save()
             ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
             if ding_can_mongo1 == None:
@@ -2423,7 +2262,6 @@ def userInfoUpload(request):
             pass
         else:
             pass
-
         action = request.POST['action']
         if action == '上传用餐人员清单':
             flag = request.POST['flag']
@@ -2495,12 +2333,8 @@ def get_ding_dan(request):
         page_desc = request.GET['page_desc']
         js_code = request.GET['code']
         print(code,日期,name,page_name,page_desc)
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': js_code,
-                    'grant_type': canteen_grant_type}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        用户 = 订餐用户表.objects(openid=r_json['openid']).first()
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             response = HttpResponse(json.dumps({'描述':'无手机号','数据':[]}))
             response["Access-Control-Allow-Origin"] = "*"
@@ -2529,7 +2363,7 @@ def get_ding_dan(request):
                 return response
             else:
                 订餐结果列表 = []
-                for one in ding_can_mongo.产品名称列表:
+                for one in ding_can_mongo.产品名称列表字典[wx_login_get_openid_dict['app_id']]:
                     if one in ding_can_mongo2.产品:
                         订餐结果列表.append(
                              {
