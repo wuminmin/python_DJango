@@ -687,17 +687,47 @@ def 上传订餐结果2(request):
                                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                                 自定义登录状态 = str(自定义登录状态)
                                 return HttpResponse(自定义登录状态)
-                queryset1 = models.订餐结果临时表.objects(手机号=手机号,子菜单page_name=子菜单page_name,
-                            用餐日期=用餐日期, ).first()
+                queryset1 = models.订餐结果临时表.objects(
+                    手机号=手机号,子菜单page_name=子菜单page_name,
+                    用餐日期=用餐日期
+                ).first()
                 for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
                     if tittle == one['名称']:
-                        if qset2 == None:
+                        if qset2 == None :
                             签到 = '没吃'
-                        else:
+                        elif tittle in qset2.产品:
+                            if index == qset2.产品[tittle]['预定数量']:
+                                pass
+                            else:
+                                就餐时间 = one['就餐时间']
+                                就餐时间 = 用餐日期 + ' ' + 就餐时间
+                                取消提前秒 = one['取消提前秒']
+                                预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
+                                if 当前时间戳 < 预定提前截止时间:
+                                    pass
+                                else:
+                                    自定义登录状态 = {'描述': tittle+'已过期，不能修改', '会话': ''}
+                                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                    自定义登录状态 = str(自定义登录状态)
+                                    return HttpResponse(自定义登录状态)
                             if tittle in qset2.产品:
                                 签到 = qset2.产品[tittle]['签到']
                             else:
                                 签到 = '没吃'
+                        else:
+                            签到 = '没吃'
+                            就餐时间 = one['就餐时间']
+                            就餐时间 = 用餐日期 + ' ' + 就餐时间
+                            取消提前秒 = one['取消提前秒']
+                            预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
+                            if 当前时间戳 < 预定提前截止时间:
+                                pass
+                            else:
+                                自定义登录状态 = {'描述': tittle+'已过期，不能修改', '会话': ''}
+                                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                自定义登录状态 = str(自定义登录状态)
+                                return HttpResponse(自定义登录状态)
+
                         产品 = queryset1.产品
                         产品[tittle] = {
                             '预定时间':当前时间,
@@ -721,11 +751,12 @@ def 上传订餐结果2(request):
                 已充值 = qset11.已充值
             if 已充值 - totalAmount_int - qset11.已消费 - qset11.预消费  >= 0:
                 qset22 = models.订餐结果表.objects(
-                手机号=queryset10.手机号,
-                主菜单name=queryset10.主菜单name,
-                子菜单page_name=queryset10.子菜单page_name,
-                子菜单page_desc=queryset10.子菜单page_desc, 
-                用餐日期=queryset10.用餐日期).first()
+                    手机号=queryset10.手机号,
+                    主菜单name=queryset10.主菜单name,
+                    子菜单page_name=queryset10.子菜单page_name,
+                    子菜单page_desc=queryset10.子菜单page_desc, 
+                    用餐日期=queryset10.用餐日期
+                ).first()
                 if qset22 == None:
                     models.订餐结果表(
                         手机号=queryset10.手机号,

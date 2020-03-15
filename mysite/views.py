@@ -36,7 +36,7 @@ from mysite.yi_cha_mongo import 易查试卷模版表
 def index(request):
     try:
         print(request)
-        return render("login.html")
+        return HttpResponse("500")
     except:
         print(traceback.format_exc())
         return HttpResponse('500')
