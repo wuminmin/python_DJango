@@ -22,5 +22,6 @@ urlpatterns = [
     path('get_tablei_data_by_lan_mu_key',views.get_tablei_data_by_lan_mu_key),
     path('get_tablei_data_by_lanmu',views.get_tablei_data_by_lanmu),
     path('delete_wz',views.delete_wz),
+    path('get_tablei_data_by_search',views.get_tablei_data_by_search),
     
 ]

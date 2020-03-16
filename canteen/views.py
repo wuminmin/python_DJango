@@ -696,9 +696,30 @@ def 上传订餐结果2(request):
                         if qset2 == None :
                             签到 = '没吃'
                         elif tittle in qset2.产品:
-                            if index == qset2.产品[tittle]['预定数量']:
-                                pass
+                            if index == qset2.产品[tittle]['预定数量'] or index == 0:
+                                签到 = '没吃'
                             else:
+                                就餐时间 = one['就餐时间']
+                                就餐时间 = 用餐日期 + ' ' + 就餐时间
+                                取消提前秒 = one['取消提前秒']
+                                预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
+                                if 当前时间戳 < 预定提前截止时间:
+                                    签到 = '没吃'
+                                else:
+                                    自定义登录状态 = {'描述': tittle+'已过期，不能修改', '会话': ''}
+                                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                    自定义登录状态 = str(自定义登录状态)
+                                    return HttpResponse(自定义登录状态)
+                            if tittle in qset2.产品:
+                                签到 = qset2.产品[tittle]['签到']
+                            else:
+                                签到 = '没吃'
+                        else:
+                            print(index)
+                            if index == 0:
+                                签到 = '没吃'
+                            else:
+                                签到 = '没吃'
                                 就餐时间 = one['就餐时间']
                                 就餐时间 = 用餐日期 + ' ' + 就餐时间
                                 取消提前秒 = one['取消提前秒']
@@ -710,23 +731,6 @@ def 上传订餐结果2(request):
                                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                                     自定义登录状态 = str(自定义登录状态)
                                     return HttpResponse(自定义登录状态)
-                            if tittle in qset2.产品:
-                                签到 = qset2.产品[tittle]['签到']
-                            else:
-                                签到 = '没吃'
-                        else:
-                            签到 = '没吃'
-                            就餐时间 = one['就餐时间']
-                            就餐时间 = 用餐日期 + ' ' + 就餐时间
-                            取消提前秒 = one['取消提前秒']
-                            预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
-                            if 当前时间戳 < 预定提前截止时间:
-                                pass
-                            else:
-                                自定义登录状态 = {'描述': tittle+'已过期，不能修改', '会话': ''}
-                                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                                自定义登录状态 = str(自定义登录状态)
-                                return HttpResponse(自定义登录状态)
 
                         产品 = queryset1.产品
                         产品[tittle] = {
@@ -811,7 +815,7 @@ def 上传订餐结果2(request):
                 异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                 return HttpResponse(自定义登录状态)
             else:
-                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,openid)
+                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict['openid'])
                 描述 = '银联下单'
                 订餐结果描述 = '银联下单'
                 其他参数 = {
@@ -2281,58 +2285,54 @@ def userInfoUpload(request):
     # from . import models as ding_can_mongo  #新版订餐后台
     try:
         access_token = request.POST['access_token']
-        ding_can_mongo1 = ding_can_mongo.订餐主界面表.objects(手机号=access_token).first()
-        if ding_can_mongo1 == None:
-            response = HttpResponse('认证失败')
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-            response["Access-Control-Max-Age"] = "1000"
-            response["Access-Control-Allow-Headers"] = "*"
-            return response
-        elif ding_can_mongo1.三级部门  == '综合管理部/安全保卫部':
-            pass
-        else:
-            pass
-        action = request.POST['action']
-        if action == '上传用餐人员清单':
-            flag = request.POST['flag']
-            mydata = request.POST['excel']
-            async_import_excel(mydata,flag,action)
-            response = HttpResponse('正在处理')
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-            response["Access-Control-Max-Age"] = "1000"
-            response["Access-Control-Allow-Headers"] = "*"
-            return response
-        elif action == '上传充值清单':
-            flag = request.POST['flag']
-            mydata = request.POST['excel']
-            async_import_excel(mydata,flag,action)
-            response = HttpResponse('正在处理')
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-            response["Access-Control-Max-Age"] = "1000"
-            response["Access-Control-Allow-Headers"] = "*"
-            return response
-        elif action == '查询结果':
-            flag = request.POST['flag']
-            from mysite import ding_can_mongo
-            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-            if ding_can_mongo1 == None:
-                res = '正在处理'
-            else:
-                if ding_can_mongo1.isOk :
-                    res = '成功'
+        if access_token in  ding_can_mongo.管理员手机号清单:
+            action = request.POST['action']
+            if action == '上传用餐人员清单':
+                flag = request.POST['flag']
+                mydata = request.POST['excel']
+                async_import_excel(mydata,flag,action)
+                response = HttpResponse('正在处理')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            elif action == '上传充值清单':
+                flag = request.POST['flag']
+                mydata = request.POST['excel']
+                async_import_excel(mydata,flag,action)
+                response = HttpResponse('正在处理')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            elif action == '查询结果':
+                flag = request.POST['flag']
+                from mysite import ding_can_mongo
+                ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+                if ding_can_mongo1 == None:
+                    res = '正在处理'
                 else:
-                    res = '失败'+ding_can_mongo1.eLog['log']
-            response = HttpResponse(res)
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
-            response["Access-Control-Max-Age"] = "1000"
-            response["Access-Control-Allow-Headers"] = "*"
-            return response
+                    if ding_can_mongo1.isOk :
+                        res = '成功'
+                    else:
+                        res = '失败'+ding_can_mongo1.eLog['log']
+                response = HttpResponse(res)
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            else:
+                response = HttpResponse('无效请求')
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
         else:
-            response = HttpResponse('无效请求')
+            response = HttpResponse('认证失败')
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
             response["Access-Control-Max-Age"] = "1000"

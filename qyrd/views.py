@@ -821,3 +821,49 @@ def delete_wz(request):
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
+
+def get_tablei_data_by_search(request):
+    import json
+    from . import models
+    from django.http import HttpResponse
+    import traceback
+    import myConfig
+    try:
+        tittle = request.POST['tittle']
+        print('get_tablei_data_by_search',tittle)
+        qset1 = models.qyrd_article_col.objects(tittle__icontains = tittle)
+        res_list = []
+        i = 0
+        for one in qset1:
+            i = i+1
+            if 'count' in one.other:
+                address = one.other['count']
+            else:
+                address = 0
+            res_list.append(
+                {
+                    'key': i,
+                    'name': {
+                        '标题': one.tittle,
+                        '地址': 'mynews?ban_kuai='+' '+'&lan_mu='+one.type+'&tittle='+one.tittle,
+                    },
+                    'age': str(one.my_date.year)+'-'+str(one.my_date.month)+'-'+str(one.my_date.day),
+                    'address': address,
+                }
+            )
+        response = HttpResponse(json.dumps(
+            {'code': '成功', 'res_list': res_list}))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+    except:
+        import traceback
+        print(traceback.format_exc())
+        response = HttpResponse(json.dumps({'code': '系统错误', 'res_list': []}))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response

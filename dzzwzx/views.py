@@ -669,7 +669,7 @@ def 下载办事汇总列表(request):
             当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
             if '权限' in qset0.其它.keys() and qset0.其它['权限'] == '管理员':
                 qset1 = models.微信预约办事申请表.objects(
-                    办事日期__gte = 当前日期
+                    # 办事日期__gte = 当前日期
                 ).to_json().encode('utf-8').decode('unicode_escape')
                 qset1_json = json.loads(qset1)
                 for qset11 in qset1_json:
@@ -680,7 +680,6 @@ def 下载办事汇总列表(request):
                     qset11['openid'] = ''
                     qset11['access_token'] = access_token
                     qset11['refresh_token'] = refresh_token
-                   
                 qset1_str = json.dumps(qset1_json)
             else:
                 qset1_str = '[]'
