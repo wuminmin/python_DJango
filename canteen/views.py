@@ -20,7 +20,8 @@ from .models import 订餐食堂模版表, 订餐结果表, 订餐主界面表, 
 import sys
 from . import models
 
-# from mysite.schedule_tool import 启动订餐提醒定时器
+from canteen.auto import 启动定时器
+启动定时器()
 
 def wx_login_get_openid(request):
     try:
@@ -461,7 +462,7 @@ def 上传订餐结果(request):
                             'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
                             'goodsCategory': '晚餐'}
                         ]
-                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
+                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
                         自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
@@ -514,7 +515,7 @@ def 上传订餐结果(request):
                             'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
                             'goodsCategory': '晚餐'}
                         ]
-                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods)
+                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
                         自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                         自定义登录状态 = str(自定义登录状态)
@@ -528,63 +529,64 @@ def 上传订餐结果(request):
 @deprecated_async
 def 异步计算消费金额(wx_login_get_openid_dict):
     from . import models
-    早餐食堂就餐已消费 = models.订餐结果表.objects(早餐食堂就餐签到='吃过').sum('早餐食堂就餐预订数')*400
-    中餐食堂就餐已消费 = models.订餐结果表.objects(中餐食堂就餐签到='吃过').sum('中餐食堂就餐预订数')*800
-    晚餐食堂就餐已消费 = models.订餐结果表.objects(晚餐食堂就餐签到='吃过').sum('晚餐食堂就餐预订数')*700
-
-    早餐食堂就餐预消费 = models.订餐结果表.objects(早餐食堂就餐签到='没吃').sum('早餐食堂就餐预订数')*400
-    中餐食堂就餐预消费 = models.订餐结果表.objects(中餐食堂就餐签到='没吃').sum('中餐食堂就餐预订数')*800
-    晚餐食堂就餐预消费 = models.订餐结果表.objects(晚餐食堂就餐签到='没吃').sum('晚餐食堂就餐预订数')*700
-
     已消费 = 0
     预消费 = 0
-    for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
-        pipeline = [
-            {
-                "$match": {
-                    "产品."+one['名称']+".签到": "吃过"
-                }
-            }
-            ,
-            {
-                "$group": {
-                    "_id": "null",
-                    one['名称']: {
-                        "$sum": "$产品.包子.预定数量"
-                    }
-                }
-            }
-        ]
-        r = list(models.订餐结果表.objects.aggregate(*pipeline))
-        for one2 in r:
-            已消费 = 已消费 + one2[one['名称']]*one['价格']
-        pipeline2 = [
-            {
-                "$match": {
-                    "产品."+one['名称']+".签到": "没吃"
-                }
-            }
-            ,
-            {
-                "$group": {
-                    "_id": "null",
-                    one['名称']: {
-                        "$sum": "$产品."+one['名称']+".预定数量"
-                    }
-                }
-            }
-        ]
-        r2 = list(models.订餐结果表.objects.aggregate(*pipeline2))
-        for one2 in r2:
-            预消费 = 预消费 + one2[one['名称']]*one['价格']
-    qset1 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
-    if qset1 == None:
+    qset订餐用户表 =  models.订餐用户表.objects( openid=wx_login_get_openid_dict['openid'] ).first()
+    if qset订餐用户表 == None:
         pass
     else:
-        qset1.update(
-            已消费 = 已消费+早餐食堂就餐已消费+中餐食堂就餐已消费+晚餐食堂就餐已消费,
-            预消费 = 预消费+早餐食堂就餐预消费+中餐食堂就餐预消费+晚餐食堂就餐预消费
-        )
+        手机号 = qset订餐用户表.手机号
+        for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
+            pipeline = [
+                {
+                    "$match": {
+                        "手机号":手机号,
+                        "产品."+one['名称']+".签到": "吃过"
+                    }
+                }
+                ,
+                {
+                    "$group": {
+                        "_id": "null",
+                        one['名称']: {
+                            "$sum": "$产品."+one['名称']+".预定数量"
+                        }
+                    }
+                }
+            ]
+            r = list(models.订餐结果表.objects.aggregate(*pipeline))
+            for one2 in r:
+                print('one2[one[]]---------',one2[one['名称']])
+                已消费 = 已消费 + one2[one['名称']]*one['价格']
+            pipeline2 = [
+                {
+                    "$match": {
+                        "手机号":手机号,
+                        "产品."+one['名称']+".签到": "没吃"
+                    }
+                }
+                ,
+                {
+                    "$group": {
+                        "_id": "null",
+                        one['名称']: {
+                            "$sum": "$产品."+one['名称']+".预定数量"
+                        }
+                    }
+                }
+            ]
+            r2 = list(models.订餐结果表.objects.aggregate(*pipeline2))
+            for one2 in r2:
+                print('one2[one[]]---------',one2[one['名称']])
+                预消费 = 预消费 + one2[one['名称']]*one['价格']
+        qset1 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
+        if qset1 == None:
+            pass
+        else:
+            qset1.update(
+                已消费 = 已消费,
+                预消费 = 预消费
+            )
 
 def 上传订餐结果2(request):
     from . import models
@@ -629,40 +631,7 @@ def 上传订餐结果2(request):
                 if queryset1 == None:
                     models.订餐结果临时表(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc,
                         用餐日期=用餐日期,
-                        早餐食堂就餐预订数 = queryset0.早餐食堂就餐预订数,
-                        早餐食堂就餐签到 = queryset0.早餐食堂就餐签到,
-                        早餐订餐时间 = queryset0.早餐订餐时间,
-                        早餐取消时间 = queryset0.早餐取消时间,
-                        早餐食堂外带预订数 = queryset0.早餐食堂外带预订数,
-                        中餐食堂就餐预订数 = queryset0.中餐食堂就餐预订数,
-                        中餐食堂就餐签到 = queryset0.中餐食堂就餐签到,
-                        中餐订餐时间 = queryset0.中餐订餐时间,
-                        中餐取消时间 = queryset0.中餐取消时间,
-                        中餐食堂外带预订数 = queryset0.中餐食堂外带预订数,
-                        晚餐食堂就餐预订数 = queryset0.晚餐食堂就餐预订数,
-                        晚餐食堂就餐签到 = queryset0.晚餐食堂就餐签到,
-                        晚餐订餐时间 = queryset0.晚餐订餐时间,
-                        晚餐取消时间 = queryset0.晚餐取消时间,
-                        晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
                     ).save()
-                else:
-                    queryset1.update(
-                        早餐食堂就餐预订数 = queryset0.早餐食堂就餐预订数,
-                        早餐食堂就餐签到 = queryset0.早餐食堂就餐签到,
-                        早餐订餐时间 = queryset0.早餐订餐时间,
-                        早餐取消时间 = queryset0.早餐取消时间,
-                        早餐食堂外带预订数 = queryset0.早餐食堂外带预订数,
-                        中餐食堂就餐预订数 = queryset0.中餐食堂就餐预订数,
-                        中餐食堂就餐签到 = queryset0.中餐食堂就餐签到,
-                        中餐订餐时间 = queryset0.中餐订餐时间,
-                        中餐取消时间 = queryset0.中餐取消时间,
-                        中餐食堂外带预订数 = queryset0.中餐食堂外带预订数,
-                        晚餐食堂就餐预订数 = queryset0.晚餐食堂就餐预订数,
-                        晚餐食堂就餐签到 = queryset0.晚餐食堂就餐签到,
-                        晚餐订餐时间 = queryset0.晚餐订餐时间,
-                        晚餐取消时间 = queryset0.晚餐取消时间,
-                        晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
-                    )
             ding_can_list = request.GET.get('ding_can_list')
             ding_can_list = json.loads(ding_can_list)
             totalAmount_int = 0
@@ -768,41 +737,11 @@ def 上传订餐结果2(request):
                         子菜单page_name=queryset10.子菜单page_name,
                         子菜单page_desc=queryset10.子菜单page_desc, 
                         用餐日期=queryset10.用餐日期,
-                        早餐食堂就餐预订数 = queryset10.早餐食堂就餐预订数,
-                        早餐食堂就餐签到 = queryset10.早餐食堂就餐签到,
-                        早餐订餐时间 = queryset10.早餐订餐时间,
-                        早餐取消时间 = queryset10.早餐取消时间,
-                        早餐食堂外带预订数 = queryset10.早餐食堂外带预订数,
-                        中餐食堂就餐预订数 = queryset10.中餐食堂就餐预订数,
-                        中餐食堂就餐签到 = queryset10.中餐食堂就餐签到,
-                        中餐订餐时间 = queryset10.中餐订餐时间,
-                        中餐取消时间 = queryset10.中餐取消时间,
-                        中餐食堂外带预订数 = queryset10.中餐食堂外带预订数,
-                        晚餐食堂就餐预订数 = queryset10.晚餐食堂就餐预订数,
-                        晚餐食堂就餐签到 = queryset10.晚餐食堂就餐签到,
-                        晚餐订餐时间 = queryset10.晚餐订餐时间,
-                        晚餐取消时间 = queryset10.晚餐取消时间,
-                        晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数,
                         产品 = queryset10.产品
                     ).save()
                     异步计算消费金额(wx_login_get_openid_dict)
                 else:
                     qset22.update(
-                        早餐食堂就餐预订数 = queryset10.早餐食堂就餐预订数,
-                        早餐食堂就餐签到 = queryset10.早餐食堂就餐签到,
-                        早餐订餐时间 = queryset10.早餐订餐时间,
-                        早餐取消时间 = queryset10.早餐取消时间,
-                        早餐食堂外带预订数 = queryset10.早餐食堂外带预订数,
-                        中餐食堂就餐预订数 = queryset10.中餐食堂就餐预订数,
-                        中餐食堂就餐签到 = queryset10.中餐食堂就餐签到,
-                        中餐订餐时间 = queryset10.中餐订餐时间,
-                        中餐取消时间 = queryset10.中餐取消时间,
-                        中餐食堂外带预订数 = queryset10.中餐食堂外带预订数,
-                        晚餐食堂就餐预订数 = queryset10.晚餐食堂就餐预订数,
-                        晚餐食堂就餐签到 = queryset10.晚餐食堂就餐签到,
-                        晚餐订餐时间 = queryset10.晚餐订餐时间,
-                        晚餐取消时间 = queryset10.晚餐取消时间,
-                        晚餐食堂外带预订数 = queryset10.晚餐食堂外带预订数,
                         产品 = queryset10.产品
                     )
                     异步计算消费金额(wx_login_get_openid_dict)
@@ -815,7 +754,7 @@ def 上传订餐结果2(request):
                 异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
                 return HttpResponse(自定义登录状态)
             else:
-                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict['openid'])
+                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
                 描述 = '银联下单'
                 订餐结果描述 = '银联下单'
                 其他参数 = {
@@ -2020,8 +1959,9 @@ def 订餐评价初始化图片(request):
         return response
 
 #银联支付下订单
-def ding_can_chinaums_pay_order(totalAmount,goods,openid):
+def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
     try:
+        print('ding_can_chinaums_pay_order------------------',wx_login_get_openid_dict)
         scrit_key = myConfig.chinaums_scrit_key
         msgId = myConfig.chinaums_msgId
         msgSrc = myConfig.chinaums_msgSrc
@@ -2034,7 +1974,7 @@ def ding_can_chinaums_pay_order(totalAmount,goods,openid):
         instMid = myConfig.chinaums_instMid
         tradeType = myConfig.chinaums_tradeType
         subAppId = myConfig.chinaums_subAppId
-        subopenid=wx_login_get_openid_dict['openid']
+        subOpenId = wx_login_get_openid_dict['openid']
         # subOpenId = myConfig.chinaums_subOpenId
         # goods = [
         #     {'body':'微信二维码测试',
@@ -2044,10 +1984,12 @@ def ding_can_chinaums_pay_order(totalAmount,goods,openid):
         #     'quantity': '1',
         #     'goodsCategory': 'TEST'}
         # ]
-        wmm_json = {'msgId': msgId, 'msgSrc': msgSrc, 'msgType': msgType, 'requestTimestamp': requestTimestamp,
-                    'merOrderId': merOrderId, 'mid': mid, 'tid': tid, 'totalAmount': totalAmount,
-                    'subOpenId': subOpenId,'goods':goods,
-                    'tradeType': tradeType, 'subAppId': subAppId, 'subOpenId': subOpenId, 'instMid': instMid}
+        wmm_json = {
+            'msgId': msgId, 'msgSrc': msgSrc, 'msgType': msgType, 'requestTimestamp': requestTimestamp,
+                'merOrderId': merOrderId, 'mid': mid, 'tid': tid, 'totalAmount': totalAmount,
+                'subOpenId': subOpenId,'goods':goods,
+                'tradeType': tradeType, 'subAppId': subAppId, 'subOpenId': subOpenId, 'instMid': instMid
+            }
         wmm_list = list(wmm_json.keys())
         list.sort(wmm_list)
         wmm_str = ''
@@ -2111,45 +2053,14 @@ def wx_pay_success(request):
                     子菜单page_name=qset1.子菜单page_name,
                     子菜单page_desc=qset1.子菜单page_desc, 
                     用餐日期=qset1.用餐日期,
-                    早餐食堂就餐预订数 = qset1.早餐食堂就餐预订数,
-                    早餐食堂就餐签到 = qset1.早餐食堂就餐签到,
-                    早餐订餐时间 = qset1.早餐订餐时间,
-                    早餐取消时间 = qset1.早餐取消时间,
-                    早餐食堂外带预订数 = qset1.早餐食堂外带预订数,
-                    中餐食堂就餐预订数 = qset1.中餐食堂就餐预订数,
-                    中餐食堂就餐签到 = qset1.中餐食堂就餐签到,
-                    中餐订餐时间 = qset1.中餐订餐时间,
-                    中餐取消时间 = qset1.中餐取消时间,
-                    中餐食堂外带预订数 = qset1.中餐食堂外带预订数,
-                    晚餐食堂就餐预订数 = qset1.晚餐食堂就餐预订数,
-                    晚餐食堂就餐签到 = qset1.晚餐食堂就餐签到,
-                    晚餐订餐时间 = qset1.晚餐订餐时间,
-                    晚餐取消时间 = qset1.晚餐取消时间,
-                    晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数,
                     产品 = qset1.产品
                 ).save()
                 异步计算消费金额(wx_login_get_openid_dict)
             else:
                 qset2.update(
-                    早餐食堂就餐预订数 = qset1.早餐食堂就餐预订数,
-                    早餐食堂就餐签到 = qset1.早餐食堂就餐签到,
-                    早餐订餐时间 = qset1.早餐订餐时间,
-                    早餐取消时间 = qset1.早餐取消时间,
-                    早餐食堂外带预订数 = qset1.早餐食堂外带预订数,
-                    中餐食堂就餐预订数 = qset1.中餐食堂就餐预订数,
-                    中餐食堂就餐签到 = qset1.中餐食堂就餐签到,
-                    中餐订餐时间 = qset1.中餐订餐时间,
-                    中餐取消时间 = qset1.中餐取消时间,
-                    中餐食堂外带预订数 = qset1.中餐食堂外带预订数,
-                    晚餐食堂就餐预订数 = qset1.晚餐食堂就餐预订数,
-                    晚餐食堂就餐签到 = qset1.晚餐食堂就餐签到,
-                    晚餐订餐时间 = qset1.晚餐订餐时间,
-                    晚餐取消时间 = qset1.晚餐取消时间,
-                    晚餐食堂外带预订数 = qset1.晚餐食堂外带预订数,
                     产品 = qset1.产品
                 )
                 异步计算消费金额(wx_login_get_openid_dict)
-            
             if qset3 == None:
                 models.订餐钱包表(openid=qset4.openid,已充值=totalAmount).save()
             else:
@@ -2172,7 +2083,7 @@ def wx_pay_success(request):
 def async_import_excel(mydata,flag,action):
     # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
     from . import models as ding_can_mongo  #新版订餐后台
-    print(mydata)
+    # print(mydata)
     try:
         if action == '上传用餐人员清单':
             df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')

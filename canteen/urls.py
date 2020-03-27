@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from django.urls import path, include
 from . import views
+from . import manage_views
 urlpatterns = [
 
     # 食堂订餐123--------------
@@ -29,5 +30,7 @@ urlpatterns = [
     path('wx_pay_success',views.wx_pay_success),
     path('userInfoUpload',views.userInfoUpload),
     path('get_ding_dan',views.get_ding_dan),
+
+    path('login',manage_views.login), #vue管理后台登录
 
 ]

@@ -345,11 +345,11 @@ def 根据板块下载表格(request):
     myVar3 = []
     i = 0
     if myVar == '新闻中心':
-        limit1 = 8
+        limit1 = 10
     elif myVar == '':
-        limit1 = 5
+        limit1 = 7
     else:
-        limit1 = 5
+        limit1 = 7
 
     for one in myVar2:
         myVar4 = []
@@ -694,7 +694,7 @@ def get_tablei_data_by_lan_mu_key(request):
         ban_kuai = request.POST['ban_kuai']
         lan_mu_key = request.POST['lan_mu_key']
         lan_mu = models.ban_kuai_lan_mu_dict[ban_kuai][int(lan_mu_key)]
-        qset1 = models.qyrd_article_col.objects(type=lan_mu)
+        qset1 = models.qyrd_article_col.objects(type=lan_mu).order_by('-my_date')
         res_list = []
         i = 0
         for one in qset1:
@@ -741,7 +741,7 @@ def get_tablei_data_by_lanmu(request):
     try:
         ban_kuai = request.POST['ban_kuai']
         lan_mu = request.POST['lan_mu']
-        qset1 = models.qyrd_article_col.objects(type=lan_mu)
+        qset1 = models.qyrd_article_col.objects(type=lan_mu).order_by('-my_date')
         res_list = []
         i = 0
         for one in qset1:
@@ -831,7 +831,7 @@ def get_tablei_data_by_search(request):
     try:
         tittle = request.POST['tittle']
         print('get_tablei_data_by_search',tittle)
-        qset1 = models.qyrd_article_col.objects(tittle__icontains = tittle)
+        qset1 = models.qyrd_article_col.objects(tittle__icontains = tittle).order_by('-my_date')
         res_list = []
         i = 0
         for one in qset1:

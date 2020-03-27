@@ -24,8 +24,9 @@ def job():
     print(创建时间,"订餐提醒任务正在执行")
 
 def 自动核销():
-    from canteen import models
+    from . import models
     用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+    print('自动核销',用餐日期)
     qset1 = models.订餐结果表.objects(用餐日期=用餐日期)
     for one in qset1:
         产品 = one.产品
@@ -39,7 +40,7 @@ def 自动核销():
 
 @deprecated_async
 def 启动定时器():
-    schedule.every().day.at("17:14").do(自动核销)
+    schedule.every().day.at("20:02").do(自动核销)
     # schedule.every(10).seconds.do(job)
     # schedule.every(10).minutes.do(job)
     # schedule.every().hour.do(job)
