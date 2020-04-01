@@ -52,7 +52,22 @@ def 启动定时器():
         schedule.run_pending()
         time.sleep(1)
 
+def a():
+    from canteen import manage_models 
+    from canteen import models
+    # manage_models.my_user(
+    #     d = {'username':'wmm','password':'123456'}
+    # ).save()
+
+    # q1 = models.订餐结果表.objects(手机号='13355661100').first()
+    # print(q1)
+
+    q1 = manage_models.my_user.objects(__raw__ = {'d.username':'wmm','d.password':'123456'}).first().to_json()
+    print(q1)
+
+
 if __name__ == '__main__':
-    自动核销()
+    # 自动核销()
+    a()
 
 

@@ -32,5 +32,7 @@ urlpatterns = [
     path('get_ding_dan',views.get_ding_dan),
 
     path('login',manage_views.login), #vue管理后台登录
+    path('info',manage_views.info), #vue后台获取用户信息
+    path('logout',manage_views.logout) #vue后台退出登录
 
 ]
