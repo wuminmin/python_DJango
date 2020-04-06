@@ -65,9 +65,14 @@ def a():
     q1 = manage_models.my_user.objects(__raw__ = {'d.username':'wmm','d.password':'123456'}).first().to_json()
     print(q1)
 
-
+def b():
+    from canteen import models
+    手机号 = '13355661100'
+    当前月份 = '2020-04'
+    订餐取消计数表1 = models.订餐取消计数表.objects(__raw__ = {'d.手机号':手机号,'d.月份':当前月份})
+    print(订餐取消计数表1)                   
 if __name__ == '__main__':
     # 自动核销()
-    a()
+    b()
 
 
