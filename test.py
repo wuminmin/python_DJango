@@ -52,27 +52,40 @@ def 启动定时器():
         schedule.run_pending()
         time.sleep(1)
 
-def a():
+def 食堂管理后台添加管理员():
     from canteen import manage_models 
     from canteen import models
-    # manage_models.my_user(
-    #     d = {'username':'wmm','password':'123456'}
-    # ).save()
+    manage_models.my_user(
+        d = {'username':'cztt','password':'ttgs@20200406'}
+    ).save()
 
     # q1 = models.订餐结果表.objects(手机号='13355661100').first()
     # print(q1)
 
-    q1 = manage_models.my_user.objects(__raw__ = {'d.username':'wmm','d.password':'123456'}).first().to_json()
+    q1 = manage_models.my_user.objects().to_json()
     print(q1)
+
+def 食堂管理后台删除管理员():
+    from canteen import manage_models 
+    from canteen import models
+    q1 = manage_models.my_user.objects(__raw__ = {'d.username':'admin'}).first()
+    q1.delete()
+    q2 = manage_models.my_user.objects().to_json()
+    print(q2)
 
 def b():
     from canteen import models
     手机号 = '13355661100'
     当前月份 = '2020-04'
     订餐取消计数表1 = models.订餐取消计数表.objects(__raw__ = {'d.手机号':手机号,'d.月份':当前月份})
-    print(订餐取消计数表1)                   
+    print(订餐取消计数表1)  
+
+def a1():
+    from canteen import models
+    r = models.订餐主界面表.objects(二级部门='池州铁塔')   
+    print(r.to_json().encode('utf-8').decode('unicode_escape'))
 if __name__ == '__main__':
     # 自动核销()
-    b()
+    食堂管理后台删除管理员()
 
 

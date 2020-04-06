@@ -38,6 +38,16 @@ def wx_login_get_openid(request):
         print(traceback.format_exc())
         return None
 
+def myHttpResponse(res):  # 合并跨域配置
+    import json
+    from django.http import HttpResponse, FileResponse
+    response = HttpResponse(json.dumps(res))
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
 # 异步函数
 def deprecated_async(f):
     def wrapper(*args, **kwargs):
@@ -684,19 +694,22 @@ def 上传订餐结果2(request):
                                     自定义登录状态 = str(自定义登录状态)
                                     return HttpResponse(自定义登录状态)
                         else:
-                            totalAmount_int = totalAmount_int + index*one['价格']
                             签到 = '没吃'
-                            就餐时间 = one['就餐时间']
-                            就餐时间 = 用餐日期 + ' ' + 就餐时间
-                            取消提前秒 = one['取消提前秒']
-                            预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
-                            if 当前时间戳 < 预定提前截止时间:
+                            if index == 0:
                                 pass
                             else:
-                                自定义登录状态 = {'描述': tittle+'已过期，不能预定', '会话': ''}
-                                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                                自定义登录状态 = str(自定义登录状态)
-                                return HttpResponse(自定义登录状态)
+                                totalAmount_int = totalAmount_int + index*one['价格']
+                                就餐时间 = one['就餐时间']
+                                就餐时间 = 用餐日期 + ' ' + 就餐时间
+                                取消提前秒 = one['取消提前秒']
+                                预定提前截止时间 = time.mktime(time.strptime(就餐时间, "%Y-%m-%d %H:%M:%S")) - 取消提前秒
+                                if 当前时间戳 < 预定提前截止时间:
+                                    pass
+                                else:
+                                    自定义登录状态 = {'描述': tittle+'已过期，不能预定', '会话': ''}
+                                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                    自定义登录状态 = str(自定义登录状态)
+                                    return HttpResponse(自定义登录状态)
                         产品 = queryset1.产品
                         产品[tittle] = {
                             '预定时间':当前时间,
@@ -1133,10 +1146,10 @@ def 订餐统计(request):
         日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     订餐统计结果_first = 订餐统计结果.objects(日期=日期, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
     if 订餐统计结果_first == None:
-        start_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        end_date = time.strftime('%Y-%m-%d', time.localtime(time.time() + 259200))
+        # start_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        # end_date = time.strftime('%Y-%m-%d', time.localtime(time.time() + 259200))
         自定义登录状态 = {'描述': '下载成功', '会话': '123456', 'list': [], 'app_tittle': '订餐统计结果不存在', 'app_des': '请联系管理员',
-                   'app_code_des': '', 'app_code': '', 'date': 日期, 'start_date': start_date, 'end_date': end_date}
+                   'app_code_des': '', 'app_code': '', 'date': 日期, 'start_date': '', 'end_date': ''}
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         自定义登录状态 = str(自定义登录状态)
         return HttpResponse(自定义登录状态)
@@ -1169,117 +1182,117 @@ def 订餐下载核销码(request):
     return HttpResponse(自定义登录状态)
 
 
-def 订餐扫核销码2(request):
-    核销码 = str(request.GET['er_wei_ma'])
-    主菜单name = str(request.GET['name'])
-    子菜单page_name = str(request.GET['page_name'])
-    子菜单page_desc = str(request.GET['page_desc'])
-    if 核销码 == '123456':
-        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        当前小时 = time.strftime('%H', time.localtime(time.time()))
-        js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
-        session_key = ''
-        openid=wx_login_get_openid_dict['openid']
-        订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
-        if 订餐用户表_first == None:
-            自定义登录状态 = {'描述': '未注册手机号', '姓名': '', '当前日期': '', '类型': ''}
-            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            自定义登录状态 = str(自定义登录状态)
-            return HttpResponse(自定义登录状态)
-        手机号 = 订餐用户表_first.手机号
-        # 订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
-        # 订餐结果表_first = 订餐结果表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 手机号=手机号, 用餐日期=当前日期).first()
-        订餐结果表_first = 订餐结果表.objects(手机号=手机号, 用餐日期=当前日期).first()
-        if 订餐结果表_first == None:
-            自定义登录状态 = {'描述': '没有订餐', '姓名': '', '当前日期': '', '类型': ''}
-            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            自定义登录状态 = str(自定义登录状态)
-            return HttpResponse(自定义登录状态)
-        else:
-            if 子菜单page_name == '' or 子菜单page_name == None:
-                子菜单page_name = 订餐结果表_first.子菜单page_name
-            if 当前小时 > '05' and 当前小时 < '09':
-                if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
-                    订餐结果表_first.update(早餐食堂就餐签到=吃过)
-                    异步计算消费金额(wx_login_get_openid_dict)
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
-                    return HttpResponse(自定义登录状态)
-                elif 订餐结果表_first.早餐食堂就餐签到 == 吃过:
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-            elif 当前小时 > '10' and 当前小时 < '15':
-                if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
-                    订餐结果表_first.update(中餐食堂就餐签到=吃过)
-                    异步计算消费金额(wx_login_get_openid_dict)
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
-                    return HttpResponse(自定义登录状态)
-                elif 订餐结果表_first.中餐食堂就餐签到 == 吃过:
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-            elif 当前小时 > '16' and 当前小时 < '20':
-                if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
-                    订餐结果表_first.update(晚餐食堂就餐签到=吃过)
-                    异步计算消费金额(wx_login_get_openid_dict)
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                    异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
-                    return HttpResponse(自定义登录状态)
-                elif 订餐结果表_first.晚餐食堂就餐签到 == 吃过:
-                    自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-            else:
-                自定义登录状态 = {'描述': '不在就餐时间', '姓名': '', '当前日期': '', '类型': ''}
-                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
-                return HttpResponse(自定义登录状态)
+# def 订餐扫核销码2(request):
+#     核销码 = str(request.GET['er_wei_ma'])
+#     主菜单name = str(request.GET['name'])
+#     子菜单page_name = str(request.GET['page_name'])
+#     子菜单page_desc = str(request.GET['page_desc'])
+#     if 核销码 == '123456':
+#         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+#         当前小时 = time.strftime('%H', time.localtime(time.time()))
+#         js_code = request.GET['code']
+#         wx_login_get_openid_dict = wx_login_get_openid(request)
+#         session_key = ''
+#         openid=wx_login_get_openid_dict['openid']
+#         订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
+#         if 订餐用户表_first == None:
+#             自定义登录状态 = {'描述': '未注册手机号', '姓名': '', '当前日期': '', '类型': ''}
+#             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#             自定义登录状态 = str(自定义登录状态)
+#             return HttpResponse(自定义登录状态)
+#         手机号 = 订餐用户表_first.手机号
+#         # 订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
+#         # 订餐结果表_first = 订餐结果表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 手机号=手机号, 用餐日期=当前日期).first()
+#         订餐结果表_first = 订餐结果表.objects(手机号=手机号, 用餐日期=当前日期).first()
+#         if 订餐结果表_first == None:
+#             自定义登录状态 = {'描述': '没有订餐', '姓名': '', '当前日期': '', '类型': ''}
+#             自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#             自定义登录状态 = str(自定义登录状态)
+#             return HttpResponse(自定义登录状态)
+#         else:
+#             if 子菜单page_name == '' or 子菜单page_name == None:
+#                 子菜单page_name = 订餐结果表_first.子菜单page_name
+#             if 当前小时 > '05' and 当前小时 < '09':
+#                 if 订餐结果表_first.早餐食堂就餐签到 == 没吃:
+#                     订餐结果表_first.update(早餐食堂就餐签到=吃过)
+#                     异步计算消费金额(wx_login_get_openid_dict)
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+#                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+#                     return HttpResponse(自定义登录状态)
+#                 elif 订餐结果表_first.早餐食堂就餐签到 == 吃过:
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '早餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#             elif 当前小时 > '10' and 当前小时 < '15':
+#                 if 订餐结果表_first.中餐食堂就餐签到 == 没吃:
+#                     订餐结果表_first.update(中餐食堂就餐签到=吃过)
+#                     异步计算消费金额(wx_login_get_openid_dict)
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+#                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+#                     return HttpResponse(自定义登录状态)
+#                 elif 订餐结果表_first.中餐食堂就餐签到 == 吃过:
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '中餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#             elif 当前小时 > '16' and 当前小时 < '20':
+#                 if 订餐结果表_first.晚餐食堂就餐签到 == 没吃:
+#                     订餐结果表_first.update(晚餐食堂就餐签到=吃过)
+#                     异步计算消费金额(wx_login_get_openid_dict)
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+#                     异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+#                     return HttpResponse(自定义登录状态)
+#                 elif 订餐结果表_first.晚餐食堂就餐签到 == 吃过:
+#                     自定义登录状态 = {'描述': '成功', '姓名': 订餐主界面表_first.姓名, '当前日期': 当前日期, '类型': '晚餐核销'}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = {'描述': '已经吃过或者已取消', '姓名': '', '当前日期': '', '类型': ''}
+#                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                     自定义登录状态 = str(自定义登录状态)
+#                     return HttpResponse(自定义登录状态)
+#             else:
+#                 自定义登录状态 = {'描述': '不在就餐时间', '姓名': '', '当前日期': '', '类型': ''}
+#                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                 自定义登录状态 = str(自定义登录状态)
+#                 return HttpResponse(自定义登录状态)
 
-    else:
-        自定义登录状态 = {'描述': '这不是核销码', '姓名': '', '当前日期': '', '类型': ''}
-        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-        自定义登录状态 = str(自定义登录状态)
-        return HttpResponse(自定义登录状态)
+#     else:
+#         自定义登录状态 = {'描述': '这不是核销码', '姓名': '', '当前日期': '', '类型': ''}
+#         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#         自定义登录状态 = str(自定义登录状态)
+#         return HttpResponse(自定义登录状态)
 
-def 订餐扫动态核销码(request):
+def ding_can_sao_he_xiao_ma2(request):
     from bson.objectid import ObjectId
     from . import models as ding_can_mongo  #新版订餐后台
     try:
         核销码 = str(request.GET['er_wei_ma'])
-        主菜单name = str(request.GET['name'])
-        子菜单page_name = str(request.GET['page_name'])
-        子菜单page_desc = str(request.GET['page_desc'])
-        js_code = request.GET['code']
+        # 主菜单name = str(request.GET['name'])
+        # 子菜单page_name = str(request.GET['page_name'])
+        # 子菜单page_desc = str(request.GET['page_desc'])
+        # js_code = request.GET['code']
         核销码 = 核销码.encode('utf8')[3:].decode('utf8')
         print(核销码)
         核销码json = json.loads(核销码)
@@ -1293,59 +1306,31 @@ def 订餐扫动态核销码(request):
         订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_one == None:
             自定义登录状态 = {'描述': '管理员未注册', '姓名': '', '当前日期': '', '类型': ''}
-            自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            自定义登录状态 = str(自定义登录状态)
-            return HttpResponse(自定义登录状态)
+            return myHttpResponse(自定义登录状态)
         else:
-            # print('微信校验码--------------',微信校验码)
-            # payload2 = {'appid': canteen_appid, 'secret': canteen_secret, 'js_code': 微信校验码,
-            #        'grant_type': canteen_grant_type}
-            # r2 = requests.get(url=url, params=payload)
-            # r_json2 = json.loads(r2.text)
-            # print(r_json2)
-            # 订餐用户表_one2 = 订餐用户表.objects(openid=r_json2['openid']).first()
-            # if 订餐用户表_one2 == None:
-            #     自定义登录状态 = {'描述': '用户不存在', '姓名': '', '当前日期': '', '类型': ''}
-            #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-            #     自定义登录状态 = str(自定义登录状态)
-            #     return HttpResponse(自定义登录状态)
-            # else:
-            #     手机号2 = 订餐用户表_one2.手机号
-                # qset3 = ding_can_mongo.订餐主界面表.objects(手机号=手机号2).first()
-                # if qset3 == None:
-                #     自定义登录状态 = {'描述': '无权限', '姓名': '', '当前日期': '', '类型': ''}
-                #     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                #     自定义登录状态 = str(自定义登录状态)
-                #     return HttpResponse(自定义登录状态)
-                # else:
             qset1 = ding_can_mongo.订餐结果表.objects(
                 id=ObjectId(oid),
                 用餐日期=当前日期
             ).first()
             if qset1 == None:
                 自定义登录状态 = {'描述': '今日无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
-                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
-                return HttpResponse(自定义登录状态)
+                return myHttpResponse(自定义登录状态)
             else:
                 产品 = qset1.产品
                 if 产品[产品名称]['预定数量'] == 0:
                     自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
+                    return myHttpResponse(自定义登录状态)
                 if 产品[产品名称]['签到'] == '吃过':
                     自定义登录状态 = {'描述': '已吃过，不能重复核销', '姓名': '', '当前日期': '', '类型': ''}
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
+                    return myHttpResponse(自定义登录状态)
                 产品[产品名称]['签到'] = '吃过'
                 产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                 qset1.update(产品=产品)
-                订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
-                qset2 = ding_can_mongo.订餐钱包表.objects(openid=订餐用户表1.openid).first()
+                # 订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
+                qset2 = ding_can_mongo.订餐钱包表.objects(openid = wx_login_get_openid_dict['openid']).first()
                 if qset2 == None:
-                    pass
+                    res = {'描述': '钱包无记录，系统异常', '姓名': '', '当前日期': '', '类型': ''}
+                    return myHttpResponse(res)
                 else:
                     已消费 = qset2.已消费
                     预消费 = qset2.预消费
@@ -1359,13 +1344,7 @@ def 订餐扫动态核销码(request):
                     自定义登录状态 = {'描述': '成功', 
                         '订餐结果': '姓名：'+订餐主界面表1.姓名+',预定数量：'+str(产品[产品名称]['预定数量'])+',产品名称：'+产品名称
                     }
-                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                    自定义登录状态 = str(自定义登录状态)
-                    return HttpResponse(自定义登录状态)
-        自定义登录状态 = {'描述': '核销码错误', '姓名': '', '当前日期': '', '类型': ''}
-        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-        自定义登录状态 = str(自定义登录状态)
-        return HttpResponse(自定义登录状态)
+                    return myHttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
         自定义登录状态 = {'描述': '系统错误', '姓名': '', '当前日期': '', '类型': ''}
@@ -1427,7 +1406,7 @@ def 订餐扫核销码(request):
                     自定义登录状态 = str(自定义登录状态)
                     return HttpResponse(自定义登录状态)
             else:
-                自定义登录状态 = {'描述': '核销码错误'}
+                自定义登录状态 = {'描述': '错误'}
                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                 自定义登录状态 = str(自定义登录状态)
                 return HttpResponse(自定义登录状态)
