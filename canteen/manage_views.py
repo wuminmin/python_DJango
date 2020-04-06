@@ -39,11 +39,17 @@ def login(request):  # vue管理后台登录
             res = {'code': code, 'data': data, 'message': message}
         else:
             tmp_d = q1.d
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-            tmp_d['token'] = now_time
+            from . import manage_token
+            import myConfig
+            tokenprogramer = manage_token.Token(
+                api_secret = myConfig.wx_app_id, #微信appid
+                project_code = 'canteen', #项目名称
+                account = username #用户名
+            )
+            tmp_d['token'] = tokenprogramer.get_token()
             q1.update(d = tmp_d )
             code = 20000
-            data = {'token': now_time}
+            data = {'token': tokenprogramer.get_token()}
             message = '登录成功'
             res = {'code': code, 'data': data, 'message': message}
         return myHttpResponse(res)
@@ -287,6 +293,7 @@ def export_canteen_data(request):
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     from . import models as ding_can_mongo  #新版订餐后台
+    import myConfig
     try:
         req_body = request.body.decode('utf-8')
         print(req_body)
@@ -318,10 +325,32 @@ def export_canteen_data(request):
             value_start = req_json['value_start']
             value_end = req_json['value_end']
             ql2 = models.订餐结果表.objects(用餐日期__gte = value_start,用餐日期__lte = value_end )
+            产品全局字典 = ding_can_mongo.产品全局字典
+            产品名称列表 = 产品全局字典[myConfig.wx_app_id]['产品名称列表']
+            items = []
+            for o in ql2:
+                手机号 = o.手机号
+                用餐日期 = o.用餐日期
+                产品 = ','
+                for o2 in 产品名称列表:
+                    名称 = o2
+                    # 预定时间 = o.产品[o2]['预定时间']
+                    预定数量 = o.产品[o2]['预定数量']
+                    签到 = o.产品[o2]['签到']
+                    价格 = o.产品[o2]['价格']
+                    项目 = 名称+','+str(预定数量)+','+签到
+                    产品 = 产品+项目+','
+                items.append({
+                    '手机号':手机号,
+                    '用餐日期':用餐日期,
+                    '产品':产品
+                })
+                产品 = '|'
             code = 20000
             data = {
                 'total':len(ql2),
-                'items': json.loads(ql2.to_json().encode('utf-8').decode('unicode_escape'))
+                'items':items,
+                # 'items': json.loads(ql2.to_json().encode('utf-8').decode('unicode_escape'))
             }
             message = '成功'
             res = {'code': code, 'data': data, 'message': message}
