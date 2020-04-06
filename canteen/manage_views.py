@@ -334,23 +334,21 @@ def export_canteen_data(request):
                 产品 = ','
                 for o2 in 产品名称列表:
                     名称 = o2
-                    # 预定时间 = o.产品[o2]['预定时间']
-                    预定数量 = o.产品[o2]['预定数量']
-                    签到 = o.产品[o2]['签到']
-                    价格 = o.产品[o2]['价格']
-                    项目 = 名称+','+str(预定数量)+','+签到
-                    产品 = 产品+项目+','
+                    if 名称 in o.产品:
+                        预定数量 = o.产品[o2]['预定数量']
+                        签到 = o.产品[o2]['签到']
+                        项目 = 名称+','+str(预定数量)+','+签到
+                        产品 = 产品+项目+','
                 items.append({
                     '手机号':手机号,
                     '用餐日期':用餐日期,
                     '产品':产品
                 })
-                产品 = '|'
+                产品 = ','
             code = 20000
             data = {
                 'total':len(ql2),
                 'items':items,
-                # 'items': json.loads(ql2.to_json().encode('utf-8').decode('unicode_escape'))
             }
             message = '成功'
             res = {'code': code, 'data': data, 'message': message}
