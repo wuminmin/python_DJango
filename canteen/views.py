@@ -982,7 +982,7 @@ def 异步统计产品(食堂名称,二级部门,wx_login_get_openid_dict):
     第二天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
     第三天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400 + 86400))
     日期_list = [第一天, 第二天, 第三天]
-    订餐部门表_first = 订餐部门表.objects(二级部门=二级部门).first()
+    # 订餐部门表_first = 订餐部门表.objects(二级部门=二级部门).first()
     from . import models
     qset1 = models.订餐主界面表.objects(二级部门=二级部门)
     name_list = []
@@ -1132,7 +1132,7 @@ def 异步统计产品(食堂名称,二级部门,wx_login_get_openid_dict):
             app_code = '没吃人数' + str(没吃人数) + ';没吃份数' + str(没吃份数)
             自定义登录状态 = {'描述': 描述, '会话': '23456', 'list': r_list, 'app_tittle': app_tittle, 'app_des': app_des,
                 'app_code_des': app_code_des, 'app_code': app_code, 'date': 日期, 'start_date': 第一天, 'end_date': 第三天}
-            订餐统计结果_first = 订餐统计结果.objects(日期=日期, 子菜单page_name=食堂名称, 子菜单page_desc=产品名称).first()
+            订餐统计结果_first = models.订餐统计结果.objects(日期=日期, 子菜单page_name=食堂名称, 子菜单page_desc=产品名称).first()
             if 订餐统计结果_first == None:
                 订餐统计结果(日期=日期, 子菜单page_name=食堂名称, 子菜单page_desc=产品名称, 订餐结果=自定义登录状态).save()
             else:
@@ -1294,7 +1294,7 @@ def ding_can_sao_he_xiao_ma2(request):
         # 子菜单page_desc = str(request.GET['page_desc'])
         # js_code = request.GET['code']
         核销码 = 核销码.encode('utf8')[3:].decode('utf8')
-        print(核销码)
+        print(核销码,'---------------------------ding_can_sao_he_xiao_ma2--------')
         核销码json = json.loads(核销码)
         日期 = 核销码json['date']
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
@@ -1308,43 +1308,95 @@ def ding_can_sao_he_xiao_ma2(request):
             自定义登录状态 = {'描述': '管理员未注册', '姓名': '', '当前日期': '', '类型': ''}
             return myHttpResponse(自定义登录状态)
         else:
-            qset1 = ding_can_mongo.订餐结果表.objects(
-                id=ObjectId(oid),
-                用餐日期=当前日期
-            ).first()
-            if qset1 == None:
-                自定义登录状态 = {'描述': '今日无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
-                return myHttpResponse(自定义登录状态)
-            else:
-                产品 = qset1.产品
-                if 产品[产品名称]['预定数量'] == 0:
-                    自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
+            key = 核销码json['key']
+            if key == '预定码':
+                qset1 = ding_can_mongo.订餐结果表.objects(
+                    id=ObjectId(oid),
+                    用餐日期=当前日期
+                ).first()
+                if qset1 == None:
+                    自定义登录状态 = {'描述': '今日无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
                     return myHttpResponse(自定义登录状态)
-                if 产品[产品名称]['签到'] == '吃过':
-                    自定义登录状态 = {'描述': '已吃过，不能重复核销', '姓名': '', '当前日期': '', '类型': ''}
-                    return myHttpResponse(自定义登录状态)
-                产品[产品名称]['签到'] = '吃过'
-                产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                qset1.update(产品=产品)
-                # 订餐用户表1 = ding_can_mongo.订餐用户表.objects(手机号=qset1.手机号).first()
-                qset2 = ding_can_mongo.订餐钱包表.objects(openid = wx_login_get_openid_dict['openid']).first()
-                if qset2 == None:
-                    res = {'描述': '钱包无记录，系统异常', '姓名': '', '当前日期': '', '类型': ''}
-                    return myHttpResponse(res)
                 else:
-                    已消费 = qset2.已消费
-                    预消费 = qset2.预消费
-                    已消费 = 已消费 + ( 产品[产品名称]['价格'] * 产品[产品名称]['预定数量'] )
-                    预消费 = 预消费 - ( 产品[产品名称]['价格'] * 产品[产品名称]['预定数量'] )
-                    qset2.update(已消费=已消费,预消费=预消费)
-                    订餐主界面表1 = ding_can_mongo.订餐主界面表.objects(手机号=qset1.手机号).first()
-                    食堂名称 = qset1.子菜单page_name
-                    二级部门 = 订餐主界面表1.二级部门
-                    异步统计产品(食堂名称=食堂名称,二级部门=二级部门,wx_login_get_openid_dict=wx_login_get_openid_dict)
-                    自定义登录状态 = {'描述': '成功', 
-                        '订餐结果': '姓名：'+订餐主界面表1.姓名+',预定数量：'+str(产品[产品名称]['预定数量'])+',产品名称：'+产品名称
-                    }
+                    产品 = qset1.产品
+                    if 产品[产品名称]['预定数量'] == 0:
+                        自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(自定义登录状态)
+                    if 产品[产品名称]['签到'] == '吃过':
+                        自定义登录状态 = {'描述': '已吃过，不能重复核销', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(自定义登录状态)
+                    产品[产品名称]['签到'] = '吃过'
+                    产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    qset1.update(产品=产品)
+                    顾客手机号 = qset1.手机号
+                    订餐用户表1330 = ding_can_mongo.订餐用户表.objects(手机号=顾客手机号).first()
+                    if 订餐用户表1330 == None:
+                        res = {'描述': '顾客信息不存在', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(res)
+                    print(顾客手机号)
+                    qset2 = ding_can_mongo.订餐钱包表.objects(openid = 订餐用户表1330.openid).first()
+                    if qset2 == None:
+                        res = {'描述': '钱包无记录，系统异常', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(res)
+                    else:
+                        已消费 = qset2.已消费
+                        预消费 = qset2.预消费
+                        已消费 = 已消费 + ( int(产品[产品名称]['价格']) * int(产品[产品名称]['预定数量']) )
+                        预消费 = 预消费 - ( int(产品[产品名称]['价格']) * int(产品[产品名称]['预定数量']) )
+                        qset2.update(已消费=已消费,预消费=预消费)
+                        订餐主界面表1 = ding_can_mongo.订餐主界面表.objects(手机号=qset1.手机号).first()
+                        食堂名称 = qset1.子菜单page_name
+                        二级部门 = 订餐主界面表1.二级部门
+                        异步统计产品(食堂名称=食堂名称,二级部门=二级部门,wx_login_get_openid_dict=wx_login_get_openid_dict)
+                        自定义登录状态 = {'描述': '成功', 
+                            '订餐结果': '姓名：'+订餐主界面表1.姓名+',预定数量：'+str(产品[产品名称]['预定数量'])+',产品名称：'+产品名称
+                        }
+                        return myHttpResponse(自定义登录状态)
+            elif key == '非预定码':
+                qset1 = ding_can_mongo.订餐结果表.objects(
+                    id=ObjectId(oid),
+                    用餐日期=当前日期
+                ).first()
+                if qset1 == None:
+                    自定义登录状态 = {'描述': '今日无订餐记录', '姓名': '', '当前日期': '', '类型': ''}
                     return myHttpResponse(自定义登录状态)
+                else:
+                    产品 = qset1.产品
+                    if 产品[产品名称]['预定数量'] == 0:
+                        自定义登录状态 = {'描述': '订餐数量为0，不能核销', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(自定义登录状态)
+                    if 产品[产品名称]['签到'] == '吃过':
+                        自定义登录状态 = {'描述': '已吃过，不能重复核销', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(自定义登录状态)
+                    产品[产品名称]['签到'] = '吃过'
+                    产品[产品名称]['签到时间'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                    qset1.update(产品=产品)
+                    顾客手机号 = qset1.手机号
+                    订餐用户表1330 = ding_can_mongo.订餐用户表.objects(手机号=顾客手机号).first()
+                    if 订餐用户表1330 == None:
+                        res = {'描述': '顾客信息不存在', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(res)
+                    qset2 = ding_can_mongo.订餐钱包表.objects(openid = 订餐用户表1330.openid).first()
+                    if qset2 == None:
+                        res = {'描述': '钱包无记录，系统异常', '姓名': '', '当前日期': '', '类型': ''}
+                        return myHttpResponse(res)
+                    else:
+                        已消费 = qset2.已消费
+                        预消费 = qset2.预消费
+                        已消费 = 已消费 + ( int(产品[产品名称]['价格']) * int(产品[产品名称]['预定数量']) )
+                        预消费 = 预消费 - ( int(产品[产品名称]['价格']) * int(产品[产品名称]['预定数量']) )
+                        qset2.update(已消费=已消费,预消费=预消费)
+                        订餐主界面表1 = ding_can_mongo.订餐主界面表.objects(手机号=qset1.手机号).first()
+                        食堂名称 = qset1.子菜单page_name
+                        二级部门 = 订餐主界面表1.二级部门
+                        异步统计产品(食堂名称=食堂名称,二级部门=二级部门,wx_login_get_openid_dict=wx_login_get_openid_dict)
+                        自定义登录状态 = {'描述': '成功', 
+                            '订餐结果': '姓名：'+订餐主界面表1.姓名+',预定数量：'+str(产品[产品名称]['预定数量'])+',产品名称：'+产品名称
+                        }
+                        return myHttpResponse(自定义登录状态)
+            else:
+                自定义登录状态 = {'描述': '核销码key错误', '姓名': '', '当前日期': '', '类型': ''}
+                return myHttpResponse(自定义登录状态)
     except:
         print(traceback.format_exc())
         自定义登录状态 = {'描述': '系统错误', '姓名': '', '当前日期': '', '类型': ''}
@@ -1936,6 +1988,8 @@ def 订餐评价初始化图片(request):
 #银联支付下订单
 def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
     try:
+        totalAmount = '1' #支付1分钱
+
         print('ding_can_chinaums_pay_order------------------',wx_login_get_openid_dict)
         scrit_key = myConfig.chinaums_scrit_key
         msgId = myConfig.chinaums_msgId
@@ -1945,7 +1999,6 @@ def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
         merOrderId = myConfig.chinaums_msgId+datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         mid = myConfig.chinaums_mid
         tid = myConfig.chinaums_tid
-        # totalAmount = myConfig.chinaums_totalAmount
         instMid = myConfig.chinaums_instMid
         tradeType = myConfig.chinaums_tradeType
         subAppId = myConfig.chinaums_subAppId
@@ -2000,6 +2053,7 @@ def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
 def wx_pay_success(request):
     from . import models
     try:
+        wx_login_get_openid_dict = wx_login_get_openid(request)
         state = request.GET['state']
         state_json = json.loads(state)
         oid = state_json['oid']
@@ -2011,9 +2065,10 @@ def wx_pay_success(request):
         if qset1 == None:
             描述 = '订单不存在'
             订餐结果描述 = '订单不存在'
+            oid = ''
         else:
-            qset4 = models.订餐用户表.objects(手机号=qset1.手机号).first()
-            openid = qset4.openid
+            # qset4 = models.订餐用户表.objects(手机号=qset1.手机号).first()
+            # openid = qset4.openid
             qset3 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
             qset2 = models.订餐结果表.objects(
                 手机号=qset1.手机号,
@@ -2040,9 +2095,14 @@ def wx_pay_success(request):
                 models.订餐钱包表(openid=qset4.openid,已充值=totalAmount).save()
             else:
                 qset3.update(已充值 = qset3.已充值+totalAmount)
+            qset2095 = models.订餐结果表.objects(
+                手机号=qset1.手机号,
+                子菜单page_name=qset1.子菜单page_name,
+                用餐日期=qset1.用餐日期).first()
+            oid = str(qset2095.id)
             描述 = '上传成功'
             订餐结果描述 = '上传成功'
-        自定义登录状态 = {'描述': 描述, '会话': '123456', '订餐结果描述': 订餐结果描述}
+        自定义登录状态 = {'描述': 描述,'oid':oid, '会话': '123456', '订餐结果描述': 订餐结果描述}
         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
         自定义登录状态 = str(自定义登录状态)
         # 异步计算订餐结果(子菜单page_name, 二级部门)
@@ -2280,7 +2340,7 @@ def get_ding_dan(request):
                 return response
             else:
                 订餐结果列表 = []
-                for one in ding_can_mongo.产品名称列表字典[wx_login_get_openid_dict['app_id']]:
+                for one in ding_can_mongo.产品全局字典[wx_login_get_openid_dict['app_id']]['产品名称列表']:
                     if one in ding_can_mongo2.产品:
                         订餐结果列表.append(
                              {
@@ -2292,6 +2352,7 @@ def get_ding_dan(request):
                                 'mark':ding_can_mongo2.产品[one]['签到']
                             }
                         )
+                
                 response = HttpResponse(json.dumps({'描述':'成功','数据':订餐结果列表}))
                 response["Access-Control-Allow-Origin"] = "*"
                 response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -2308,6 +2369,253 @@ def get_ding_dan(request):
         response["Access-Control-Max-Age"] = "1000"
         response["Access-Control-Allow-Headers"] = "*"
         return response
+
+def get_none_prep_ding_dan(request):
+    import json
+    from bson.objectid import ObjectId
+    # from . import models as ding_can_mongo #老版订餐后台
+    from . import models as ding_can_mongo  #新版订餐后台
+    try:
+        code = request.GET['code']
+        日期 = request.GET['date']
+        # if 日期 == '':
+        日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        name = request.GET['name']
+        page_name = request.GET['page_name']
+        page_desc = request.GET['page_desc']
+        print(code,日期,name,page_name,page_desc)
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
+        if 用户 == None:
+            response = HttpResponse(json.dumps({'描述':'无手机号','数据':[]}))
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = "*"
+            return response
+        else:
+            手机号 = 用户.手机号
+            ding_can_mongo1 = ding_can_mongo.订餐主界面表.objects(手机号=手机号).first()
+            if ding_can_mongo1 == None:
+                response = HttpResponse(json.dumps({'描述':'无权限','数据':[]}))
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+            # ding_can_mongo2 = ding_can_mongo.订餐结果表.objects(手机号=手机号,用餐日期=日期,
+            # 子菜单page_name=page_name).first()
+            # if ding_can_mongo2 == None:
+            #     response = HttpResponse(json.dumps({'描述':'无订餐记录','数据':[]}))
+            #     response["Access-Control-Allow-Origin"] = "*"
+            #     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+            #     response["Access-Control-Max-Age"] = "1000"
+            #     response["Access-Control-Allow-Headers"] = "*"
+            #     return response
+            else:
+                订餐结果列表 = []
+                # 非预定产品名称列表 = ding_can_mongo.产品全局字典[wx_login_get_openid_dict['app_id']]['非预定产品名称列表']
+                非预定产品列表 = ding_can_mongo.产品全局字典[wx_login_get_openid_dict['app_id']]['非预定产品列表']
+                for one in 非预定产品列表:
+                    # if one in ding_can_mongo2.产品:
+                    订餐结果列表.append(
+                            {
+                            'oid':'',
+                            'name':one['名称'],
+                            'number':1,
+                            'ordertime':'',
+                            'price':one['价格'],
+                            'mark':'没吃'
+                        }
+                    )
+                response = HttpResponse(json.dumps({'描述':'成功','数据':订餐结果列表}))
+                response["Access-Control-Allow-Origin"] = "*"
+                response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+                response["Access-Control-Max-Age"] = "1000"
+                response["Access-Control-Allow-Headers"] = "*"
+                return response
+    except:
+        r = traceback.format_exc()
+        print(r)
+        response = HttpResponse(json.dumps({'描述':'系统错误','数据':[]}))
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
+        
+def buy_product(request):
+    from . import models
+    try:
+        wx_login_get_openid_dict = wx_login_get_openid(request)
+        当前时间戳 = time.time()
+        当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
+        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        当前月份 = time.strftime('%Y-%m', time.localtime(time.time()))
+        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
+        if 订餐用户表_one == None:
+            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
+            return HttpResponse(自定义登录状态)
+        else:
+            手机号 = 订餐用户表_one.手机号
+            订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
+            主菜单name = request.GET['name']
+            子菜单page_name = request.GET['page_name']
+            子菜单page_desc = request.GET['page_desc']
+            用餐日期 = request.GET['date']
+            # if 用餐日期 == '':
+            用餐日期 = 当前日期
+            product_name = request.GET['product_name']
+            product_nbr = int(request.GET['product_nbr'])
+            product_price = int(request.GET['product_price'])
+            totalAmount_int = int(product_nbr)*int(product_price)
+            qset11 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
+            if qset11 == None:
+                models.订餐钱包表(openid=wx_login_get_openid_dict['openid'],已充值=0).save()
+                qset11 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
+                已充值 = qset11.已充值
+            else:
+                已充值 = qset11.已充值
+            if 已充值 - totalAmount_int - qset11.已消费 - qset11.预消费  >= 0:
+                qset22 = models.订餐结果表.objects(
+                    手机号=手机号,
+                    子菜单page_name=子菜单page_name,
+                    用餐日期=用餐日期
+                ).first()
+                if qset22 == None:
+                    models.订餐结果表(
+                        手机号=手机号,
+                        子菜单page_name=子菜单page_name,
+                        用餐日期=用餐日期,
+                        产品 =  {
+                            product_name:{
+                                '预定时间':当前时间,
+                                '预定数量':product_nbr,
+                                '签到':'没吃',
+                                '价格':product_price,
+                                '签到时间':''
+                            }
+                        }
+                    ).save()
+                    异步计算消费金额(wx_login_get_openid_dict)
+                else:
+                    产品 = qset22.产品
+                    产品[product_name] = {
+                                '预定时间':当前时间,
+                                '预定数量':product_nbr,
+                                '签到':'没吃',
+                                '价格':product_price,
+                                '签到时间':''
+                            }
+                    qset22.update( 产品 = 产品  )
+                    异步计算消费金额(wx_login_get_openid_dict)
+                订餐结果表2505 = models.订餐结果表.objects(
+                    手机号=手机号,
+                    子菜单page_name=子菜单page_name,
+                    用餐日期=用餐日期
+                ).first()
+                oid = str(订餐结果表2505.id)
+                描述 = '上传成功'
+                订餐结果描述 = '上传成功'
+                自定义登录状态 = {'描述': 描述,'oid':oid, '会话': '123456', '订餐结果描述': 订餐结果描述}
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+                异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+                return HttpResponse(自定义登录状态)
+            else:
+                qset22 = models.订餐结果表.objects(
+                    手机号=手机号,
+                    子菜单page_name=子菜单page_name,
+                    用餐日期=用餐日期
+                ).first()
+                if qset22 == None:
+                    qset2526 = models.订餐结果临时表.objects(
+                        手机号=手机号,
+                        子菜单page_name=子菜单page_name,
+                        用餐日期=用餐日期
+                    ).first()
+                    if qset2526 == None:
+                        models.订餐结果临时表(
+                            手机号=手机号,
+                            子菜单page_name=子菜单page_name,
+                            用餐日期=用餐日期,
+                            产品 =  {
+                                product_name:{
+                                    '预定时间':当前时间,
+                                    '预定数量':product_nbr,
+                                    '签到':'没吃',
+                                    '价格':product_price,
+                                    '签到时间':''
+                                }
+                            }
+                        ).save()
+                    else:
+                        qset2526.update(
+                            产品 =  {
+                                product_name:{
+                                    '预定时间':当前时间,
+                                    '预定数量':product_nbr,
+                                    '签到':'没吃',
+                                    '价格':product_price,
+                                    '签到时间':''
+                                }
+                            }
+                        )
+                else:
+                    产品 = qset22.产品
+                    产品[product_name] = {
+                            '预定时间':当前时间,
+                            '预定数量':product_nbr,
+                            '签到':'没吃',
+                            '价格':product_price,
+                            '签到时间':''
+                        }
+                    qset2567 = models.订餐结果临时表.objects(
+                        手机号=手机号,
+                        子菜单page_name=子菜单page_name,
+                        用餐日期=用餐日期
+                    ).first()
+                    if qset2567 == None:
+                        models.订餐结果临时表(
+                            手机号=手机号,
+                            子菜单page_name=子菜单page_name,
+                            用餐日期=用餐日期,
+                            产品 = 产品
+                        ).save()
+                    else:
+                        qset2567.update(产品 = 产品)
+                qset2581 = models.订餐结果临时表.objects(
+                        手机号=手机号,
+                        子菜单page_name=子菜单page_name,
+                        用餐日期=用餐日期
+                    ).first()
+                goods = []
+                ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
+                print(ding_can_chinaums_pay_order_res)
+                描述 = '银联下单'
+                订餐结果描述 = '银联下单'
+                其他参数 = {
+                    'totalAmount':totalAmount_int,
+                    'oid':str(qset2581.id),
+                    '子菜单page_name':子菜单page_name,
+                    '二级部门':订餐主界面表_first.二级部门
+                }
+                自定义登录状态 = {
+                    '描述': 描述, '会话': '',
+                    '订餐结果描述': 订餐结果描述,
+                    'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest'],
+                    'state': 其他参数 
+                }
+                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                自定义登录状态 = str(自定义登录状态)
+                return HttpResponse(自定义登录状态)
+    except:
+        print(traceback.format_exc())
+        return HttpResponse('500')
+
+
 
 if __name__ == '__main__':
     异步计算订餐结果('市公司食堂', '池州市分公司')

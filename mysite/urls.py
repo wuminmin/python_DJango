@@ -27,6 +27,8 @@ urlpatterns = [
     path('jilizhushou/', include('jilizhushou.urls')),
     path('tieta/', include('tieta.urls')),
     path('canteen/', include('canteen.urls')),
+    path('teacher/', include('teacher.urls')),
+    path('canteen_alliance/', include('canteen_alliance.urls')),
     
 
     # 验证码---------------------

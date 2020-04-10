@@ -84,8 +84,17 @@ def a1():
     from canteen import models
     r = models.订餐主界面表.objects(二级部门='池州铁塔')   
     print(r.to_json().encode('utf-8').decode('unicode_escape'))
+
+
+def 教师管理后台添加管理员():
+    from teacher import manage_models 
+    manage_models.my_user(
+        d = {'username':'gcjw','password':'jiaowei@20200407'}
+    ).save()
+    q1 = manage_models.my_user.objects().to_json()
+    print(q1)
+
 if __name__ == '__main__':
-    # 自动核销()
-    食堂管理后台删除管理员()
+    教师管理后台添加管理员()
 
 
