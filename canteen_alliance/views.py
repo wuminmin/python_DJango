@@ -93,36 +93,98 @@ def wx_register(request):  #wx注册
         }).first()
         if wx_sms87 == None:
             code = 2
-            data = {'id': 1,'mobile':mobile,'nickname':'nickname','portrait':'https://dss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3788695993,2392089703&fm=111&gp=0.jpg'}
+            data = {'id': '1','mobile':mobile,'nickname':'','portrait':''}
             message = '验证码不正确'
             res = {'status': code, 'data': data, 'msg': message}
             return myHttpResponse(res)
         else:
+            nickname = '默认用户'
+            portrait = 'https://dss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1676131907,2302520392&fm=111&gp=0.jpg'
             wx_user97 = models.wx_user.objects(__raw__ = {
                 'd.openid':openid
             }).first()
             if wx_user97 == None:
                 d =  {
-                    'openid':openid,'mobile':mobile,'nickname':'','portrait':''
+                    'openid':openid,
+                    'mobile':mobile,
+                    'nickname':nickname,
+                    'portrait':portrait,
                 }
                 models.wx_user(d=d).save()
             else:
-                nickname = ''
-                portrait = ''
                 d = wx_user97.d
                 d['mobile'] = mobile
                 d['nickname'] = nickname
                 d['portrait'] = portrait
                 wx_user97.update(d=d)
             code = 1
-            data = {'id': 1,'mobile':mobile,'nickname':'nickname','portrait':'https://dss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3788695993,2392089703&fm=111&gp=0.jpg'}
+            data = {'id': 1,'mobile':mobile,'nickname':nickname,'portrait':portrait}
             message = '注册成功'
             res = {'status': code, 'data': data, 'msg': message}
             return myHttpResponse(res)
     except:
         print(traceback.format_exc())
         code = 0
-        data = {'id': 0,'mobile':'','nickname':'nickname'}
+        data = {'id': 0,'mobile':'','nickname':'','portrait':''}
+        message = '系统异常'
+        res = {'status': code, 'data': data, 'msg': message}
+        return myHttpResponse(res)
+
+def wx_send_sms(request): #wx发短信
+    import json
+    import traceback
+    import time
+    from . import models
+    from django.http import HttpResponse, FileResponse
+    from django.http import JsonResponse
+    try:
+        res = wx_login_get_openid(request)
+        print(res)
+        openid = res['openid']
+        session_key = res['session_key']
+        sendData = request.GET['sendData']
+        sendData_json = json.loads(sendData)
+        mobile = sendData_json['mobile']
+        if mobile == '':
+            code = 2
+            data = {}
+            message = '手机号为空'
+            res = {'status': code, 'data': data, 'msg': message}
+            return myHttpResponse(res)
+        else:
+            import random
+            import uuid
+            import myConfig
+            from . import tool
+            j = 6
+            sms_code = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
+            __business_id = uuid.uuid1()
+            params = "{\"code\":\"" + sms_code + "\"}"
+            r = tool.send_sms(__business_id, mobile, myConfig.sign_name, myConfig.template_code, params)
+            print(r,'---------------阿里云短信网关')
+            r2 = json.loads(r)
+            if r2['Code'] == 'OK':
+                wx_sms165 = models.wx_sms.objects(__raw__ = {'d.mobile':mobile}).first()
+                if wx_sms165 == None:
+                    d = {'mobile':mobile, 'password':sms_code}
+                    models.wx_sms(d=d).save()
+                else:
+                    d = {'mobile':mobile, 'password':sms_code}
+                    wx_sms165.update(d=d)
+                code = 1
+                data = {}
+                message = r2['Code']
+                res = {'status': code, 'data': data, 'msg': message}
+                return myHttpResponse(res)
+            code = 3
+            data = {}
+            message = r2['Code']
+            res = {'status': code, 'data': data, 'msg': message}
+            return myHttpResponse(res)
+    except:
+        print(traceback.format_exc())
+        code = 0
+        data = {}
         message = '系统异常'
         res = {'status': code, 'data': data, 'msg': message}
         return myHttpResponse(res)

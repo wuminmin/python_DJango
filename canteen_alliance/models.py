@@ -19,3 +19,7 @@ class wx_user(Document):#用户表
 class wx_sms(Document): #短信验证码表
     meta = {"db_alias": "canteen_alliance"}
     d = DictField(default={})
+
+class wx_organization(Document):
+    meta = {"db_alias": "canteen_alliance"}
+    d = DictField(default={})
