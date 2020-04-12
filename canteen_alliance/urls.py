@@ -22,6 +22,9 @@ urlpatterns = [
     path('wx_appral_apply_for_join_organization',views.wx_appral_apply_for_join_organization), #审批加入组织的申请
     path('wx_create_supplier',views.wx_create_supplier), #创建供应商
     path('wx_create_supplier_department',views.wx_create_supplier_department), #创建供应商某部门
+    path('wx_get_supplierInfo_list',views.wx_get_supplierInfo_list), #查询用户属于的供应商
+    path('wx_swicth_supplier',views.wx_swicth_supplier), #切换供应商
+    path('wx_get_my_wx_supplier_department_info_list',views.wx_get_my_wx_supplier_department_info_list), #查询相关的供应商部门列表
 
     path('login',manage_views.login), #vue管理后台登录
     path('info',manage_views.info), #vue后台获取用户信息
