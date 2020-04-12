@@ -16,6 +16,11 @@ urlpatterns = [
     path('wx_search_organization',views.wx_search_organization), #搜索组织
     path('wx_joinDepartment',views.wx_joinDepartment), #加入部门
     path('wx_createDepartment',views.wx_createDepartment), #创建组织
+    path('wx_get_organizationInfo_list',views.wx_get_organizationInfo_list), #查询用户属于的组织
+    path('wx_swicth_organization',views.wx_swicth_organization), #切换组织
+    path('wx_get_apply_for_join_organization',views.wx_get_apply_for_join_organization), #查询加入组织的申请
+    path('wx_appral_apply_for_join_organization',views.wx_appral_apply_for_join_organization), #审批加入组织的申请
+
 
     path('login',manage_views.login), #vue管理后台登录
     path('info',manage_views.info), #vue后台获取用户信息
