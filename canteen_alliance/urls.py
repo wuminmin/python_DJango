@@ -15,12 +15,13 @@ urlpatterns = [
     path('wx_send_sms',views.wx_send_sms), #wx 发短信
     path('wx_search_organization',views.wx_search_organization), #搜索组织
     path('wx_joinDepartment',views.wx_joinDepartment), #加入部门
-    path('wx_createDepartment',views.wx_createDepartment), #创建组织
+    path('wx_create_organization',views.wx_create_organization), #创建组织
     path('wx_get_organizationInfo_list',views.wx_get_organizationInfo_list), #查询用户属于的组织
     path('wx_swicth_organization',views.wx_swicth_organization), #切换组织
     path('wx_get_apply_for_join_organization',views.wx_get_apply_for_join_organization), #查询加入组织的申请
     path('wx_appral_apply_for_join_organization',views.wx_appral_apply_for_join_organization), #审批加入组织的申请
-
+    path('wx_create_supplier',views.wx_create_supplier), #创建供应商
+    path('wx_create_supplier_department',views.wx_create_supplier_department), #创建供应商某部门
 
     path('login',manage_views.login), #vue管理后台登录
     path('info',manage_views.info), #vue后台获取用户信息

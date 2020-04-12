@@ -33,33 +33,65 @@ def my_token_login(request):
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
+            #--------------公司或组织权限验证
             wx_organization_match_main_id36 = models.wx_organization_match_user.objects(__raw__ = {
                 'd.main_id' : wx_user25.d['main_id'],
-                'd.certificate_for_uniform_social_credit_code':wx_user25.d['active_organization']
+                'd.organization_main_id':wx_user25.d['active_organization']
             }).first()
             super_admin = False
-            normal_admin = False
+            nomarl_admin = False
             user = False
             if wx_organization_match_main_id36 == None:
                 pass
             else:
                 if 'super_admin' in  wx_organization_match_main_id36.d['role']:
                     super_admin = True
-                elif 'normal_admin' in wx_organization_match_main_id36.d['role']:
+                elif 'nomarl_admin' in wx_organization_match_main_id36.d['role']:
                     nomarl_admin = True
                 elif 'user' in wx_organization_match_main_id36.d['role']:
                     user = True
                 else:
                     pass
-            role_dict = {
+            role_dict_organization = {
                     'role_list':['super_admin','nomarl_admin','user'],
                     'main_id':wx_user25.d['main_id'],
-                    'certificate_for_uniform_social_credit_code':wx_user25.d['active_organization'],
+                    'organization_main_id':wx_user25.d['active_organization'],
                     'super_admin':super_admin,
-                    'normal_admin':normal_admin,
+                    'nomarl_admin':nomarl_admin,
                     'user':user
             }
-            return (True,wx_user25,role_dict)
+            #----------------
+
+            #-----------供应商权限验证
+            wx_supplier_match_main_id36 = models.wx_supplier_match_user.objects(__raw__ = {
+                'd.main_id' : wx_user25.d['main_id'],
+                'd.supplier_main_id':wx_user25.d['active_supplier']
+            }).first()
+            super_admin = False
+            nomarl_admin = False
+            user = False
+            if wx_supplier_match_main_id36 == None:
+                pass
+            else:
+                if 'super_admin' in  wx_supplier_match_main_id36.d['role']:
+                    super_admin = True
+                elif 'nomarl_admin' in wx_supplier_match_main_id36.d['role']:
+                    nomarl_admin = True
+                elif 'user' in wx_supplier_match_main_id36.d['role']:
+                    user = True
+                else:
+                    pass
+            role_dict_supplier = {
+                    'role_list':['super_admin','nomarl_admin','user'],
+                    'main_id':wx_user25.d['main_id'],
+                    'supplier_main_id':wx_user25.d['active_supplier'],
+                    'super_admin':super_admin,
+                    'nomarl_admin':nomarl_admin,
+                    'user':user
+            }
+            #----------------
+
+            return (True,wx_user25,role_dict_organization,role_dict_supplier)
     except:
         print(traceback.format_exc())
         code = 0
@@ -94,43 +126,83 @@ def wx_login(request):  # vue管理后台登录
     import traceback
     import time
     from . import models
+    from bson import ObjectId
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
-        res = wx_login_get_openid(request)
-        print(res)
-        openid = res['openid']
-        session_key = res['session_key']
-        wx_user97 = models.wx_user.objects(__raw__ = {
+        d_wx_login_get_openid = wx_login_get_openid(request)
+        print(d_wx_login_get_openid)
+        openid = d_wx_login_get_openid['openid']
+        session_key = d_wx_login_get_openid['session_key']
+        wx_wx_info105 = models.wx_wx_info.objects(__raw__ = {
             'd.openid':openid
         }).first()
-        if wx_user97 == None:
+        if wx_wx_info105 == None:
             code = 2
             data = {'main_id': 1,'token':'','mobile':'','nickname':'','portrait':''}
             msg = '未注册'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
+            d_wx_wx_info105 = wx_wx_info105.d
+            d_wx_wx_info105['session_key'] = session_key
+            wx_wx_info105.update(d=d_wx_wx_info105)
+            main_id = wx_wx_info105.d['main_id']
+            wx_user97 = models.wx_user.objects(__raw__={'d.main_id':main_id}).first()
+            if wx_user97 == None:
+                code = 4
+                data = {'main_id': 1,'token':'','mobile':'','nickname':'','portrait':''}
+                msg = '主数据不存在'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
             from . import tool
             tokenprogramer = tool.Token(
-                api_secret = res['app_id'], #微信appid
+                api_secret = d_wx_login_get_openid['app_id'], #微信appid
                 project_code = 'canteen_alliance', #项目名称
                 account =  wx_user97.d['mobile'] #用户名
             )
             token = tokenprogramer.get_token()
             userInfo = wx_user97.d
-            userInfo['main_id'] = wx_user97.d['main_id']
             userInfo['token'] = token
-            userInfo['mobile'] = wx_user97.d['mobile']
-            userInfo['nickname'] = wx_user97.d['nickname']
-            userInfo['portrait'] = wx_user97.d['portrait']
-            models.wx_organization_match_supplier.objects(__raw__ = {
-
-            })
-
-            data = {'userInfo':userInfo}
-            userInfo['session_key'] = session_key
             wx_user97.update(d=userInfo)
+            organization_info = {}
+            q_wx_organization129 = models.wx_organization.objects(
+                __raw__ = {'d.organization_main_id':wx_user97.d['active_organization']}
+            ).first()
+            if q_wx_organization129 == None:
+                pass
+            else:
+                organization_info = q_wx_organization129.d
+            # goods_info = {}
+            # q_wx_organization_match_supplier128 = models.wx_organization_match_supplier.objects(__raw__ = {
+            #     'd.organization_main_id':wx_user97.d['active_organization']
+            # }).first()
+            # if q_wx_organization_match_supplier128 == None:
+            #     pass
+            # else:
+            #     wx_goods_info135 = models.wx_goods_info.objects(id=ObjectId(q_wx_organization_match_supplier128.supplier_department_id)).first()
+            #     if wx_supplier_info135 == None:
+            #         pass
+            #     else:
+            #         goods_info = wx_goods_info135.d
+            supplier_info = {}
+            q_wx_supplier_info157 = models.wx_supplier_info.objects(__raw__ = {
+                'd.supplier_main_id':wx_user97.d['active_supplier']
+            }).first()
+            if q_wx_supplier_info157 == None:
+                pass
+            else:
+                supplier_info = q_wx_supplier_info157.d
+            supplier_department_info = {}
+
+
+            data = {
+                'userInfo':userInfo,
+                'organization_info':organization_info,
+                'set_supplier_info':supplier_info,
+                'set_supplier_department_info':supplier_department_info
+            }
+            print(data)
             code = 1
             msg = '登录成功'
             res = {'status': code, 'data': data, 'msg': msg}
@@ -148,11 +220,11 @@ def wx_register(request):  #wx注册
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
-        res = wx_login_get_openid(request)
-        print(res)
-        openid = res['openid']
-        app_id = res['app_id']
-        session_key = res['session_key']
+        d_wx_login_get_openid = wx_login_get_openid(request)
+        print(d_wx_login_get_openid)
+        openid = d_wx_login_get_openid['openid']
+        app_id = d_wx_login_get_openid['app_id']
+        session_key = d_wx_login_get_openid['session_key']
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         nickname = sendData_json['nickname']
@@ -170,47 +242,56 @@ def wx_register(request):  #wx注册
         else:
             from . import tool
             tokenprogramer = tool.Token(
-                api_secret = res['app_id'], #微信appid
+                api_secret = d_wx_login_get_openid['app_id'], #微信appid
                 project_code = 'canteen_alliance', #项目名称
                 account = mobile #用户名
             )
             token = tokenprogramer.get_token()
             portrait = 'https://dss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1676131907,2302520392&fm=111&gp=0.jpg'
-            wx_user97 = models.wx_user.objects(__raw__ = {
-                'd.openid':openid
-            }).first()
-            if wx_user97 == None:
-                d =  {
+            q_wx_wx_info200 = models.wx_wx_info.objects(__raw__={'d.openid':openid}).first()
+            if q_wx_wx_info200 == None:
+                d = {
                     'openid':openid,
                     'app_id':app_id,
                     'session_key':session_key,
-                    'token':token,
                     'mobile':mobile,
-                    'nickname':nickname,
-                    'portrait':portrait,
-                    'active_organization':'', #正在使用的组织统一代码
                 }
-                models.wx_user(d=d).save()
-                wx_user163 = models.wx_user.objects(__raw__ = {
-                    'd.openid':openid
-                }).first()
-                d = wx_user163.d
-                d['main_id'] = str(wx_user163.id)
-                wx_user163.update(d=d)
+                models.wx_wx_info(d=d).save()
+            q_wx_wx_info209 = models.wx_wx_info.objects(__raw__={'d.openid':openid}).first()
+            if q_wx_wx_info209 == None:
+                code = 4
+                data = {'main_id': '1','token':'','mobile':mobile,'nickname':'','portrait':''}
+                msg = 'openid不存在'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
             else:
-                d = wx_user97.d
-                d['token'] = token #更新token
-                # d['app_id'] = app_id
-                # d['session_key'] = session_key
-                # d['mobile'] = mobile
-                # d['nickname'] = nickname
-                # d['portrait'] = portrait
-                wx_user97.update(d=d)
-            code = 1
-            data = {'main_id': 1,'token':token,'mobile':mobile,'nickname':nickname,'portrait':portrait}
-            msg = '注册成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+                d_wx_wx_info209 = q_wx_wx_info209.d
+                wx_user97 = models.wx_user.objects(__raw__ = {
+                    'd.mobile':mobile
+                }).first()
+                if wx_user97 == None:
+                    d =  {
+                        'main_id':str(q_wx_wx_info209.id),
+                        'token':token,
+                        'mobile':mobile,
+                        'nickname':nickname,
+                        'portrait':portrait,
+                        'active_organization':'', #正在使用的组织统一代码
+                    }
+                    models.wx_user(d=d).save()
+                    d_wx_wx_info209['main_id'] = str(q_wx_wx_info209.id)
+                    q_wx_wx_info209.update(d=d_wx_wx_info209)
+                else:
+                    d_wx_user97 = wx_user97.d
+                    d_wx_wx_info209['main_id'] = d_wx_user
+                    q_wx_wx_info209.update(d=d_wx_wx_info209)
+                    d_wx_user97['token'] = token #更新token
+                    wx_user97.update(d=d_wx_user97)
+                code = 1
+                data = {'main_id': 1,'token':token,'mobile':mobile,'nickname':nickname,'portrait':portrait}
+                msg = '注册成功'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
     except:
         print(traceback.format_exc())
         code = 0
@@ -227,9 +308,9 @@ def wx_send_sms(request): #wx发短信
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
-        res = wx_login_get_openid(request)
-        print(res)
-        openid = res['openid']
+        d_wx_login_get_openid = wx_login_get_openid(request)
+        print(d_wx_login_get_openid)
+        openid = d_wx_login_get_openid['openid']
         wx_user166 = models.wx_user.objects(__raw__ = {
                 'd.openid':openid
             }).first()
@@ -308,7 +389,7 @@ def wx_search_organization(request):
                         }
                     },
                     {
-                        'd.certificate_for_uniform_social_credit_code':{
+                        'd.organization_main_id':{
                              '$regex':".*"+searchVal+".*"
                             # '$regex':'/^([0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\d{14})$/'
                         }
@@ -341,23 +422,24 @@ def wx_joinDepartment(request):
         if my_token_login_request[0]:
             sendData = request.GET['sendData']
             sendData_json = json.loads(sendData)
-            certificate_for_uniform_social_credit_code = sendData_json['certificate_for_uniform_social_credit_code']
+            organization_main_id = sendData_json['organization_main_id']
             name = sendData_json['name']
             department = sendData_json['department']
             labor_contract = sendData_json['labor_contract']
             wx_join_organization_apply311 = models.wx_join_organization_apply.objects(__raw__ ={
-                'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                'd.organization_main_id':organization_main_id,
                 'd.apply_person_main_id':my_token_login_request[1].d['main_id']
             }).first()
             import datetime
+            from . import tool
             if wx_join_organization_apply311 == None:
                 d = {
-                    'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                    'organization_main_id':organization_main_id,
                     'apply_person_main_id':my_token_login_request[1].d['main_id'],
                     'apply_person_name':name,
                     'apply_for_department':department,
                     'apply_for_labor_contract':labor_contract,
-                    'apply_time':datetime.datetime.now(),
+                    'apply_time':tool.Time().now_time(),
                     'apply_status':'todo',
                     'is_accept':False,
                     'approval_person_main_id':'',
@@ -370,11 +452,12 @@ def wx_joinDepartment(request):
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
             else:
+                from . import tool
                 d = wx_join_organization_apply311.d
                 d['apply_person_name'] = name
                 d['apply_for_department'] = department
                 d['apply_for_labor_contract'] = labor_contract
-                d['apply_time'] = datetime.datetime.now()
+                d['apply_time'] = tool.Time().now_time()
                 d['apply_status'] = 'todo',
                 d['is_accept'] = False
                 d['approval_person_main_id'] = ''
@@ -393,7 +476,7 @@ def wx_joinDepartment(request):
         res = {'status': code, 'data': data, 'msg': msg}
         return myHttpResponse(res)
 
-def wx_createDepartment(request):
+def wx_create_organization(request):
     import json
     import traceback
     import time
@@ -405,6 +488,7 @@ def wx_createDepartment(request):
         if my_token_login_request[0]:
             sendData = request.GET['sendData']
             sendData_json = json.loads(sendData)
+            organization_main_id = sendData_json['organization_main_id']
             certificate_for_uniform_social_credit_code = sendData_json['certificate_for_uniform_social_credit_code']
             organization_name = sendData_json['organization_name']
             organization_address = sendData_json['organization_address']
@@ -417,6 +501,7 @@ def wx_createDepartment(request):
             }).first()
             import datetime
             if wx_organization373 == None:
+                from . import tool
                 d = {
                     'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
                     'organization_name':organization_name,
@@ -440,36 +525,45 @@ def wx_createDepartment(request):
                     'labor_contract':[
                         {'name':'合同制'},{'name':'派遣制'},{'name':'第三方'},{'name':'实习生'},{'name':'其它'}
                     ],
-                    'create_time':datetime.datetime.now(),
+                    'create_time':tool.Time().now_time(),
                     'create_person_main_id':my_token_login_request[1].d['main_id'],
                 }
                 models.wx_organization(d=d).save()
-                wx_organization_match_main_id405 = models.wx_organization_match_user.objects(__raw__ = {
-                    'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
-                    'd.main_id':my_token_login_request[1].d['main_id'],
+                wx_organization448 = models.wx_organization.objects(__raw__ = {
+                    'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code
                 }).first()
-                if wx_organization_match_main_id405 == None:
-                    d = {
-                        'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
-                        'organization_name':organization_name,
-                        'organization_address':organization_address,
-                        'main_id':my_token_login_request[1].d['main_id'],
-                        'role':['super_admin','nomarl_admin','user'],
-                        'department':'管理员',
-                        'labor_contract':'合同制',
-                    }
-                    models.wx_organization_match_user(d=d).save()
+                if wx_organization448 == None:
+                    code = 0
+                    data = {}
+                    msg = '系统异常'
+                    res = {'status': code, 'data': data, 'msg': msg}
+                    return myHttpResponse(res)
                 else:
-                    d = wx_organization_match_main_id405.d
-                    wx_organization_match_main_id405.update(d=d)
-                d = my_token_login_request[1].d
-                d['active_organization'] = certificate_for_uniform_social_credit_code #更新用户默认关联的组织
-                my_token_login_request[1].update(d=d)
-                code = 1
-                data = {}
-                msg = '创建成功'
-                res = {'status': code, 'data': data, 'msg': msg}
-                return myHttpResponse(res)
+                    organization_main_id = str(wx_organization448.id)
+                    d_wx_organization448 = wx_organization448.d
+                    d_wx_organization448['organization_main_id'] = organization_main_id
+                    wx_organization448.update(d = d_wx_organization448 )
+                    wx_organization_match_main_id405 = models.wx_organization_match_user.objects(__raw__ = {
+                        'd.organization_main_id':organization_main_id,
+                        'd.main_id':my_token_login_request[1].d['main_id'],
+                    }).first()
+                    if wx_organization_match_main_id405 == None:
+                        d = {
+                            'organization_main_id':organization_main_id,
+                            'main_id':my_token_login_request[1].d['main_id'],
+                            'role':['super_admin','nomarl_admin','user'],
+                            'department':'管理员',
+                            'labor_contract':'合同制',
+                        }
+                        models.wx_organization_match_user(d=d).save()
+                    d_wx_user = my_token_login_request[1].d
+                    d_wx_user['active_organization'] = organization_main_id #更新用户默认关联的组织
+                    my_token_login_request[1].update(d=d_wx_user)
+                    code = 1
+                    data = {}
+                    msg = '创建成功'
+                    res = {'status': code, 'data': data, 'msg': msg}
+                    return myHttpResponse(res)
             else:
                 code = 2
                 data = {}
@@ -512,7 +606,7 @@ def wx_get_organizationInfo_list(request):
                         }
                     },
                     {
-                        'd.certificate_for_uniform_social_credit_code':{
+                        'd.organization_main_id':{
                              '$regex':".*"+searchVal+".*"
                             # '$regex':'/^([0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\d{14})$/'
                         }
@@ -556,9 +650,9 @@ def wx_swicth_organization(request):
             sendData_json = json.loads(sendData)
             organizationInfo = sendData_json['organizationInfo']
             main_id = my_token_login_request[1].d['main_id']
-            certificate_for_uniform_social_credit_code = organizationInfo['d']['certificate_for_uniform_social_credit_code']
+            organization_main_id = organizationInfo['d']['organization_main_id']
             wx_organization_match_main_id537 = models.wx_organization_match_user.objects(__raw__ = {
-                'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code,
+                'd.organization_main_id' : organization_main_id,
                 'd.main_id' : main_id
             }).first()
             if wx_organization_match_main_id537 == None:
@@ -569,7 +663,7 @@ def wx_swicth_organization(request):
                 return myHttpResponse(res)
             else:
                 d = my_token_login_request[1].d
-                d['active_organization'] = certificate_for_uniform_social_credit_code
+                d['active_organization'] = organization_main_id
                 my_token_login_request[1].update(d=d)
                 d['openid'] = '' #删除敏感信息
                 d['session_key'] = '' #删除敏感信息
@@ -606,7 +700,7 @@ def wx_get_apply_for_join_organization(request):
                 apply_status = sendData_json['apply_status']
                 if apply_status == 'todo':
                     wx_join_organization_apply_id584 = models.wx_join_organization_apply.objects(__raw__ = {
-                        'd.certificate_for_uniform_social_credit_code' : active_organization,
+                        'd.organization_main_id' : active_organization,
                         'd.apply_status':apply_status
                     })
                 else:
@@ -656,26 +750,27 @@ def wx_appral_apply_for_join_organization(request):
         my_token_login_request = my_token_login(request)
         if my_token_login_request[0]:
             def update_wx_join_organization_apply(my_token_login_request,apply,param):
-                certificate_for_uniform_social_credit_code = my_token_login_request[1].d['active_organization']
+                organization_main_id = my_token_login_request[1].d['active_organization']
                 apply_person_main_id = apply['d']['apply_person_main_id']
                 wx_join_organization_apply662 = models.wx_join_organization_apply.objects(__raw__ = {
-                    'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                    'd.organization_main_id':organization_main_id,
                     'd.apply_person_main_id':apply_person_main_id
                 }).first()
                 if wx_join_organization_apply662 == None:
                     pass
                 else:
+                    from . import tool
                     d = wx_join_organization_apply662.d
                     if param == 'yes':
                         d['is_accept'] = True
                         d['apply_status'] = 'accept'
                         d['approval_person_main_id'] = my_token_login_request[1].d['main_id']
-                        d['approval_time'] = datetime.datetime.now()
+                        d['approval_time'] = tool.Time().now_time()
                         wx_join_organization_apply662.update(d=d)
                     elif param == 'no':
                         d['apply_status'] = 'deny'
                         d['approval_person_main_id'] = my_token_login_request[1].d['main_id']
-                        d['approval_time'] = datetime.datetime.now()
+                        d['approval_time'] = tool.Time().now_time()
                         wx_join_organization_apply662.update(d=d)
                     else:
                         pass
@@ -685,7 +780,7 @@ def wx_appral_apply_for_join_organization(request):
             apply = sendDataJson['apply']
             apply_person_main_id = apply['d']['apply_person_main_id']
             param = sendDataJson['param']
-            if not (my_token_login_request[2]['super_admin'] or my_token_login_request[2]['normal_admin']): #权限验证
+            if not (my_token_login_request[2]['super_admin'] or my_token_login_request[2]['nomarl_admin']): #权限验证
                 code = 4
                 data = {}
                 msg = '没有权限'
@@ -693,7 +788,7 @@ def wx_appral_apply_for_join_organization(request):
                 return myHttpResponse(res)
             if param == 'yes':
                 wx_organization_match_main_id666 = models.wx_organization_match_user.objects(__raw__ = {
-                    'd.certificate_for_uniform_social_credit_code':apply['d']['certificate_for_uniform_social_credit_code'],
+                    'd.organization_main_id':apply['d']['organization_main_id'],
                     'd.main_id':apply_person_main_id
                 }).first()
                 if wx_organization_match_main_id666 == None:
@@ -707,7 +802,7 @@ def wx_appral_apply_for_join_organization(request):
                         res = {'status': code, 'data': data, 'msg': msg}
                         return myHttpResponse(res)
                     d = {
-                        'certificate_for_uniform_social_credit_code': apply['d']['certificate_for_uniform_social_credit_code'],
+                        'organization_main_id': apply['d']['organization_main_id'],
                         'main_id': apply_person_main_id,
                         'role': ['user'],
                         'department': apply['d']['apply_department']['name'],
@@ -757,8 +852,204 @@ def wx_appral_apply_for_join_organization(request):
         res = {'status': code, 'data': data, 'msg': msg}
         return myHttpResponse(res)
 
+def wx_create_supplier(request):
+    import json
+    import traceback
+    import time
+    from . import models
+    from django.http import HttpResponse, FileResponse
+    from django.http import JsonResponse
+    try:
+        my_token_login_request = my_token_login(request)
+        if my_token_login_request[0]:
+            sendData = request.GET['sendData']
+            sendData_json = json.loads(sendData)
+            supplier_main_id = sendData_json['supplier_main_id']
+            certificate_for_uniform_social_credit_code = sendData_json['certificate_for_uniform_social_credit_code']
+            supplier_name = sendData_json['supplier_name']
+            supplier_address = sendData_json['supplier_address']
+            legal_person_name = sendData_json['legal_person_name']
+            legal_person_mobile = sendData_json['legal_person_mobile']
+            manage_person_name = sendData_json['manage_person_name']
+            manage_person_mobile = sendData_json['manage_person_mobile']
+            wx_supplier373 = models.wx_supplier_info.objects(__raw__ ={
+                'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code
+            }).first()
+            import datetime
+            if wx_supplier373 == None:
+                from . import tool
+                d = {
+                    'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                    'supplier_name':supplier_name,
+                    'supplier_address':supplier_address,
+                    'super_admin_person':{
+                        'main_id':my_token_login_request[1].d['main_id'],
+                        'name':'',
+                        'moile':'',
+                    },
+                    'legal_person':{
+                        'name':legal_person_name,
+                        'mobile':legal_person_mobile
+                    },
+                    'manage_person':{
+                        'name':manage_person_name,
+                        'mobile':manage_person_mobile
+                    },
+                    'supplier_department_id_list':[],
+                    'labor_contract':[
+                        {'name':'合同制'},{'name':'派遣制'},{'name':'第三方'},{'name':'实习生'},{'name':'其它'}
+                    ],
+                    'create_time':tool.Time().now_time(),
+                    'create_person_main_id':my_token_login_request[1].d['main_id'],
+                }
+                models.wx_supplier_info(d=d).save()
+                wx_supplier448 = models.wx_supplier_info.objects(__raw__ = {
+                    'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code
+                }).first()
+                if wx_supplier448 == None:
+                    code = 0
+                    data = {}
+                    msg = '系统异常'
+                    res = {'status': code, 'data': data, 'msg': msg}
+                    return myHttpResponse(res)
+                else:
+                    supplier_main_id = str(wx_supplier448.id)
+                    d_wx_supplier448 = wx_supplier448.d
+                    d_wx_supplier448['supplier_main_id'] = supplier_main_id
+                    wx_supplier448.update(d = d_wx_supplier448 )
+                    wx_supplier_match_main_id405 = models.wx_supplier_match_user.objects(__raw__ = {
+                        'd.supplier_main_id':supplier_main_id,
+                        'd.main_id':my_token_login_request[1].d['main_id'],
+                    }).first()
+                    if wx_supplier_match_main_id405 == None:
+                        d = {
+                            'supplier_main_id':supplier_main_id,
+                            'main_id':my_token_login_request[1].d['main_id'],
+                            'role':['super_admin','nomarl_admin','user'],
+                            'department':'管理员',
+                            'labor_contract':'合同制',
+                        }
+                        models.wx_supplier_match_user(d=d).save()
+                    d_wx_user = my_token_login_request[1].d
+                    d_wx_user['active_supplier'] = supplier_main_id #更新用户默认关联的组织
+                    my_token_login_request[1].update(d=d_wx_user)
+                    code = 1
+                    data = {}
+                    msg = '创建成功'
+                    res = {'status': code, 'data': data, 'msg': msg}
+                    return myHttpResponse(res)
+            else:
+                code = 2
+                data = {}
+                msg = '组织已存在！'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
+    except:
+        print(traceback.format_exc())
+        code = 0
+        data = {}
+        msg = '系统异常'
+        res = {'status': code, 'data': data, 'msg': msg}
+        return myHttpResponse(res)
 
-
+def wx_create_supplier_department(request):
+    import json
+    import traceback
+    import time
+    from . import models
+    from django.http import HttpResponse, FileResponse
+    from django.http import JsonResponse
+    try:
+        my_token_login_request = my_token_login(request)
+        # if my_token_login_request[0]:
+        if not (my_token_login_request[3]['super_admin'] or my_token_login_request[3]['nomarl_admin']): #供应商权限验证
+            code = 4
+            data = {}
+            msg = '没有权限'
+            res = {'status': code, 'data': data, 'msg': msg}
+            return myHttpResponse(res)
+        sendData = request.GET['sendData']
+        sendData_json = json.loads(sendData)
+        supplier_main_id = sendData_json['supplier_main_id']
+        supplier_department_name = sendData_json['supplier_department_name']
+        supplier_department_address = sendData_json['supplier_department_address']
+        supplier_department_manage_person_name = sendData_json['supplier_department_manage_person_name']
+        supplier_department_manage_person_mobile = sendData_json['supplier_department_manage_person_mobile']
+        wx_supplier373 = models.wx_supplier_department_info.objects(__raw__ ={
+            'd.supplier_department_name':supplier_department_name
+        }).first()
+        import datetime
+        if wx_supplier373 == None:
+            from . import tool
+            d = {
+                'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                'supplier_department_name':supplier_department_name,
+                'supplier_department_address':supplier_department_address,
+                'super_admin_person':{
+                    'main_id':my_token_login_request[1].d['main_id'],
+                    'name':'',
+                    'moile':'',
+                },
+                'manage_person':{
+                    'name':supplier_department_manage_person_name,
+                    'mobile':supplier_department_manage_person_mobile
+                },
+                'supplier_department_id_list':[],
+                'labor_contract':[
+                    {'name':'合同制'},{'name':'派遣制'},{'name':'第三方'},{'name':'实习生'},{'name':'其它'}
+                ],
+                'create_time':tool.Time().now_time(),
+                'create_person_main_id':my_token_login_request[1].d['main_id'],
+            }
+            models.wx_supplier_info(d=d).save()
+            wx_supplier448 = models.wx_supplier_info.objects(__raw__ = {
+                'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code
+            }).first()
+            if wx_supplier448 == None:
+                code = 0
+                data = {}
+                msg = '系统异常'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
+            else:
+                supplier_main_id = str(wx_supplier448.id)
+                d_wx_supplier448 = wx_supplier448.d
+                d_wx_supplier448['supplier_main_id'] = supplier_main_id
+                wx_supplier448.update(d = d_wx_supplier448 )
+                wx_supplier_match_main_id405 = models.wx_supplier_match_user.objects(__raw__ = {
+                    'd.supplier_main_id':supplier_main_id,
+                    'd.main_id':my_token_login_request[1].d['main_id'],
+                }).first()
+                if wx_supplier_match_main_id405 == None:
+                    d = {
+                        'supplier_main_id':supplier_main_id,
+                        'main_id':my_token_login_request[1].d['main_id'],
+                        'role':['super_admin','nomarl_admin','user'],
+                        'department':'管理员',
+                        'labor_contract':'合同制',
+                    }
+                    models.wx_supplier_match_user(d=d).save()
+                d_wx_user = my_token_login_request[1].d
+                d_wx_user['active_supplier'] = supplier_main_id #更新用户默认关联的组织
+                my_token_login_request[1].update(d=d_wx_user)
+                code = 1
+                data = {}
+                msg = '创建成功'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
+        else:
+            code = 2
+            data = {}
+            msg = '组织已存在！'
+            res = {'status': code, 'data': data, 'msg': msg}
+            return myHttpResponse(res)
+    except:
+        print(traceback.format_exc())
+        code = 0
+        data = {}
+        msg = '系统异常'
+        res = {'status': code, 'data': data, 'msg': msg}
+        return myHttpResponse(res)
 
 
 

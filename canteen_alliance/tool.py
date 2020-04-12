@@ -74,6 +74,9 @@ class Time(object):
         t_stamp = int(t)
         print('当前时间戳:', t_stamp)
         return t_stamp
+    def now_time(self):
+        import time
+        return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 # 创建获取token的对象
 class Token(object):
