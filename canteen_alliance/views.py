@@ -33,7 +33,7 @@ def my_token_login(request):
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
-            wx_organization_match_main_id36 = models.wx_organization_match_main_id.objects(__raw__ = {
+            wx_organization_match_main_id36 = models.wx_organization_match_user.objects(__raw__ = {
                 'd.main_id' : wx_user25.d['main_id'],
                 'd.certificate_for_uniform_social_credit_code':wx_user25.d['active_organization']
             }).first()
@@ -124,16 +124,10 @@ def wx_login(request):  # vue管理后台登录
             userInfo['mobile'] = wx_user97.d['mobile']
             userInfo['nickname'] = wx_user97.d['nickname']
             userInfo['portrait'] = wx_user97.d['portrait']
-            # wx_organization_match_main_id101 = models.wx_organization_match_main_id.objects(__raw__ = {
-            #     'd.main_id':wx_user97.d['main_id']
-            # })
-            # if len(list(wx_organization_match_main_id101)) == 0:
-            #     organizationInfo = {'hasOrganization':False,'organizationInfoList':[]}
-            # else:
-            #     organizationInfoList = wx_organization_match_main_id101.to_json().encode('utf-8').decode('unicode_escape')
-            #     organizationInfoList = json.loads(organizationInfoList)
-            #     organizationInfo = {'hasOrganization':True,'organizationInfoList':organizationInfoList}
-            # data = {'userInfo':userInfo,'organizationInfo':organizationInfo}
+            models.wx_organization_match_supplier.objects(__raw__ = {
+
+            })
+
             data = {'userInfo':userInfo}
             userInfo['session_key'] = session_key
             wx_user97.update(d=userInfo)
@@ -450,7 +444,7 @@ def wx_createDepartment(request):
                     'create_person_main_id':my_token_login_request[1].d['main_id'],
                 }
                 models.wx_organization(d=d).save()
-                wx_organization_match_main_id405 = models.wx_organization_match_main_id.objects(__raw__ = {
+                wx_organization_match_main_id405 = models.wx_organization_match_user.objects(__raw__ = {
                     'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
                     'd.main_id':my_token_login_request[1].d['main_id'],
                 }).first()
@@ -464,7 +458,7 @@ def wx_createDepartment(request):
                         'department':'管理员',
                         'labor_contract':'合同制',
                     }
-                    models.wx_organization_match_main_id(d=d).save()
+                    models.wx_organization_match_user(d=d).save()
                 else:
                     d = wx_organization_match_main_id405.d
                     wx_organization_match_main_id405.update(d=d)
@@ -506,11 +500,11 @@ def wx_get_organizationInfo_list(request):
             searchVal = sendData_json['searchVal']
             main_id = my_token_login_request[1].d['main_id']
             if searchVal == '':
-                wx_organization_match_main_id478 = models.wx_organization_match_main_id.objects(__raw__ = {
+                wx_organization_match_main_id478 = models.wx_organization_match_user.objects(__raw__ = {
                     'd.main_id' : main_id
                 }).limit(10)
             else:
-                wx_organization_match_main_id478 = models.wx_organization_match_main_id.objects(__raw__ = {
+                wx_organization_match_main_id478 = models.wx_organization_match_user.objects(__raw__ = {
                     {'d.main_id' : main_id},
                     {
                         'd.organization_name':{
@@ -563,7 +557,7 @@ def wx_swicth_organization(request):
             organizationInfo = sendData_json['organizationInfo']
             main_id = my_token_login_request[1].d['main_id']
             certificate_for_uniform_social_credit_code = organizationInfo['d']['certificate_for_uniform_social_credit_code']
-            wx_organization_match_main_id537 = models.wx_organization_match_main_id.objects(__raw__ = {
+            wx_organization_match_main_id537 = models.wx_organization_match_user.objects(__raw__ = {
                 'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code,
                 'd.main_id' : main_id
             }).first()
@@ -698,7 +692,7 @@ def wx_appral_apply_for_join_organization(request):
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
             if param == 'yes':
-                wx_organization_match_main_id666 = models.wx_organization_match_main_id.objects(__raw__ = {
+                wx_organization_match_main_id666 = models.wx_organization_match_user.objects(__raw__ = {
                     'd.certificate_for_uniform_social_credit_code':apply['d']['certificate_for_uniform_social_credit_code'],
                     'd.main_id':apply_person_main_id
                 }).first()
@@ -719,7 +713,7 @@ def wx_appral_apply_for_join_organization(request):
                         'department': apply['d']['apply_department']['name'],
                         'labor_contract': apply['d']['apply_for_labor_contract']['name'],
                     }
-                    wx_organization_match_main_id(d=d).save()
+                    wx_organization_match_user(d=d).save()
                     d_wx_user713 = wx_user713.d
                     d['active_organization'] = apply['d']['apply_person_main_id']
                     wx_user713.update(d=d_wx_user713)

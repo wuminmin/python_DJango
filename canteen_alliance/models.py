@@ -21,6 +21,52 @@ class wx_sms(Document): #短信验证码表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
+
+d_wx_organization =  {
+    "organization_main_id":"5e926d8266063def8dfce70f",
+    "certificate_for_uniform_social_credit_code": "9111000071093019X7",
+    "organization_name": "中国电信股份有限公司池州分公司",
+    "organization_address": "池州市长江路",
+    "super_admin_person": {
+        "main_id": "5e91b5ad587861042b4df41c",
+        "name": "",
+        "moile": ""
+    },
+    "legal_person": {
+        "name": "测试",
+        "mobile": "123456"
+    },
+    "manage_person": {
+        "name": "吴敏民",
+        "mobile": "13355661100"
+    },
+    "department": [{
+        "name": "管理员"
+    }, {
+        "name": "管控部门"
+    }, {
+        "name": "销售部门"
+    }, {
+        "name": "生产部门"
+    }],
+    "labor_contract": [{
+        "name": "合同制"
+    }, {
+        "name": "派遣制"
+    }, {
+        "name": "第三方"
+    }, {
+        "name": "实习生"
+    }, {
+        "name": "其它"
+    }],
+    "create_time": {
+        "$date": {
+            "$numberLong": "1586683394752"
+        }
+    },
+    "create_person_main_id": "5e91b5ad587861042b4df41c"
+}
 class wx_organization(Document): #组织表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
@@ -69,11 +115,12 @@ class wx_join_organization_apply(Document): #加入组织申请表
 #         "labor_contract": "合同制"
 #     }
 # }
-class wx_organization_match_main_id(Document): #组织和个人关系表
+class wx_organization_match_user(Document): #组织和个人关系表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
 d_wx_supplier_info = {
+    'supplier_main_id':''
     'certificate_for_uniform_social_credit_code':'9111000071093019X7',
     'supplier_department_name':'电信食堂',
     'supplier_department_id':'021RIb6j1Zxcwt0EoK2j1dYf6j1RIb6r',
@@ -84,8 +131,10 @@ d_wx_supplier_info = {
 class wx_supplier_info(Document): #供应商信息
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
+d_wx_organization_match_supplier = {
 
-class wx_organization_match_supplier_(Document): #组织和供应商关联
+}
+class wx_organization_match_supplier(Document): #组织和供应商关联
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
