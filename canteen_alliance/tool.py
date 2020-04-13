@@ -97,6 +97,9 @@ class Token(object):
         print('MD5加密后为 ：', token)
         return token
 
+def wmm_to_json(qset):
+    return qset.to_json().encode('utf-8').decode('unicode_escape')
+
 if __name__ == '__main__':
     tokenprogramer = Token('api_secret具体值', 'project_code具体值', 'account具体值')  # 对象实例化
     tokenprogramer.get_token()   #调用token对象
@@ -104,6 +107,7 @@ if __name__ == '__main__':
     __business_id = uuid.uuid1()
     params = "{\"code\":\"123456\"}"
     print( json.loads( send_sms(__business_id, "13355661100", sign_name, template_code , params)))
+
    
     
     

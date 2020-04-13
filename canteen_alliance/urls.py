@@ -33,3 +33,4 @@ urlpatterns = [
     path('export_canteen_data',manage_views.export_canteen_data), #vue下载excel
 
 ]
+

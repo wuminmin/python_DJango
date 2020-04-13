@@ -1,3 +1,13 @@
+
+
+from . import models
+from . import tool
+import myConfig
+import json
+import traceback
+import time
+from django.http import HttpResponse, FileResponse ,JsonResponse
+
 def deprecated_async(f): # 异步函数
     def wrapper(*args, **kwargs):
         from threading import Thread
@@ -6,8 +16,6 @@ def deprecated_async(f): # 异步函数
     return wrapper
 
 def myHttpResponse(res):  # 合并跨域配置
-    import json
-    from django.http import HttpResponse, FileResponse
     response = HttpResponse(json.dumps(res))
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -16,11 +24,7 @@ def myHttpResponse(res):  # 合并跨域配置
     return response
 
 def my_token_login(request):
-    import json
     import requests
-    import myConfig
-    import traceback
-    from . import models
     try:
         token = request.GET['token']
         wx_user25 = models.wx_user.objects(__raw__ = {
@@ -101,10 +105,7 @@ def my_token_login(request):
         return myHttpResponse(res)
 
 def wx_login_get_openid(request): #解析openid
-    import json
     import requests
-    import myConfig
-    import traceback
     try:
         js_code = request.GET['code']
         app_id = request.GET['app_id']
@@ -122,13 +123,8 @@ def wx_login_get_openid(request): #解析openid
         return None
 
 def wx_login(request):  # vue管理后台登录
-    import json
-    import traceback
-    import time
-    from . import models
     from bson import ObjectId
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
         print(d_wx_login_get_openid)
@@ -155,7 +151,7 @@ def wx_login(request):  # vue管理后台登录
                 msg = '主数据不存在'
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
-            from . import tool
+            
             tokenprogramer = tool.Token(
                 api_secret = d_wx_login_get_openid['app_id'], #微信appid
                 project_code = 'canteen_alliance', #项目名称
@@ -165,6 +161,8 @@ def wx_login(request):  # vue管理后台登录
             userInfo = wx_user97.d
             userInfo['token'] = token
             wx_user97.update(d=userInfo)
+
+            #查询默认组织信息
             organization_info = {}
             q_wx_organization129 = models.wx_organization.objects(
                 __raw__ = {'d.organization_main_id':wx_user97.d['active_organization']}
@@ -173,6 +171,8 @@ def wx_login(request):  # vue管理后台登录
                 pass
             else:
                 organization_info = q_wx_organization129.d
+            #--------------
+
             # goods_info = {}
             # q_wx_organization_match_supplier128 = models.wx_organization_match_supplier.objects(__raw__ = {
             #     'd.organization_main_id':wx_user97.d['active_organization']
@@ -185,6 +185,8 @@ def wx_login(request):  # vue管理后台登录
             #         pass
             #     else:
             #         goods_info = wx_goods_info135.d
+            
+            #查询默认供应商信息
             supplier_info = {}
             q_wx_supplier_info157 = models.wx_supplier_info.objects(__raw__ = {
                 'd.supplier_main_id':wx_user97.d['active_supplier']
@@ -193,14 +195,27 @@ def wx_login(request):  # vue管理后台登录
                 pass
             else:
                 supplier_info = q_wx_supplier_info157.d
-            supplier_department_info = {}
+            #-------------
 
+            #查询默认供应商部门
+            supplier_department_info = {}
+            #--------------
+            
+            #查询供应商部门列表
+            supplier_department_id_list = supplier_info['supplier_department_id_list']
+            supplier_department_info_list = []
+            for o in supplier_department_id_list:
+                q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_department_id':o}).first()
+                t1144 = q1143.to_json().encode('utf-8').decode('unicode_escape')
+                supplier_department_info_list.append(json.loads(t1144))
+            #------------
 
             data = {
                 'userInfo':userInfo,
                 'organization_info':organization_info,
                 'set_supplier_info':supplier_info,
-                'set_supplier_department_info':supplier_department_info
+                'set_supplier_department_info':supplier_department_info,
+                'supplier_department_info_list':supplier_department_info_list,
             }
             print(data)
             code = 1
@@ -213,12 +228,7 @@ def wx_login(request):  # vue管理后台登录
         return myHttpResponse(res)
 
 def wx_register(request):  #wx注册
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
         print(d_wx_login_get_openid)
@@ -240,7 +250,6 @@ def wx_register(request):  #wx注册
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
-            from . import tool
             tokenprogramer = tool.Token(
                 api_secret = d_wx_login_get_openid['app_id'], #微信appid
                 project_code = 'canteen_alliance', #项目名称
@@ -283,8 +292,8 @@ def wx_register(request):  #wx注册
                     q_wx_wx_info209.update(d=d_wx_wx_info209)
                 else:
                     d_wx_user97 = wx_user97.d
-                    d_wx_wx_info209['main_id'] = d_wx_user
-                    q_wx_wx_info209.update(d=d_wx_wx_info209)
+                    d_wx_wx_info209['main_id'] = d_wx_user97['main_id']
+                    q_wx_wx_info209.update(d=d_wx_wx_info209) #更新微信信息表的mainid
                     d_wx_user97['token'] = token #更新token
                     wx_user97.update(d=d_wx_user97)
                 code = 1
@@ -301,12 +310,7 @@ def wx_register(request):  #wx注册
         return myHttpResponse(res)
 
 def wx_send_sms(request): #wx发短信
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
         print(d_wx_login_get_openid)
@@ -334,8 +338,7 @@ def wx_send_sms(request): #wx发短信
         else:
             import random
             import uuid
-            import myConfig
-            from . import tool
+            
             j = 6
             sms_code = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
             __business_id = uuid.uuid1()
@@ -370,12 +373,13 @@ def wx_send_sms(request): #wx发短信
         return myHttpResponse(res)
 
 def wx_search_organization(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+    
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -410,12 +414,13 @@ def wx_search_organization(request):
         return myHttpResponse(res)
 
 def wx_joinDepartment(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+    
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -429,7 +434,7 @@ def wx_joinDepartment(request):
             'd.apply_person_main_id':my_token_login_request[1].d['main_id']
         }).first()
         import datetime
-        from . import tool
+        
         if wx_join_organization_apply311 == None:
             d = {
                 'organization_main_id':organization_main_id,
@@ -450,7 +455,7 @@ def wx_joinDepartment(request):
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
-            from . import tool
+            
             d = wx_join_organization_apply311.d
             d['apply_person_name'] = name
             d['apply_for_department'] = department
@@ -475,12 +480,13 @@ def wx_joinDepartment(request):
         return myHttpResponse(res)
 
 def wx_create_organization(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -498,7 +504,7 @@ def wx_create_organization(request):
         }).first()
         import datetime
         if wx_organization373 == None:
-            from . import tool
+            
             d = {
                 'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
                 'organization_name':organization_name,
@@ -576,12 +582,13 @@ def wx_create_organization(request):
         return myHttpResponse(res)
 
 def wx_get_organizationInfo_list(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -632,12 +639,13 @@ def wx_get_organizationInfo_list(request):
         return myHttpResponse(res)
 
 def wx_swicth_organization(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -676,13 +684,14 @@ def wx_swicth_organization(request):
         return myHttpResponse(res)
 
 def wx_get_apply_for_join_organization(request):
-    import json
-    import traceback
-    import time
+    
+    
+    
     import datetime
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -733,13 +742,14 @@ def wx_get_apply_for_join_organization(request):
         return myHttpResponse(res)
 
 def wx_appral_apply_for_join_organization(request):
-    import json
-    import traceback
-    import time
+    
+    
+    
     import datetime
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         def update_wx_join_organization_apply(my_token_login_request,apply,param):
@@ -752,7 +762,7 @@ def wx_appral_apply_for_join_organization(request):
             if wx_join_organization_apply662 == None:
                 pass
             else:
-                from . import tool
+                
                 d = wx_join_organization_apply662.d
                 if param == 'yes':
                     d['is_accept'] = True
@@ -846,12 +856,13 @@ def wx_appral_apply_for_join_organization(request):
         return myHttpResponse(res)
 
 def wx_create_supplier(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -869,8 +880,8 @@ def wx_create_supplier(request):
         }).first()
         import datetime
         if wx_supplier373 == None:
-            from . import tool
-            d = {
+            
+            d892 = {
                 'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
                 'supplier_name':supplier_name,
                 'supplier_address':supplier_address,
@@ -894,7 +905,7 @@ def wx_create_supplier(request):
                 'create_time':tool.Time().now_time(),
                 'create_person_main_id':my_token_login_request[1].d['main_id'],
             }
-            models.wx_supplier_info(d=d).save()
+            models.wx_supplier_info(d=d892).save()
             wx_supplier448 = models.wx_supplier_info.objects(__raw__ = {
                 'd.certificate_for_uniform_social_credit_code' : certificate_for_uniform_social_credit_code
             }).first()
@@ -925,8 +936,11 @@ def wx_create_supplier(request):
                 d_wx_user = my_token_login_request[1].d
                 d_wx_user['active_supplier'] = supplier_main_id #更新用户默认关联的组织
                 my_token_login_request[1].update(d=d_wx_user)
+
+                supplier_info = d892
+
                 code = 1
-                data = {}
+                data = {'supplier_info':supplier_info}
                 msg = '创建成功'
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
@@ -945,12 +959,14 @@ def wx_create_supplier(request):
         return myHttpResponse(res)
 
 def wx_create_supplier_department(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+    
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         if not (my_token_login_request[3]['super_admin'] or my_token_login_request[3]['nomarl_admin']): #供应商权限验证
@@ -967,7 +983,8 @@ def wx_create_supplier_department(request):
         supplier_department_manage_person_name = sendData_json['supplier_department_manage_person_name']
         supplier_department_manage_person_mobile = sendData_json['supplier_department_manage_person_mobile']
         wx_supplier373 = models.wx_supplier_department_info.objects(__raw__ ={
-            'd.supplier_department_name':supplier_department_name
+            'd.supplier_department_name':supplier_department_name,
+            'd.supplier_main_id':supplier_main_id
         }).first()
         import datetime
         if wx_supplier373 == None:
@@ -979,9 +996,10 @@ def wx_create_supplier_department(request):
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
             
-            from . import tool
+            
             supplier_department_id = my_token_login_request[1].d['token']
             d = {
+                'supplier_main_id':supplier_main_id,
                 'supplier_department_id': supplier_department_id,
                 'supplier_department_name':supplier_department_name,
                 'supplier_department_address':supplier_department_address,
@@ -1004,8 +1022,13 @@ def wx_create_supplier_department(request):
             d1013 = q983.d
             d1013['supplier_department_id_list'].append( supplier_department_id )
             q983.update(d= d1013)
+
+            supplier_department_info_list = []
+            q1033 = models.d_wx_supplier_department_info.objects(__raw__ = {'d.supplier_main_id':supplier_main_id})
+            s1034 = tool.wmm_to_json(q1033)
+
             code = 1
-            data = {}
+            data = {'supplier_department_info_list':supplier_department_info_list}
             msg = '创建成功'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
@@ -1024,12 +1047,14 @@ def wx_create_supplier_department(request):
         return myHttpResponse(res)
 
 def wx_get_supplierInfo_list(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
+
+
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -1064,8 +1089,16 @@ def wx_get_supplierInfo_list(request):
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
-            supplier_list = wx_supplier_match_main_id478.to_json().encode('utf-8').decode('unicode_escape')
-            supplier_list = json.loads(supplier_list)
+            supplier_list = []
+            for o in wx_supplier_match_main_id478:
+                supplier_main_id = o.d['supplier_main_id']
+                q_wx_supplier_info1070 = models.wx_supplier_info.objects(__raw__ = {'d.supplier_main_id':supplier_main_id}).first()
+                if q_wx_supplier_info1070 == None:
+                    continue
+                else:
+                    supplier_list.append( { 'd':q_wx_supplier_info1070.d } )
+            # supplier_list = wx_supplier_match_main_id478.to_json().encode('utf-8').decode('unicode_escape')
+            # supplier_list = json.loads(supplier_list)
             code = 1
             data = {'supplier_list':supplier_list}
             msg = '查询到'+str(wx_supplier_match_main_id478_len)+'个！'
@@ -1080,12 +1113,10 @@ def wx_get_supplierInfo_list(request):
         return myHttpResponse(res)
 
 def wx_swicth_supplier(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -1108,10 +1139,18 @@ def wx_swicth_supplier(request):
             d = my_token_login_request[1].d
             d['active_supplier'] = supplier_main_id
             my_token_login_request[1].update(d=d)
-            d['openid'] = '' #删除敏感信息
-            d['session_key'] = '' #删除敏感信息
+
+            #查询供应商部门列表
+            supplier_department_id_list = supplierInfo['d']['supplier_department_id_list']
+            supplier_department_info_list = []
+            for o in supplier_department_id_list:
+                q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_department_id':o}).first()
+                t1144 = q1143.to_json().encode('utf-8').decode('unicode_escape')
+                supplier_department_info_list.append(json.loads(t1144))
+            #------------
+
             code = 1
-            data = {'userInfo':d}
+            data = {'userInfo':d,'supplier_info':supplierInfo['d'],'supplier_department_info_list':supplier_department_info_list}
             msg = '切换成功'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
@@ -1124,12 +1163,10 @@ def wx_swicth_supplier(request):
         return myHttpResponse(res)
 
 def wx_get_my_wx_supplier_department_info_list(request):
-    import json
-    import traceback
-    import time
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
+    
+    
+    
+    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -1137,7 +1174,7 @@ def wx_get_my_wx_supplier_department_info_list(request):
         sendData_json = json.loads(sendData)
         supplier_info = sendData_json['supplier_info']
         main_id = my_token_login_request[1].d['main_id']
-        supplier_department_id_list = supplier_info['d']['supplier_department_id_list']
+        supplier_department_id_list = supplier_info['supplier_department_id_list']
         supplier_department_info_list = []
         for o in supplier_department_id_list:
             q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_department_id':o}).first()
