@@ -94,7 +94,11 @@ def 教师管理后台添加管理员():
     q1 = manage_models.my_user.objects().to_json()
     print(q1)
 
+def myuuid():
+    import uuid
+    print( str(uuid.uuid1()) )
+
 if __name__ == '__main__':
-    教师管理后台添加管理员()
+    myuuid()
 
 

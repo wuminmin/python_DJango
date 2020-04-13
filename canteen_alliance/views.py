@@ -107,10 +107,12 @@ def my_token_login(request):
 def wx_login_get_openid(request): #解析openid
     import requests
     try:
-        js_code = request.GET['code']
-        app_id = request.GET['app_id']
+        s110 = request.GET['sendData']
+        j111 = json.loads(s110)
+        s112 = j111['code']
+        app_id = j111['app_id']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': js_code,
+        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': s112,
                     'grant_type': 'authorization_code'}
         r = requests.get(url=url, params=payload)
         print(r.text,'------------wx_login_get_openid')
@@ -122,8 +124,7 @@ def wx_login_get_openid(request): #解析openid
         print(traceback.format_exc())
         return None
 
-def wx_login(request):  # vue管理后台登录
-
+def wx_login(request):  # 微信小程序登录
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
         print(d_wx_login_get_openid)
@@ -134,11 +135,12 @@ def wx_login(request):  # vue管理后台登录
         }).first()
         if wx_wx_info105 == None:
             code = 2
-            data = {'main_id': 1,'token':'','mobile':'','nickname':'','portrait':''}
+            data = {}
             msg = '未注册'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
+            #查询用户信息
             d_wx_wx_info105 = wx_wx_info105.d
             d_wx_wx_info105['session_key'] = session_key
             wx_wx_info105.update(d=d_wx_wx_info105)
@@ -150,7 +152,6 @@ def wx_login(request):  # vue管理后台登录
                 msg = '主数据不存在'
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
-            
             tokenprogramer = tool.Token(
                 api_secret = d_wx_login_get_openid['app_id'], #微信appid
                 project_code = 'canteen_alliance', #项目名称
@@ -160,9 +161,10 @@ def wx_login(request):  # vue管理后台登录
             userInfo = wx_user97.d
             userInfo['token'] = token
             wx_user97.update(d=userInfo)
-
+            userInfo['has'] = True
+            #-------------
             #查询默认组织信息
-            organization_info = {}
+            organization_info = {'has':False}
             q_wx_organization129 = models.wx_organization.objects(
                 __raw__ = {'d.organization_main_id':wx_user97.d['active_organization']}
             ).first()
@@ -170,10 +172,9 @@ def wx_login(request):  # vue管理后台登录
                 pass
             else:
                 organization_info = q_wx_organization129.d
-          
-            
+                organization_info['has'] = True
             #查询默认供应商信息
-            supplier_info = {}
+            supplier_info = {'has':False}
             q_wx_supplier_info157 = models.wx_supplier_info.objects(__raw__ = {
                 'd.supplier_main_id':wx_user97.d['active_supplier']
             }).first()
@@ -181,26 +182,24 @@ def wx_login(request):  # vue管理后台登录
                 pass
             else:
                 supplier_info = q_wx_supplier_info157.d
+                supplier_info['has'] = True
             #-------------
-
             #查询默认供应商部门
-            supplier_department_info = {}
+            supplier_department_info = {'has':False}
             #--------------
-            
             #查询供应商部门列表
-            supplier_department_id_list = supplier_info['supplier_department_id_list']
-            supplier_department_info_list = []
-            for o in supplier_department_id_list:
-                q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_department_id':o}).first()
-                t1144 = q1143.to_json().encode('utf-8').decode('unicode_escape')
-                supplier_department_info_list.append(json.loads(t1144))
+            supplier_department_info_list = {'has':False,'d':[]}
+            q1143 = models.wx_supplier_department_info.objects(__raw__={'d.supplier_main_id':wx_user97.d['active_supplier']})
+            if list(q1143) == []:
+                pass
+            else:
+                supplier_department_info_list = {'has':True,'d':tool.wmm_to_json(q1143)}
             #------------
-
             data = {
-                'userInfo':userInfo,
+                'user_info':userInfo,
                 'organization_info':organization_info,
-                'set_supplier_info':supplier_info,
-                'set_supplier_department_info':supplier_department_info,
+                'supplier_info':supplier_info,
+                'supplier_department_info':supplier_department_info,
                 'supplier_department_info_list':supplier_department_info_list,
             }
             print(data)
@@ -230,7 +229,7 @@ def wx_register(request):  #wx注册
         }).first()
         if wx_sms87 == None:
             code = 2
-            data = {'main_id': '1','token':'','mobile':mobile,'nickname':'','portrait':''}
+            data = {}
             msg = '验证码不正确'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
@@ -264,14 +263,15 @@ def wx_register(request):  #wx注册
                     'd.mobile':mobile
                 }).first()
                 if q264 == None:
-                    s268 = tool.wmm_create_main_id
+                    s268 = tool.wmm_create_main_id()
                     d =  {
                         'main_id':s268,
                         'token':token,
                         'mobile':mobile,
                         'nickname':nickname,
                         'portrait':portrait,
-                        'active_organization':'', #正在使用的组织统一代码
+                        'active_organization':'',
+                        'active_supplier':'',
                     }
                     models.wx_user(d=d).save()
                     d263['main_id'] = s268
@@ -296,7 +296,6 @@ def wx_register(request):  #wx注册
         return myHttpResponse(res)
 
 def wx_send_sms(request): #wx发短信
-    
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
         print(d_wx_login_get_openid)
@@ -324,7 +323,6 @@ def wx_send_sms(request): #wx发短信
         else:
             import random
             import uuid
-            
             j = 6
             sms_code = ''.join(str(i) for i in random.sample(range(0, 9), j))  # sample(seq, n) 从序列seq中选择n个随机且独立的元素；
             __business_id = uuid.uuid1()
@@ -359,15 +357,8 @@ def wx_send_sms(request): #wx发短信
         return myHttpResponse(res)
 
 def wx_search_organization(request):
-    
-    
-    
-    
-    
-    
-    
     try:
-        my_token_login_request = my_token_login(request)
+        # my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         searchVal = sendData_json['searchVal']
@@ -385,12 +376,18 @@ def wx_search_organization(request):
                 }
             ]
         })
-        organization_list = wx_organization249.to_json().encode('utf-8').decode('unicode_escape')
-        code = 1
-        data = {'organization_list':json.loads(organization_list)}
-        msg = ''
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        if list(wx_organization249) == []:
+            code = 2
+            data = {'organization_list':[]}
+            msg = '没有组织'
+            res = {'status': code, 'data': data, 'msg': msg}
+            return myHttpResponse(res)
+        else:
+            code = 1
+            data = { 'organization_list':tool.wmm_to_json(wx_organization249) }
+            msg = '成功'
+            res = {'status': code, 'data': data, 'msg': msg}
+            return myHttpResponse(res)
     except:
         print(traceback.format_exc())
         code = 0
@@ -400,13 +397,6 @@ def wx_search_organization(request):
         return myHttpResponse(res)
 
 def wx_joinDepartment(request):
-    
-    
-    
-    
-    
-    
-    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -419,8 +409,6 @@ def wx_joinDepartment(request):
             'd.organization_main_id':organization_main_id,
             'd.apply_person_main_id':my_token_login_request[1].d['main_id']
         }).first()
-        import datetime
-        
         if wx_join_organization_apply311 == None:
             d426 = {
                 'organization_main_id':organization_main_id,
@@ -441,7 +429,6 @@ def wx_joinDepartment(request):
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
         else:
-            
             d = wx_join_organization_apply311.d
             d['apply_person_name'] = name
             d['apply_for_department'] = department
@@ -483,7 +470,7 @@ def wx_create_organization(request):
         }).first()
         import datetime
         if wx_organization373 == None:
-            organization_main_id = tool.wmm_create_main_id
+            organization_main_id = tool.wmm_create_main_id()
             d494 = {
                 'organization_main_id':organization_main_id,
                 'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
@@ -795,7 +782,7 @@ def wx_create_supplier(request):
         }).first()
         import datetime
         if wx_supplier373 == None:
-            supplier_main_id = tool.wmm_create_main_id
+            supplier_main_id = tool.wmm_create_main_id()
             d799 = {
                 'supplier_main_id':supplier_main_id,
                 'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
@@ -885,7 +872,7 @@ def wx_create_supplier_department(request):
                 msg = '没有供应商信息'
                 res = {'status': code, 'data': data, 'msg': msg}
                 return myHttpResponse(res)
-            supplier_department_id = tool.wmm_create_main_id
+            supplier_department_id = tool.wmm_create_main_id()
             d = {
                 'supplier_main_id':supplier_main_id,
                 'supplier_department_id': supplier_department_id,
@@ -907,13 +894,9 @@ def wx_create_supplier_department(request):
                 'create_person_main_id':my_token_login_request[1].d['main_id'],
             }
             models.wx_supplier_department_info(d=d).save()
-            # d1013 = q983.d
-            # d1013['supplier_department_id_list'].append( supplier_department_id )
-            # q983.update(d= d1013)
             q1033 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_main_id':supplier_main_id})
-            s1034 = tool.wmm_to_json(q1033)
             code = 1
-            data = {'supplier_department_info_list':json.loads(s1034)}
+            data = {'supplier_department_info_list':tool.wmm_to_json(q1033) }
             msg = '创建成功'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
@@ -932,14 +915,6 @@ def wx_create_supplier_department(request):
         return myHttpResponse(res)
 
 def wx_get_supplierInfo_list(request):
-    pass
-    
-    
-    
-
-
-    
-    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
@@ -1020,16 +995,12 @@ def wx_swicth_supplier(request):
             d = my_token_login_request[1].d
             d['active_supplier'] = supplier_main_id
             my_token_login_request[1].update(d=d)
-
             #查询供应商部门列表
             supplier_department_id_list = supplierInfo['d']['supplier_department_id_list']
             q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_main_id':supplier_main_id})
-            s1144 = tool.wmm_to_json(q1143)
-            j1130 = json.loads(s1144)
             #------------
-
             code = 1
-            data = {'userInfo':d,'supplier_info':supplierInfo['d'],'supplier_department_info_list':j1130}
+            data = {'userInfo':d,'supplier_info':supplierInfo['d'],'supplier_department_info_list':tool.wmm_to_json(q1143)}
             msg = '切换成功'
             res = {'status': code, 'data': data, 'msg': msg}
             return myHttpResponse(res)
@@ -1042,10 +1013,6 @@ def wx_swicth_supplier(request):
         return myHttpResponse(res)
 
 def wx_get_my_wx_supplier_department_info_list(request):
-    
-    
-    
-    
     try:
         my_token_login_request = my_token_login(request)
         sendData = request.GET['sendData']
