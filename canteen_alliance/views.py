@@ -34,8 +34,7 @@ def my_token_login(request):
             code = 2
             data = {}
             msg = '已超时，请重新登录'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             #--------------公司或组织权限验证
             wx_organization_match_main_id36 = models.wx_organization_match_user.objects(__raw__ = {
@@ -94,15 +93,10 @@ def my_token_login(request):
                     'user':user
             }
             #----------------
-
             return (True,wx_user25,role_dict_organization,role_dict_supplier)
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_login_get_openid(request): #解析openid
     import requests
@@ -137,8 +131,7 @@ def wx_login(request):  # 微信小程序登录
             code = 2
             data = {}
             msg = '未注册'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             #查询用户信息
             d_wx_wx_info105 = wx_wx_info105.d
@@ -188,25 +181,33 @@ def wx_login(request):  # 微信小程序登录
             supplier_department_info = {'has':False}
             #--------------
             #查询供应商部门列表
-            supplier_department_info_list = {'has':False,'d':[]}
-            q1143 = models.wx_supplier_department_info.objects(__raw__={'d.supplier_main_id':wx_user97.d['active_supplier']})
-            if list(q1143) == []:
+            supplier_department_info_list = []
+            q185 = models.wx_supplier_department_info.objects(__raw__={'d.supplier_main_id':wx_user97.d['active_supplier']})
+            if list(q185) == []:
                 pass
             else:
-                supplier_department_info_list = {'has':True,'d':tool.wmm_to_json(q1143)}
+                supplier_department_info_list = tool.wmm_to_json(q185)
             #------------
+            #查询组织部门列表
+            organization_department_info_list =  []
+            q193 = models.wx_organization_department_info.objects(__raw__={'d.organization_main_id':wx_user97.d['active_organization']})
+            if list(q193) == []:
+                pass
+            else:
+                organization_department_info_list =  tool.wmm_to_json(q193)
+            #------
             data = {
                 'user_info':userInfo,
                 'organization_info':organization_info,
                 'supplier_info':supplier_info,
                 'supplier_department_info':supplier_department_info,
                 'supplier_department_info_list':supplier_department_info_list,
+                'organization_department_info_list':organization_department_info_list,
             }
             print(data)
             code = 1
             msg = '登录成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'msg': '系统故障'}
@@ -231,8 +232,7 @@ def wx_register(request):  #wx注册
             code = 2
             data = {}
             msg = '验证码不正确'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             tokenprogramer = tool.Token(
                 api_secret = d_wx_login_get_openid['app_id'], #微信appid
@@ -309,8 +309,7 @@ def wx_send_sms(request): #wx发短信
             code = 4
             data = {}
             msg = '不可以重复注册'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         mobile = sendData_json['mobile']
@@ -318,8 +317,7 @@ def wx_send_sms(request): #wx发短信
             code = 2
             data = {}
             msg = '手机号为空'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             import random
             import uuid
@@ -346,15 +344,10 @@ def wx_send_sms(request): #wx发短信
             code = 3
             data = {}
             msg = r2['Code']
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_search_organization(request):
     try:
@@ -380,21 +373,15 @@ def wx_search_organization(request):
             code = 2
             data = {'organization_list':[]}
             msg = '没有组织'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             code = 1
             data = { 'organization_list':tool.wmm_to_json(wx_organization249) }
             msg = '成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_joinDepartment(request):
     try:
@@ -426,8 +413,7 @@ def wx_joinDepartment(request):
             code = 1
             data = {}
             msg = '已收到申请'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             d = wx_join_organization_apply311.d
             d['apply_person_name'] = name
@@ -442,15 +428,10 @@ def wx_joinDepartment(request):
             code = 1
             data = {}
             msg = '已更新申请'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_organization(request):
     try:
@@ -472,6 +453,7 @@ def wx_create_organization(request):
         if wx_organization373 == None:
             organization_main_id = tool.wmm_create_main_id()
             d494 = {
+                'has':True,
                 'organization_main_id':organization_main_id,
                 'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
                 'organization_name':organization_name,
@@ -511,23 +493,17 @@ def wx_create_organization(request):
             d543['active_organization'] = organization_main_id #更新用户默认关联的组织
             my_token_login_request[1].update(d=d543)
             code = 1
-            data = {}
+            data = {'organization_info':d494}
             msg = '创建成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             code = 2
             data = {}
             msg = '组织已存在！'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_organizationInfo_list(request):
     try:
@@ -556,28 +532,26 @@ def wx_get_organizationInfo_list(request):
                     }
                 }
             })
-        wx_organization_match_main_id478_len = len(list(wx_organization_match_main_id478))
-        if(wx_organization_match_main_id478_len == 0):
+        if list(wx_organization_match_main_id478) == []:
             code = 2
             data = {}
             msg = '无关联组织'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
-            organization_list = wx_organization_match_main_id478.to_json().encode('utf-8').decode('unicode_escape')
-            organization_list = json.loads(organization_list)
+            organization_list = []
+            for o in wx_organization_match_main_id478:
+                q569 = models.wx_organization.objects(__raw__={'d.organization_main_id':o.d['organization_main_id']}).first()
+                if q569 == None:
+                    continue
+                else:
+                    organization_list.append(tool.wmm_to_json(q569))
             code = 1
             data = {'organization_list':organization_list}
-            msg = '查询到'+str(wx_organization_match_main_id478_len)+'个！'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            msg = '成功'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_organization(request):
     try:
@@ -588,34 +562,31 @@ def wx_swicth_organization(request):
         organizationInfo = sendData_json['organizationInfo']
         main_id = my_token_login_request[1].d['main_id']
         organization_main_id = organizationInfo['d']['organization_main_id']
-        wx_organization_match_main_id537 = models.wx_organization_match_user.objects(__raw__ = {
+        q592 = models.wx_organization_match_user.objects(__raw__ = {
             'd.organization_main_id' : organization_main_id,
             'd.main_id' : main_id
         }).first()
-        if wx_organization_match_main_id537 == None:
+        if q592 == None:
             code = 3
             data = {}
             msg = '你不属于该组织'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
-            d = my_token_login_request[1].d
-            d['active_organization'] = organization_main_id
-            my_token_login_request[1].update(d=d)
-            d['openid'] = '' #删除敏感信息
-            d['session_key'] = '' #删除敏感信息
+            q607 = models.wx_organization.objects(__raw__={'d.organization_main_id':q592.d['organization_main_id']}).first()
+            if q607 == None:
+                return myHttpResponse({'status': 2, 'data': {}, 'msg': '没有组织'})
+            #更新默认组织信息
+            d609 = my_token_login_request[1].d
+            d609['active_organization'] = q592.d['organization_main_id']
+            my_token_login_request[1].update(d=d609)
+            #-----
             code = 1
-            data = {'userInfo':d}
+            data = {'organization_info':q607.d}
             msg = '切换成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_apply_for_join_organization(request):
     try:
@@ -635,30 +606,23 @@ def wx_get_apply_for_join_organization(request):
             code = 4
             data = {}
             msg = '参数错误'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         wx_join_organization_apply_id584_len = len(list(wx_join_organization_apply_id584))
         if wx_join_organization_apply_id584_len == 0:
             code = 3
             data = {}
             msg = '暂无申请'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             organization_apply_list = wx_join_organization_apply_id584.to_json().encode('utf-8').decode('unicode_escape')
             organization_apply_list = json.loads(organization_apply_list)
             code = 1
             data = {'organization_apply_list':organization_apply_list}
             msg = '查询成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_appral_apply_for_join_organization(request):
     try:
@@ -697,8 +661,7 @@ def wx_appral_apply_for_join_organization(request):
             code = 4
             data = {}
             msg = '没有权限'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         if param == 'yes':
             wx_organization_match_main_id666 = models.wx_organization_match_user.objects(__raw__ = {
                 'd.organization_main_id':apply['d']['organization_main_id'],
@@ -747,8 +710,7 @@ def wx_appral_apply_for_join_organization(request):
             code = 1
             data = {}
             msg = '已拒绝'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             pass
         code = 0
@@ -758,11 +720,7 @@ def wx_appral_apply_for_join_organization(request):
         return myHttpResponse(res)
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier(request):
     try:
@@ -828,21 +786,15 @@ def wx_create_supplier(request):
             code = 1
             data = {'supplier_info':d799}
             msg = '创建成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             code = 2
             data = {}
             msg = '组织已存在！'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier_department(request):
     try:
@@ -851,8 +803,7 @@ def wx_create_supplier_department(request):
             code = 4
             data = {}
             msg = '没有权限'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         supplier_main_id = sendData_json['supplier_main_id']
@@ -898,21 +849,15 @@ def wx_create_supplier_department(request):
             code = 1
             data = {'supplier_department_info_list':tool.wmm_to_json(q1033) }
             msg = '创建成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             code = 2
             data = {}
             msg = '已存在！'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_supplierInfo_list(request):
     try:
@@ -946,8 +891,7 @@ def wx_get_supplierInfo_list(request):
             code = 2
             data = {}
             msg = '无关联组织'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             supplier_list = []
             for o in wx_supplier_match_main_id478:
@@ -962,15 +906,10 @@ def wx_get_supplierInfo_list(request):
             code = 1
             data = {'supplier_list':supplier_list}
             msg = '查询到'+str(wx_supplier_match_main_id478_len)+'个！'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_supplier(request):
     try:
@@ -989,8 +928,7 @@ def wx_swicth_supplier(request):
             code = 3
             data = {}
             msg = '你不属于该组织'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             d = my_token_login_request[1].d
             d['active_supplier'] = supplier_main_id
@@ -1002,15 +940,10 @@ def wx_swicth_supplier(request):
             code = 1
             data = {'userInfo':d,'supplier_info':supplierInfo['d'],'supplier_department_info_list':tool.wmm_to_json(q1143)}
             msg = '切换成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_my_wx_supplier_department_info_list(request):
     try:
@@ -1030,25 +963,140 @@ def wx_get_my_wx_supplier_department_info_list(request):
             code = 2
             data = {'supplier_department_info_list':[]}
             msg = '没有数据'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
         else:
             code = 1
             data = {'supplier_department_info_list':[]}
             msg = '成功'
-            res = {'status': code, 'data': data, 'msg': msg}
-            return myHttpResponse(res)
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
         print(traceback.format_exc())
-        code = 0
-        data = {}
-        msg = '系统异常'
-        res = {'status': code, 'data': data, 'msg': msg}
-        return myHttpResponse(res)
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
+def wx_organization_department_info_list(request):
+    try:
+        my_token_login_request = my_token_login(request)
+        sendData = request.GET['sendData']
+        print(sendData,'-----------------wx_organization_department_info_list')
+        sendData_json = json.loads(sendData)
+        d973 = sendData_json['organization_info']
+        main_id = my_token_login_request[1].d['main_id']
+        supplier_department_id_list = d973['supplier_department_id_list']
+        supplier_department_info_list = []
+        for o in supplier_department_id_list:
+            q1143 = models.wx_supplier_department_info.objects(__raw__ = {'d.supplier_department_id':o}).first()
+            t1144 = q1143.to_json().encode('utf-8').decode('unicode_escape')
+            supplier_department_info_list.append(json.loads(t1144))
+        if supplier_department_info_list == []:
+            code = 2
+            data = {'supplier_department_info_list':[]}
+            msg = '没有数据'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        else:
+            code = 1
+            data = {'supplier_department_info_list':[]}
+            msg = '成功'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+    except:
+        print(traceback.format_exc())
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
+def wx_create_organization_department(request):
+    try:
+        my_token_login_request = my_token_login(request)
+        if not (my_token_login_request[2]['super_admin'] or my_token_login_request[2]['nomarl_admin']): #组织权限验证
+            code = 4
+            data = {}
+            msg = '没有权限'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        sendData = request.GET['sendData']
+        sendData_json = json.loads(sendData)
+        organization_main_id = sendData_json['organization_main_id']
+        organization_department_name = sendData_json['organization_department_name']
+        organization_department_address = sendData_json['organization_department_address']
+        organization_department_manage_person_name = sendData_json['organization_department_manage_person_name']
+        organization_department_manage_person_mobile = sendData_json['organization_department_manage_person_mobile']
+        wx_organization373 = models.wx_organization_department_info.objects(__raw__ ={
+            'd.organization_department_name':organization_department_name,
+            'd.organization_main_id':organization_main_id
+        }).first()
+        if wx_organization373 == None:
+            q983 = models.wx_organization.objects(__raw__ = { 'd.organization_main_id':organization_main_id }).first()
+            if q983 == None:
+                code = 5
+                data = {}
+                msg = '没有供应商信息'
+                res = {'status': code, 'data': data, 'msg': msg}
+                return myHttpResponse(res)
+            organization_department_id = tool.wmm_create_main_id()
+            d = {
+                'organization_main_id':organization_main_id,
+                'organization_department_id': organization_department_id,
+                'organization_department_name':organization_department_name,
+                'organization_department_address':organization_department_address,
+                'super_admin_person':{
+                    'main_id':my_token_login_request[1].d['main_id'],
+                    'name':'',
+                    'moile':'',
+                },
+                'manage_person':{
+                    'name':organization_department_manage_person_name,
+                    'mobile':organization_department_manage_person_mobile
+                },
+                'labor_contract':[
+                    {'name':'合同制'},{'name':'派遣制'},{'name':'第三方'},{'name':'实习生'},{'name':'其它'}
+                ],
+                'create_time':tool.Time().now_time(),
+                'create_person_main_id':my_token_login_request[1].d['main_id'],
+            }
+            models.wx_organization_department_info(d=d).save()
+            q1033 = models.wx_organization_department_info.objects(__raw__ = {'d.organization_main_id':organization_main_id})
+            code = 1
+            data = {'organization_department_info_list':tool.wmm_to_json(q1033) }
+            msg = '创建成功'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        else:
+            code = 2
+            data = {}
+            msg = '已存在！'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+    except:
+        print(traceback.format_exc())
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
-
+def wx_search_supplier(request):
+    try:
+        # my_token_login_request = my_token_login(request)
+        sendData = request.GET['sendData']
+        sendData_json = json.loads(sendData)
+        searchVal = sendData_json['searchVal']
+        wx_supplier249 = models.wx_supplier_info.objects(__raw__ = {'$or':[
+                {
+                    'd.supplier_name':{
+                        '$regex':".*"+searchVal+".*"
+                    }
+                },
+                {
+                    'd.supplier_main_id':{
+                            '$regex':".*"+searchVal+".*"
+                        # '$regex':'/^([0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\d{14})$/'
+                    }
+                }
+            ]
+        })
+        if list(wx_supplier249) == []:
+            code = 2
+            data = {'supplier_list':[]}
+            msg = '没有组织'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        else:
+            code = 1
+            data = { 'supplier_list':tool.wmm_to_json(wx_supplier249) }
+            msg = '成功'
+            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+    except:
+        print(traceback.format_exc())
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 
 
