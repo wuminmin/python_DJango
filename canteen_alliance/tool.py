@@ -100,6 +100,9 @@ class Token(object):
 def wmm_to_json(qset):
     return qset.to_json().encode('utf-8').decode('unicode_escape')
 
+def wmm_create_main_id():
+    return uuid.uuid1()
+
 if __name__ == '__main__':
     tokenprogramer = Token('api_secret具体值', 'project_code具体值', 'account具体值')  # 对象实例化
     tokenprogramer.get_token()   #调用token对象
