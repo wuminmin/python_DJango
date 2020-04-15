@@ -98,7 +98,14 @@ def myuuid():
     import uuid
     print( str(uuid.uuid1()) )
 
+def wmm_not_none():
+    a = 2222 
+    if not a==None:
+        print(1)
+    else:
+        print(2)
+
 if __name__ == '__main__':
-    myuuid()
+    wmm_not_none()
 
 

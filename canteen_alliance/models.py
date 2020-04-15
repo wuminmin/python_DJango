@@ -13,10 +13,27 @@ connect(
     password=myConfig.canteen_alliance_password
 )
 
+wx_wx_info_d = {
+    'openid':'',
+    'app_id':'',
+    'session_key':'',
+    'mobile':'',
+    "main_id":''
+}
 class wx_wx_info(Document): #微信信息表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
+wx_user_d = {
+    'has':True,
+    'main_id':'',
+    'token':'',
+    'mobile':'',
+    'nickname':'',
+    'portrait':'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg',
+    'active_organization':'',
+    'active_supplier':'',
+}
 class wx_user(Document):#用户信息表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
@@ -37,10 +54,44 @@ class wx_join_organization_apply(Document): #加入组织申请表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
+
+wx_organization_match_user_d = {
+    'main_id':'',
+    'organization_main_id':'',
+    'role':{
+        'super_admin':'超级管理员', 
+        'nomarl_admin':'普通管理员', 
+        'user':'普通用户', 
+    },
+    'labor_attribute':{
+        'contract':'合同制',
+        'dispatch':'派遣制',
+        'third_party':'第三方',
+        'intern':'实习生',
+        'other':'其它'
+    }
+}
 class wx_organization_match_user(Document): #组织和个人关系表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})
 
+
+wx_supplier_match_user_d = {
+    'main_id':'',
+    'supplier_main_id':'',
+    'role':{
+        'super_admin':'超级管理员', 
+        'nomarl_admin':'普通管理员', 
+        'user':'普通用户', 
+    },
+    'labor_attribute':{
+        'contract':'合同制',
+        'dispatch':'派遣制',
+        'third_party':'第三方',
+        'intern':'实习生',
+        'other':'其它'
+    }
+}
 class wx_supplier_match_user(Document): #供应商和个人关系表
     meta = {"db_alias": canteen_alliance}
     d = DictField(default={})

@@ -94,12 +94,20 @@ class Token(object):
         token = hl.hexdigest()
         return token
 
+def wmm_get_now_time():
+    import time
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
 def wmm_to_json(qset):
     s98 = qset.to_json().encode('utf-8').decode('unicode_escape')
     return json.loads(s98)
 
 def wmm_create_main_id():
     return str( uuid.uuid1() )
+
+def wmm_create_token():
+    return str( uuid.uuid1() )
+
 
 if __name__ == '__main__':
     tokenprogramer = Token('api_secret具体值', 'project_code具体值', 'account具体值')  # 对象实例化
