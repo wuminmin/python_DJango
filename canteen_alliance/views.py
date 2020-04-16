@@ -1,6 +1,6 @@
 
 
-from . import models,tool,wmm
+from . import models,db,tool,wmm
 import myConfig
 import json
 import traceback
@@ -120,71 +120,70 @@ def wx_login(request):  # 微信小程序登录
         openid = d_wx_login_get_openid['openid']
         app_id = d_wx_login_get_openid['app_id']
         session_key = d_wx_login_get_openid['session_key']
-        wx_wx_info105 = wmm.query_wx_wx_info_first_by_openid_and_app_id(openid,app_id)
-        if not wx_wx_info105 == None:
-            main_id = wx_wx_info105.d['main_id']
-            wx_user97 = wmm.query_wx_user_info_first_by_main_id(main_id)
-            active_organization_main_id = wx_user97.d['active_organization']
-            active_supplier_main_id = wx_user97.d['active_supplier']
-            if not wx_user97 == None:
-                #查询用户信息
-                q132 = wmm.update_wx_user_info_by_mobile(
-                    wx_wx_info105.d['mobile'],
-                    tool.wmm_create_token,
-                    None,
-                    None,
-                    None
+        q1 = db.query_wx_openid_first2('openid',openid,'app_id',app_id)
+        if not q1 == None:
+            mobile = q1.d['mobile']
+            q2 = db.query_wx_user_first('mobile',mobile)
+            if not q2 == None:
+                user_info = q2.d
+                q3 = db.query_wx_organization_match_user_first2(
+                    'user_main_id',q2.d['main_id'],
+                    'is_default_organization',True
                 )
-                if not q132 == None:
-                    userInfo = q132.d
-                else:
-                    return myHttpResponse( {'status': 2, 'data': data, 'msg': '更新用户token失败'} )
-                #-------------
-                #查询默认组织信息
-                q154 = wmm.query_organization_info_first_by_organization_main_id(active_organization_main_id)
-                if not q154 == None:
-                    organization_info = q154.d
-                    organization_info['has'] = True
+                if not q3 == None:
+                    organization_department_info = {'has':True,'name':q3.d['department']}
+                    q4 = db.query_wx_organization_first('main_id',q3.d['organization_main_id'])
+                    if q4 == None:
+                        organization_info = {'has':False}
+                    else:
+                        organization_info = q4.d
+                    l1 = db.query_wx_organization_match_user_list2(
+                        'user_main_id',q2.d['main_id'],
+                        'is_default_organization',True
+                    )
+                    organization_department_info_list = {'has':True,'info_list':l1}
                 else:
                     organization_info = {'has':False}
-                #-------------
-                #查询组织部门列表
-                organization_department_info_list =  []
+                    organization_department_info =  {'has':False}
+                    organization_department_info_list =  {'has':False}
+
                 
-                #------
-                #查询默认供应商信息
-                q160 = wmm.query_wx_supplier_info_first_by_supplier_main_id(active_supplier_main_id)
-                if not q160 == None:
-                    supplier_info = q160.d
-                    supplier_info['has'] = True
+                q3 = db.query_wx_supplier_match_user_first2(
+                    'user_main_id',q2.d['main_id'],
+                    'is_default_supplier',True
+                )
+                if not q3 == None:
+                    supplier_department_info = {'has':True,'name':q3.d['department']}
+                    q4 = db.query_wx_supplier_first('main_id',q3.d['supplier_main_id'])
+                    if q4 == None:
+                        supplier_info = {'has':False}
+                    else:
+                        supplier_info = q4.d
+                    l1 = db.query_wx_supplier_match_user_list2(
+                        'user_main_id',q2.d['main_id'],
+                        'is_default_supplier',True
+                    )
+                    supplier_department_info_list = {'has':True,'info_list':l1}
                 else:
                     supplier_info = {'has':False}
-                #-------------
-                #查询默认供应商部门
-                supplier_department_info = {'has':False}
-                #--------------
-                #查询供应商部门列表
-                supplier_department_info_list = []
-                q185 = models.wx_supplier_department_info.objects(__raw__={'d.supplier_main_id':wx_user97.d['active_supplier']})
-                if list(q185) == []:
-                    pass
-                else:
-                    supplier_department_info_list = tool.wmm_to_json(q185)
-                #------------
-               
+                    supplier_department_info =  {'has':False}
+                    supplier_department_info_list =  {'has':False}
+                
+                    
                 data = {
-                    'user_info':userInfo,
+                    'user_info':user_info,
                     'organization_info':organization_info,
+                    'organization_department_info':organization_info,
+                    'organization_department_info_list':organization_department_info_list,
                     'supplier_info':supplier_info,
                     'supplier_department_info':supplier_department_info,
                     'supplier_department_info_list':supplier_department_info_list,
-                    'organization_department_info_list':organization_department_info_list,
                 }
                 return myHttpResponse( {'status': 1, 'data': data, 'msg': '登录成功'} )
             else:
-                return myHttpResponse({'status': 4, 'data': {}, 'msg': '主数据不存在'})
+                return myHttpResponse({'status': 2, 'data': {}, 'msg': '用户未注册'})
         else:
-            return myHttpResponse( {'status': 2, 'data': {}, 'msg': '未注册'} )
+            return myHttpResponse( {'status': 3, 'data': {}, 'msg': '未绑定微信'} )
     except:
         print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'msg': '系统故障'}

@@ -102,6 +102,9 @@ def wmm_to_json(qset):
     s98 = qset.to_json().encode('utf-8').decode('unicode_escape')
     return json.loads(s98)
 
+def qset_to_json(qset):
+    return json.loads(qset.to_json().encode('utf-8').decode('unicode_escape'))
+
 def wmm_create_main_id():
     return str( uuid.uuid1() )
 
