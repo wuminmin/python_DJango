@@ -9,7 +9,7 @@ from aliyunsdkcore.profile import region_provider
 from aliyunsdkcore.http import method_type as MT
 from aliyunsdkcore.http import format_type as FT
 from myConfig import AccessKeyID, AccessKeySecret, sign_name, template_code
-
+import myConfig
 """
 短信业务调用接口示例，版本号：v20170525
 
@@ -107,9 +107,10 @@ def qset_to_json(qset):
 
 def wmm_create_main_id():
     return str( uuid.uuid1() )
+    # return myConfig.get_str_of_now_time()
 
 def wmm_create_token():
-    return str( uuid.uuid1() )
+    return str(uuid.uuid1())
 
 def debug_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
     flag = True

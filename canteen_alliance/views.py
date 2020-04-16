@@ -31,68 +31,7 @@ def my_token_login(request):
     if wx_user25 == None:
         return myHttpResponse( {'status': 2, 'data': {}, 'msg': '已超时，请重新登录'} )
     else:
-        # #--------------公司或组织权限验证
-        # wx_organization_match_main_id36 = models.wx_organization_match_user.objects(__raw__ = {
-        #     'd.main_id' : wx_user25.d['main_id'],
-        #     'd.organization_main_id':wx_user25.d['active_organization']
-        # }).first()
-        # super_admin = False
-        # nomarl_admin = False
-        # user = False
-        # if wx_organization_match_main_id36 == None:
-        #     pass
-        # else:
-        #     if models.wx_organization_match_user_d['role']['super_admin'] in  wx_organization_match_main_id36.d['role']:
-        #         super_admin = True
-        #     elif models.wx_organization_match_user_d['role']['nomarl_admin'] in wx_organization_match_main_id36.d['role']:
-        #         nomarl_admin = True
-        #     elif models.wx_organization_match_user_d['role']['user'] in wx_organization_match_main_id36.d['role']:
-        #         user = True
-        #     else:
-        #         pass
-        # role_dict_organization = {
-        #         'role_list':['super_admin','nomarl_admin','user'],
-        #         'main_id':wx_user25.d['main_id'],
-        #         'organization_main_id':wx_user25.d['active_organization'],
-        #         'super_admin':super_admin,
-        #         'nomarl_admin':nomarl_admin,
-        #         'user':user
-        # }
-        # #----------------
-
-        # #-----------供应商权限验证
-        # wx_supplier_match_main_id36 = models.wx_supplier_match_user.objects(__raw__ = {
-        #     'd.main_id' : wx_user25.d['main_id'],
-        #     'd.supplier_main_id':wx_user25.d['active_supplier']
-        # }).first()
-        # super_admin = False
-        # nomarl_admin = False
-        # user = False
-        # if wx_supplier_match_main_id36 == None:
-        #     pass
-        # else:
-        #     if models.wx_supplier_match_user_d['role']['super_admin'] in  wx_supplier_match_main_id36.d['role']:
-        #         super_admin = True
-        #     elif models.wx_supplier_match_user_d['role']['nomarl_admin'] in wx_supplier_match_main_id36.d['role']:
-        #         nomarl_admin = True
-        #     elif models.wx_supplier_match_user_d['role']['user'] in wx_supplier_match_main_id36.d['role']:
-        #         user = True
-        #     else:
-        #         pass
-        # role_dict_supplier = {
-        #         'role_list':['super_admin','nomarl_admin','user'],
-        #         'main_id':wx_user25.d['main_id'],
-        #         'supplier_main_id':wx_user25.d['active_supplier'],
-        #         'super_admin':super_admin,
-        #         'nomarl_admin':nomarl_admin,
-        #         'user':user
-        # }
-        # #----------------
-
         return {'wx_user_d':wx_user25.d}
-        # return (True,wx_user25,role_dict_organization,role_dict_supplier)
-
-    
 
 def wx_login_get_openid(request): #解析openid
     import requests
@@ -131,48 +70,44 @@ def wx_login(request):  # 微信小程序登录
                 )
                 if not q3 == None:
                     organization_department_info = {'has':True,'name':q3.d['department']}
+                    organization_department_info_list = db.query_wx_organization_match_user_list2(
+                        'user_main_id',q2.d['main_id'],
+                        'is_default_organization',True
+                    )
                     q4 = db.query_wx_organization_first('main_id',q3.d['organization_main_id'])
                     if q4 == None:
                         organization_info = {'has':False}
                     else:
                         organization_info = q4.d
-                    l1 = db.query_wx_organization_match_user_list2(
-                        'user_main_id',q2.d['main_id'],
-                        'is_default_organization',True
-                    )
-                    organization_department_info_list = {'has':True,'info_list':l1}
                 else:
                     organization_info = {'has':False}
                     organization_department_info =  {'has':False}
-                    organization_department_info_list =  {'has':False}
+                    organization_department_info_list =  []
 
-                
                 q3 = db.query_wx_supplier_match_user_first2(
                     'user_main_id',q2.d['main_id'],
                     'is_default_supplier',True
                 )
                 if not q3 == None:
                     supplier_department_info = {'has':True,'name':q3.d['department']}
+                    supplier_department_info_list = db.query_wx_supplier_match_user_list2(
+                        'user_main_id',q2.d['main_id'],
+                        'is_default_supplier',True
+                    )
                     q4 = db.query_wx_supplier_first('main_id',q3.d['supplier_main_id'])
                     if q4 == None:
                         supplier_info = {'has':False}
                     else:
                         supplier_info = q4.d
-                    l1 = db.query_wx_supplier_match_user_list2(
-                        'user_main_id',q2.d['main_id'],
-                        'is_default_supplier',True
-                    )
-                    supplier_department_info_list = {'has':True,'info_list':l1}
                 else:
                     supplier_info = {'has':False}
                     supplier_department_info =  {'has':False}
-                    supplier_department_info_list =  {'has':False}
-                
-                    
+                    supplier_department_info_list =  []
+
                 data = {
                     'user_info':user_info,
                     'organization_info':organization_info,
-                    'organization_department_info':organization_info,
+                    'organization_department_info':organization_department_info,
                     'organization_department_info_list':organization_department_info_list,
                     'supplier_info':supplier_info,
                     'supplier_department_info':supplier_department_info,
@@ -271,6 +206,68 @@ def wx_send_sms(request): #wx发短信
     except:
         myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
+
+def wx_sync_info(request):
+    try:
+        q2 = db.query_wx_user_first('token',request.GET['token'])
+        if not q2 == None:
+            user_info = q2.d
+            q3 = db.query_wx_organization_match_user_first2(
+                'user_main_id',q2.d['main_id'],
+                'is_default_organization',True
+            )
+            if not q3 == None:
+                organization_department_info = {'has':True,'name':q3.d['department']}
+                q4 = db.query_wx_organization_first('main_id',q3.d['organization_main_id'])
+                if q4 == None:
+                    organization_info = {'has':False}
+                else:
+                    organization_info = q4.d
+                l1 = db.query_wx_organization_match_user_list2(
+                    'user_main_id',q2.d['main_id'],
+                    'is_default_organization',True
+                )
+                organization_department_info_list = {'has':True,'info_list':l1}
+            else:
+                organization_info = {'has':False}
+                organization_department_info =  {'has':False}
+                organization_department_info_list =  []
+            q3 = db.query_wx_supplier_match_user_first2(
+                'user_main_id',q2.d['main_id'],
+                'is_default_supplier',True
+            )
+            if not q3 == None:
+                supplier_department_info = {'has':True,'name':q3.d['department']}
+                q4 = db.query_wx_supplier_first('main_id',q3.d['supplier_main_id'])
+                if q4 == None:
+                    supplier_info = {'has':False}
+                else:
+                    supplier_info = q4.d
+                l1 = db.query_wx_supplier_match_user_list2(
+                    'user_main_id',q2.d['main_id'],
+                    'is_default_supplier',True
+                )
+                supplier_department_info_list = {'has':True,'info_list':l1}
+            else:
+                supplier_info = {'has':False}
+                supplier_department_info =  {'has':False}
+                supplier_department_info_list =  []
+            data = {
+                'user_info':user_info,
+                'organization_info':organization_info,
+                'organization_department_info':organization_info,
+                'organization_department_info_list':organization_department_info_list,
+                'supplier_info':supplier_info,
+                'supplier_department_info':supplier_department_info,
+                'supplier_department_info_list':supplier_department_info_list,
+            }
+            return myHttpResponse( {'status': 1, 'data': data, 'msg': '同步成功'} )
+        else:
+            return myHttpResponse({'status': 2, 'data': {}, 'msg': '用户未注册'})
+    except:
+        myConfig.debug_print(traceback.format_exc())
+        res = {'code': 500, 'data': {}, 'msg': '系统故障'}
+        return myHttpResponse(res)
 
 def wx_search_organization(request):
     try:

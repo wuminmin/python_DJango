@@ -14,7 +14,7 @@ def query_wx_user_first(key,value):
         return None
 
 def create_wx_user_by_mobile(mobile,d):
-    tool.debug_myConfig.debug_print(mobile,d)
+    myConfig.debug_print(mobile,d)
     portrait = 'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg'
     if 'nickname' in d:
         nickname = d['nickname']
