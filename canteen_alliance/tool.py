@@ -111,6 +111,15 @@ def wmm_create_main_id():
 def wmm_create_token():
     return str( uuid.uuid1() )
 
+def debug_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
+    flag = True
+    if flag:
+        print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
+
+def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
+    flag = True
+    if flag:
+        print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
 
 if __name__ == '__main__':
     tokenprogramer = Token('api_secret具体值', 'project_code具体值', 'account具体值')  # 对象实例化

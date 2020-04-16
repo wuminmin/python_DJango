@@ -97,12 +97,11 @@ def my_token_login(request):
 def wx_login_get_openid(request): #解析openid
     import requests
     try:
-        s110 = request.GET['sendData']
-        j111 = json.loads(s110)
-        s112 = j111['code']
-        app_id = j111['app_id']
+        sendData = json.loads(request.GET['sendData'])
+        code = sendData['code']
+        app_id = sendData['app_id']
         url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': s112,
+        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': code,
                     'grant_type': 'authorization_code'}
         r = requests.get(url=url, params=payload)
         print(r.text,'------------wx_login_get_openid')
@@ -111,7 +110,7 @@ def wx_login_get_openid(request): #解析openid
         session_key = r_json['session_key']
         return {'openid':openid,'session_key':session_key,'app_id':app_id}
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return {'openid':'','session_key':'','app_id':''}
 
 def wx_login(request):  # 微信小程序登录
@@ -185,7 +184,7 @@ def wx_login(request):  # 微信小程序登录
         else:
             return myHttpResponse( {'status': 3, 'data': {}, 'msg': '未绑定微信'} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'msg': '系统故障'}
         return myHttpResponse(res)
 
@@ -195,51 +194,28 @@ def wx_register(request):  #wx注册
         openid = d_wx_login_get_openid['openid']
         app_id = d_wx_login_get_openid['app_id']
         session_key = d_wx_login_get_openid['session_key']
-        sendData = request.GET['sendData']
-        sendData_json = json.loads(sendData)
+        sendData_json = json.loads(request.GET['sendData'])
         nickname = sendData_json['nickname']
         mobile = sendData_json['mobile']
         password = sendData_json['password']
-        wx_sms87 = models.wx_sms.objects(__raw__ = {
-            'd.mobile':mobile,'d.password':password
-        }).first()
-        if wx_sms87 == None:
+        q1 = db.query_wx_sms_first2('mobile',mobile,'password',password)
+        if q1 == None:
             return myHttpResponse( {'status': 2, 'data': {}, 'msg': '验证码不正确'} )
         else:
-            q231 = wmm.create_wx_user_info_by_mobile(
-                    mobile,
-                    nickname,
-                    models.wx_user_d['portrait'],
-                    '',
-                    ''
-                )
-            if not q231 == None:
-                q230 = wmm.create_wx_wx_info_by_openid_and_app_id(
-                    q231.d['main_id'],
-                    openid,
-                    app_id,
-                    session_key,
-                    mobile
-                )
-                if not q230 == None:
-                    return myHttpResponse({'status': 1, 'data': {'user_info':q231.d}, 'msg': '注册成功'})
+            q2 = db.create_wx_user_by_mobile(mobile,{'nickname':nickname})
+            if not q2 == None:
+                q3 = db.create_wx_openid_by_mobile(mobile,openid,app_id,session_key,{})
+                if not q3 == None:
+                    return myHttpResponse({'status': 1, 'data': {'user_info':q2.d}, 'msg': '注册成功'})
                 else:
-                    q241 = wmm.update_wx_wx_info_by_openid_and_app_id(
-                        q231.d['main_id'],
-                        openid,
-                        app_id,
-                        session_key,
-                        mobile
-                    )
-                    if not q241 == None:
-                        return myHttpResponse({'status': 1, 'data': {'user_info':q231.d}, 'msg': '注册成功'})
+                    if db.update_wx_openid_by_mobile(mobile,openid,app_id,session_key,{}):
+                        return myHttpResponse({'status': 1, 'data': {'user_info':q2.d}, 'msg': '注册成功'})
                     else:
-                        return myHttpResponse({'status': 2, 'data': {}, 'msg': '更新微信认证信息失败'})
+                        return myHttpResponse({'status': 2, 'data': {}, 'msg': '更新微信关联信息失败'})
             else:
-
                 return myHttpResponse({'status': 3, 'data': {}, 'msg': '创建用户信息失败'})
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_send_sms(request): #wx发短信
@@ -293,7 +269,7 @@ def wx_send_sms(request): #wx发短信
             msg = r2['Code']
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_search_organization(request):
@@ -327,7 +303,7 @@ def wx_search_organization(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_joinDepartment(request):
@@ -377,7 +353,7 @@ def wx_joinDepartment(request):
             msg = '已更新申请'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_organization(request):
@@ -457,7 +433,7 @@ def wx_create_organization(request):
         else:
             return myHttpResponse( {'status': 2, 'data': {}, 'msg': '组织已存在'} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_organizationInfo_list(request):
@@ -505,7 +481,7 @@ def wx_get_organizationInfo_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_organization(request):
@@ -541,7 +517,7 @@ def wx_swicth_organization(request):
             msg = '切换成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_apply_for_join_organization(request):
@@ -577,7 +553,7 @@ def wx_get_apply_for_join_organization(request):
             msg = '查询成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_appral_apply_for_join_organization(request):
@@ -675,7 +651,7 @@ def wx_appral_apply_for_join_organization(request):
         res = {'status': code, 'data': data, 'msg': msg}
         return myHttpResponse(res)
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier(request):
@@ -749,7 +725,7 @@ def wx_create_supplier(request):
             msg = '组织已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier_department(request):
@@ -812,7 +788,7 @@ def wx_create_supplier_department(request):
             msg = '已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_supplierInfo_list(request):
@@ -864,7 +840,7 @@ def wx_get_supplierInfo_list(request):
             msg = '查询到'+str(wx_supplier_match_main_id478_len)+'个！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_supplier(request):
@@ -898,7 +874,7 @@ def wx_swicth_supplier(request):
             msg = '切换成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_my_wx_supplier_department_info_list(request):
@@ -926,7 +902,7 @@ def wx_get_my_wx_supplier_department_info_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_organization_department_info_list(request):
@@ -954,7 +930,7 @@ def wx_organization_department_info_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_organization_department(request):
@@ -1017,7 +993,7 @@ def wx_create_organization_department(request):
             msg = '已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_search_supplier(request):
@@ -1051,7 +1027,7 @@ def wx_search_supplier(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        print(traceback.format_exc())
+        tool.traceback_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 

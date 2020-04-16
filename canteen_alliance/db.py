@@ -14,7 +14,7 @@ def query_wx_user_first(key,value):
         return None
 
 def create_wx_user_by_mobile(mobile,d):
-    nickname = None
+    tool.debug_print(mobile,d)
     portrait = 'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg'
     if 'nickname' in d:
         nickname = d['nickname']
@@ -23,14 +23,14 @@ def create_wx_user_by_mobile(mobile,d):
     if query_wx_user_first('mobile',mobile) == None:
         d2 = {
             'has':True,
-            'main_id':tool.wmm_create_main_id,
-            'token':tool.wmm_create_token,
+            'main_id':tool.wmm_create_main_id(),
+            'token':tool.wmm_create_token(),
             'mobile':mobile,
             'nickname':nickname,
             'portrait':portrait,
             # 'portrait':'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg',
         }
-        models.wx_user(d=d2)
+        models.wx_user(d=d2).save()
         return query_wx_user_first('mobile',mobile)
     else:
         return None
@@ -65,7 +65,15 @@ def delete_wx_user_first(key,value):
 #wx_sms
 def query_wx_sms_first(key,value):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_sms.objects(__raw__={'d.'+key:value}).first()
+        return q
+    except:
+        print(traceback.format_exc())
+        return None
+
+def query_wx_sms_first2(k1,v1,k2,v2):
+    try:
+        q = models.wx_sms.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -77,7 +85,7 @@ def create_wx_sms_by_mobile(mobile,password):
             'mobile':mobile,
             'password':password,
         }
-        models.wx_sms(d=d)
+        models.wx_sms(d=d).save()
         return query_wx_sms_first('mobile',mobile)
     else:
         return None
@@ -104,7 +112,7 @@ def delete_wx_sms_first(key,value):
 #wx_openid
 def query_wx_openid_first(key,value):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_openid.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -112,27 +120,27 @@ def query_wx_openid_first(key,value):
 
 def query_wx_openid_first2(key,value,key1,value1):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_openid.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
         print(traceback.format_exc())
         return None
 
-def create_wx_openid_by_mobile(mobile,openid,app_id,session_key):
+def create_wx_openid_by_mobile(mobile,openid,app_id,session_key,d):
     if query_wx_openid_first('mobile',mobile) == None:
         d = {
+            'main_id':tool.wmm_create_main_id(),
             'mobile':mobile,
             'openid':openid,
-            'main_id':tool.wmm_create_main_id,
             'app_id':app_id,
             'session_key':session_key,
         }
-        models.wx_openid(d=d)
+        models.wx_openid(d=d).save()
         return query_wx_openid_first('mobile',mobile)
     else:
         return None
 
-def update_wx_openid_by_mobile(mobile,openid,app_id,session_key):
+def update_wx_openid_by_mobile(mobile,openid,app_id,session_key,d):
     q = query_wx_openid_first('mobile',mobile)
     if not q == None:
         d = q.d 
@@ -179,7 +187,7 @@ def create_wx_organization_by_cfuscc(cfuscc,d):
     if query_wx_organization_first('certificate_for_uniform_social_credit_code',cfuscc) == None:
         d2 = {
             'has':True,
-            'main_id':tool.wmm_create_main_id,
+            'main_id':tool.wmm_create_main_id(),
             'certificate_for_uniform_social_credit_code':cfuscc,
             'name':name,
             'address':address,
@@ -189,7 +197,7 @@ def create_wx_organization_by_cfuscc(cfuscc,d):
             'create_person_main_id':create_person_main_id,
             # 'portrait':'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg',
         }
-        models.wx_organization(d=d2)
+        models.wx_organization(d=d2).save()
         return query_wx_organization_first('mobile',mobile)
     else:
         return None
@@ -236,7 +244,7 @@ def delete_wx_organization_first(key,value):
 #wx_organization_match_user
 def query_wx_organization_match_user_first(key,value):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -244,7 +252,7 @@ def query_wx_organization_match_user_first(key,value):
 
 def query_wx_organization_match_user_first2(key,value,key1,value1):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_organization.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -252,7 +260,7 @@ def query_wx_organization_match_user_first2(key,value,key1,value1):
 
 def query_wx_organization_match_user_list2(k1,v1,k2,v2):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2})
+        q = models.wx_organization_match_user.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2})
         if list(q) == []:
             return []
         else:
@@ -263,7 +271,7 @@ def query_wx_organization_match_user_list2(k1,v1,k2,v2):
 
 def query_wx_organization_match_user_first3(k1,v1,k2,v2,k3,v3):
     try:
-        q = models.wx_user.objects(__raw__={
+        q = models.wx_organization_match_user.objects(__raw__={
             'd.'+k1:v1,'d.'+k2:v2,'d.'+k3:v3
         }).first()
         return q
@@ -290,7 +298,7 @@ def create_wx_organization_match_user(
         'user_main_id',user_main_id
     ) == None:
         d2 = {
-            'main_id':tool.wmm_create_main_id,
+            'main_id':tool.wmm_create_main_id(),
             'organization_main_id':organization_main_id,
             'user_main_id':user_main_id,
             'role':role,
@@ -298,7 +306,7 @@ def create_wx_organization_match_user(
             'department':department,
             'is_default_organization':False,
         }
-        models.wx_organization_match_user(d=d2)
+        models.wx_organization_match_user(d=d2).save()
         q = query_wx_organization_match_user_first2(
             'organization_main_id',organization_main_id,
             'user_main_id',user_main_id
@@ -375,7 +383,7 @@ def create_wx_supplier_by_cfuscc(cfuscc,d):
     if query_wx_supplier_first('certificate_for_uniform_social_credit_code',cfuscc) == None:
         d2 = {
             'has':True,
-            'main_id':tool.wmm_create_main_id,
+            'main_id':tool.wmm_create_main_id(),
             'certificate_for_uniform_social_credit_code':cfuscc,
             'name':name,
             'address':address,
@@ -385,7 +393,7 @@ def create_wx_supplier_by_cfuscc(cfuscc,d):
             'create_person_main_id':create_person_main_id,
             # 'portrait':'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg',
         }
-        models.wx_supplier(d=d2)
+        models.wx_supplier(d=d2).save()
         return query_wx_supplier_first('mobile',mobile)
     else:
         return None
@@ -432,7 +440,7 @@ def delete_wx_supplier_first(key,value):
 #wx_supplier_match_user
 def query_wx_supplier_match_user_first(key,value):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -440,7 +448,7 @@ def query_wx_supplier_match_user_first(key,value):
 
 def query_wx_supplier_match_user_first2(key,value,key1,value1):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
         print(traceback.format_exc())
@@ -448,7 +456,7 @@ def query_wx_supplier_match_user_first2(key,value,key1,value1):
 
 def query_wx_supplier_match_user_list2(k1,v1,k2,v2):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2})
+        q = models.wx_supplier_match_user.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2})
         if list(q) == []:
             return []
         else:
@@ -459,7 +467,7 @@ def query_wx_supplier_match_user_list2(k1,v1,k2,v2):
 
 def query_wx_supplier_match_user_first3(k1,v1,k2,v2,k3,v3):
     try:
-        q = models.wx_user.objects(__raw__={
+        q = models.wx_supplier_match_user.objects(__raw__={
             'd.'+k1:v1,'d.'+k2:v2,'d.'+k3:v3
         }).first()
         return q
@@ -486,7 +494,7 @@ def create_wx_supplier_match_user(
         'user_main_id',user_main_id
     ) == None:
         d2 = {
-            'main_id':tool.wmm_create_main_id,
+            'main_id':tool.wmm_create_main_id(),
             'organization_main_id':organization_main_id,
             'user_main_id':user_main_id,
             'role':role,
@@ -494,7 +502,7 @@ def create_wx_supplier_match_user(
             'department':department,
             'is_default_organization':False,
         }
-        models.wx_supplier_match_user(d=d2)
+        models.wx_supplier_match_user(d=d2).save()
         q = query_wx_supplier_match_user_first2(
             'organization_main_id',organization_main_id,
             'user_main_id',user_main_id
