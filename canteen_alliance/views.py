@@ -5,7 +5,7 @@ import myConfig
 import json
 import traceback
 import time
-from django.http import HttpResponse, FileResponse ,JsonResponse
+from django.http import HttpResponse, FileResponse
 
 def deprecated_async(f): # 异步函数
     def wrapper(*args, **kwargs):
@@ -104,13 +104,13 @@ def wx_login_get_openid(request): #解析openid
         payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': code,
                     'grant_type': 'authorization_code'}
         r = requests.get(url=url, params=payload)
-        print(r.text,'------------wx_login_get_openid')
+        myConfig.debug_print(r.text,'------------wx_login_get_openid')
         r_json = json.loads(r.text)
         openid = r_json['openid']
         session_key = r_json['session_key']
         return {'openid':openid,'session_key':session_key,'app_id':app_id}
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return {'openid':'','session_key':'','app_id':''}
 
 def wx_login(request):  # 微信小程序登录
@@ -184,7 +184,7 @@ def wx_login(request):  # 微信小程序登录
         else:
             return myHttpResponse( {'status': 3, 'data': {}, 'msg': '未绑定微信'} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'msg': '系统故障'}
         return myHttpResponse(res)
 
@@ -215,13 +215,13 @@ def wx_register(request):  #wx注册
             else:
                 return myHttpResponse({'status': 3, 'data': {}, 'msg': '创建用户信息失败'})
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_send_sms(request): #wx发短信
     try:
         d_wx_login_get_openid = wx_login_get_openid(request)
-        print(d_wx_login_get_openid)
+        myConfig.debug_print(d_wx_login_get_openid)
         openid = d_wx_login_get_openid['openid']
         wx_user166 = models.wx_user.objects(__raw__ = {
                 'd.openid':openid
@@ -249,7 +249,7 @@ def wx_send_sms(request): #wx发短信
             __business_id = uuid.uuid1()
             params = "{\"code\":\"" + sms_code + "\"}"
             r = tool.send_sms(__business_id, mobile, myConfig.sign_name, myConfig.template_code, params)
-            print(r,'---------------阿里云短信网关')
+            myConfig.debug_print(r,'---------------阿里云短信网关')
             r2 = json.loads(r)
             if r2['Code'] == 'OK':
                 wx_sms165 = models.wx_sms.objects(__raw__ = {'d.mobile':mobile}).first()
@@ -269,12 +269,12 @@ def wx_send_sms(request): #wx发短信
             msg = r2['Code']
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_search_organization(request):
     try:
-        # my_token_login_request = wmm.query_wx_user_by_token(request)
+        # my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         searchVal = sendData_json['searchVal']
@@ -303,12 +303,12 @@ def wx_search_organization(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_joinDepartment(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         organization_main_id = sendData_json['organization_main_id']
@@ -353,94 +353,48 @@ def wx_joinDepartment(request):
             msg = '已更新申请'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_organization(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
-        if my_token_login_request == None:
+        q1 = db.query_wx_user_first('token',request.GET['token'])
+        if q1 == None:
             return myHttpResponse({'status': 999, 'data': {}, 'msg': '已超时'})
-        print(my_token_login_request)
-        sendData = request.GET['sendData']
-        sendData_json = json.loads(sendData)
-        organization_main_id = sendData_json['organization_main_id']
-        certificate_for_uniform_social_credit_code = sendData_json['certificate_for_uniform_social_credit_code']
+        myConfig.debug_print(q1)
+        sendData_json = json.loads(request.GET['sendData'])
+        cfuscc = sendData_json['certificate_for_uniform_social_credit_code']
         organization_name = sendData_json['organization_name']
         organization_address = sendData_json['organization_address']
-        legal_person_name = sendData_json['legal_person_name']
-        legal_person_mobile = sendData_json['legal_person_mobile']
-        manage_person_name = sendData_json['manage_person_name']
-        manage_person_mobile = sendData_json['manage_person_mobile']
-        q438 = wmm.creater_wx_organization_by_certificate_for_uniform_social_credit_code(
-            certificate_for_uniform_social_credit_code,
-            organization_name,
-            organization_address,
-            my_token_login_request['main_id']
-        )
-        if not q438==None: 
-            if not wmm.update_wx_user_by_main_id(
-                my_token_login_request['main_id'],
-                'active_organization',organization_main_id
-            )==None:
-                if not wmm.create_wx_organization_match_user_by_main_id_and_organization_main_id(
-                    my_token_login_request['main_id'],
-                    organization_main_id,
-                    'super_admin',
-                    'contract'
-                )==None:
-                    q455 = wmm.create_wx_user_info_by_mobile(
-                        legal_person_mobile,
-                        legal_person_name,
-                        organization_main_id,
-                        ''
-                    )
-                    if not q455 == None:
-                        q461 = wmm.create_wx_organization_match_user_by_main_id_and_organization_main_id(
-                            q455.d['main_id'],
-                            organization_main_id,
-                            'super_admin',
-                            'contract'
-                        )
-                        if not q461 == None:
-                            q469 = wmm.create_wx_user_info_by_mobile(
-                                manage_person_mobile,
-                                manage_person_name,
-                                organization_main_id,
-                                ''
-                            )
-                            if not q469 == None:
-                                q476 = wmm.create_wx_organization_match_user_by_main_id_and_organization_main_id(
-                                    q469.d['main_id'],
-                                    organization_main_id,
-                                    'super_admin',
-                                    'contract'
-                                )
-                                if not q476 == None:
-                                    return myHttpResponse( {'status': 1, 'data': {'organization_info':q438.d}, 'msg': '创建成功'} )
-                                else:
-                                    return myHttpResponse( {'status': 8, 'data': {}, 'msg': '关联管理员和组织失败'} )
-                            else:
-                                return myHttpResponse( {'status': 7, 'data': {}, 'msg': '创建管理员失败'} )
-                        else:
-                            return myHttpResponse( {'status': 6, 'data': {}, 'msg': '关联法人和组织失败'} )
-                    else:
-                        return myHttpResponse( {'status': 5, 'data': {}, 'msg': '创建法人失败'} )
-                else:
-                    return myHttpResponse( {'status': 4, 'data': {}, 'msg': '关联组织和用户失败'} )
+        q2 = db.create_wx_organization_by_cfuscc(
+            cfuscc,{
+                'name':organization_name,'address':organization_address
+        })
+        if not q2 == None: 
+            q3 = db.create_wx_organization_match_user(
+                q2.d['main_id'],
+                q1.d['main_id'],
+                {
+                    'role':'超级管理员',
+                    'labor_attribute':'合同制',
+                    'department':'其它部门',
+                }
+            )
+            if not q3 == None:
+                return myHttpResponse({'status': 1, 'data': {'organization_info':q2.d},'msg':'创建成功'} )
             else:
-                return myHttpResponse( {'status': 3, 'data': {}, 'msg': '更新默认组织失败'} )
+                return myHttpResponse({'status': 1, 'data': {'organization_info':q2.d},'msg':'个人与组织已存在关联'} )
         else:
-            return myHttpResponse( {'status': 2, 'data': {}, 'msg': '组织已存在'} )
+            return myHttpResponse({'status': 3, 'data': {}, 'msg': '失败！统一代码重复'})
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_organizationInfo_list(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_get_organizationInfo_list')
+        myConfig.debug_print(sendData,'-----------------wx_get_organizationInfo_list')
         sendData_json = json.loads(sendData)
         searchVal = sendData_json['searchVal']
         main_id = my_token_login_request['main_id']
@@ -481,14 +435,14 @@ def wx_get_organizationInfo_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_organization(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_swicth_organization')
+        myConfig.debug_print(sendData,'-----------------wx_swicth_organization')
         sendData_json = json.loads(sendData)
         organizationInfo = sendData_json['organizationInfo']
         main_id = my_token_login_request['main_id']
@@ -517,14 +471,14 @@ def wx_swicth_organization(request):
             msg = '切换成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_apply_for_join_organization(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_get_apply_for_join_organization')
+        myConfig.debug_print(sendData,'-----------------wx_get_apply_for_join_organization')
         sendData_json = json.loads(sendData)
         main_id = my_token_login_request['main_id']
         active_organization = my_token_login_request['active_organization']
@@ -553,12 +507,12 @@ def wx_get_apply_for_join_organization(request):
             msg = '查询成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_appral_apply_for_join_organization(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         def update_wx_join_organization_apply(my_token_login_request,apply,param):
             organization_main_id = my_token_login_request['active_organization']
             apply_person_main_id = apply['d']['apply_person_main_id']
@@ -584,7 +538,7 @@ def wx_appral_apply_for_join_organization(request):
                 else:
                     pass
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_appral_apply_for_join_organization')
+        myConfig.debug_print(sendData,'-----------------wx_appral_apply_for_join_organization')
         sendDataJson =  json.loads(sendData)
         apply = sendDataJson['apply']
         apply_person_main_id = apply['d']['apply_person_main_id']
@@ -651,16 +605,16 @@ def wx_appral_apply_for_join_organization(request):
         res = {'status': code, 'data': data, 'msg': msg}
         return myHttpResponse(res)
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         supplier_main_id = sendData_json['supplier_main_id']
-        certificate_for_uniform_social_credit_code = sendData_json['certificate_for_uniform_social_credit_code']
+        cfuscc = sendData_json['certificate_for_uniform_social_credit_code']
         supplier_name = sendData_json['supplier_name']
         supplier_address = sendData_json['supplier_address']
         legal_person_name = sendData_json['legal_person_name']
@@ -668,14 +622,14 @@ def wx_create_supplier(request):
         manage_person_name = sendData_json['manage_person_name']
         manage_person_mobile = sendData_json['manage_person_mobile']
         wx_supplier373 = models.wx_supplier_info.objects(__raw__ ={
-            'd.certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code
+            'd.certificate_for_uniform_social_credit_code':cfuscc
         }).first()
         import datetime
         if wx_supplier373 == None:
             supplier_main_id = tool.wmm_create_main_id()
             d799 = {
                 'supplier_main_id':supplier_main_id,
-                'certificate_for_uniform_social_credit_code':certificate_for_uniform_social_credit_code,
+                'certificate_for_uniform_social_credit_code':cfuscc,
                 'supplier_name':supplier_name,
                 'supplier_address':supplier_address,
                 'super_admin_person':{
@@ -725,12 +679,12 @@ def wx_create_supplier(request):
             msg = '组织已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_supplier_department(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         if not (my_token_login_request[3]['super_admin'] or my_token_login_request[3]['nomarl_admin']): #供应商权限验证
             code = 4
             data = {}
@@ -788,14 +742,14 @@ def wx_create_supplier_department(request):
             msg = '已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_supplierInfo_list(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_get_supplierInfo_list')
+        myConfig.debug_print(sendData,'-----------------wx_get_supplierInfo_list')
         sendData_json = json.loads(sendData)
         searchVal = sendData_json['searchVal']
         main_id = my_token_login_request['main_id']
@@ -840,14 +794,14 @@ def wx_get_supplierInfo_list(request):
             msg = '查询到'+str(wx_supplier_match_main_id478_len)+'个！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_swicth_supplier(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_swicth_supplier')
+        myConfig.debug_print(sendData,'-----------------wx_swicth_supplier')
         sendData_json = json.loads(sendData)
         supplierInfo = sendData_json['supplierInfo']
         main_id = my_token_login_request['main_id']
@@ -874,14 +828,14 @@ def wx_swicth_supplier(request):
             msg = '切换成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_get_my_wx_supplier_department_info_list(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_get_my_wx_supplier_department_info_list')
+        myConfig.debug_print(sendData,'-----------------wx_get_my_wx_supplier_department_info_list')
         sendData_json = json.loads(sendData)
         supplier_info = sendData_json['supplier_info']
         main_id = my_token_login_request['main_id']
@@ -902,14 +856,14 @@ def wx_get_my_wx_supplier_department_info_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_organization_department_info_list(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
-        print(sendData,'-----------------wx_organization_department_info_list')
+        myConfig.debug_print(sendData,'-----------------wx_organization_department_info_list')
         sendData_json = json.loads(sendData)
         d973 = sendData_json['organization_info']
         main_id = my_token_login_request['main_id']
@@ -930,12 +884,12 @@ def wx_organization_department_info_list(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_create_organization_department(request):
     try:
-        my_token_login_request = wmm.query_wx_user_by_token(request)
+        my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         if not (my_token_login_request[2]['super_admin'] or my_token_login_request[2]['nomarl_admin']): #组织权限验证
             code = 4
             data = {}
@@ -993,12 +947,12 @@ def wx_create_organization_department(request):
             msg = '已存在！'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_search_supplier(request):
     try:
-        # my_token_login_request = wmm.query_wx_user_by_token(request)
+        # my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         searchVal = sendData_json['searchVal']
@@ -1027,7 +981,7 @@ def wx_search_supplier(request):
             msg = '成功'
             return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
     except:
-        tool.traceback_print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 

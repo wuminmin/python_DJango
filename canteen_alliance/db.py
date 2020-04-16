@@ -10,11 +10,11 @@ def query_wx_user_first(key,value):
         q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_user_by_mobile(mobile,d):
-    tool.debug_print(mobile,d)
+    tool.debug_myConfig.debug_print(mobile,d)
     portrait = 'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg'
     if 'nickname' in d:
         nickname = d['nickname']
@@ -68,7 +68,7 @@ def query_wx_sms_first(key,value):
         q = models.wx_sms.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_sms_first2(k1,v1,k2,v2):
@@ -76,7 +76,7 @@ def query_wx_sms_first2(k1,v1,k2,v2):
         q = models.wx_sms.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_sms_by_mobile(mobile,password):
@@ -115,7 +115,7 @@ def query_wx_openid_first(key,value):
         q = models.wx_openid.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_openid_first2(key,value,key1,value1):
@@ -123,7 +123,7 @@ def query_wx_openid_first2(key,value,key1,value1):
         q = models.wx_openid.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_openid_by_mobile(mobile,openid,app_id,session_key,d):
@@ -169,7 +169,7 @@ def query_wx_organization_first(key,value):
         q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_organization_by_cfuscc(cfuscc,d):
@@ -182,8 +182,6 @@ def create_wx_organization_by_cfuscc(cfuscc,d):
         name = d['name']
     if 'address' in d:
         address = d['address']
-    if 'create_person_main_id' in d:
-        create_person_main_id = d['create_person_main_id']
     if query_wx_organization_first('certificate_for_uniform_social_credit_code',cfuscc) == None:
         d2 = {
             'has':True,
@@ -193,12 +191,10 @@ def create_wx_organization_by_cfuscc(cfuscc,d):
             'address':address,
             'department':department,
             'labor_attribute':labor_attribute,
-            'create_time':tool.wmm_get_now_time,
-            'create_person_main_id':create_person_main_id,
-            # 'portrait':'http://img1.imgtn.bdimg.com/it/u=1266808576,2151703311&fm=26&gp=0.jpg',
+            'create_time':myConfig.get_str_of_now_time(),
         }
         models.wx_organization(d=d2).save()
-        return query_wx_organization_first('mobile',mobile)
+        return query_wx_organization_first('certificate_for_uniform_social_credit_code',cfuscc)
     else:
         return None
 
@@ -247,7 +243,7 @@ def query_wx_organization_match_user_first(key,value):
         q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_organization_match_user_first2(key,value,key1,value1):
@@ -255,7 +251,7 @@ def query_wx_organization_match_user_first2(key,value,key1,value1):
         q = models.wx_organization.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_organization_match_user_list2(k1,v1,k2,v2):
@@ -266,7 +262,7 @@ def query_wx_organization_match_user_list2(k1,v1,k2,v2):
         else:
             return tool.qset_to_json(q)
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return []
 
 def query_wx_organization_match_user_first3(k1,v1,k2,v2,k3,v3):
@@ -276,7 +272,7 @@ def query_wx_organization_match_user_first3(k1,v1,k2,v2,k3,v3):
         }).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_organization_match_user(
@@ -304,7 +300,7 @@ def create_wx_organization_match_user(
             'role':role,
             'labor_attribute':labor_attribute,
             'department':department,
-            'is_default_organization':False,
+            'is_default_organization':True,
         }
         models.wx_organization_match_user(d=d2).save()
         q = query_wx_organization_match_user_first2(
@@ -365,7 +361,7 @@ def query_wx_supplier_first(key,value):
         q = models.wx_supplier.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_supplier_by_cfuscc(cfuscc,d):
@@ -443,7 +439,7 @@ def query_wx_supplier_match_user_first(key,value):
         q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_supplier_match_user_first2(key,value,key1,value1):
@@ -451,7 +447,7 @@ def query_wx_supplier_match_user_first2(key,value,key1,value1):
         q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def query_wx_supplier_match_user_list2(k1,v1,k2,v2):
@@ -462,7 +458,7 @@ def query_wx_supplier_match_user_list2(k1,v1,k2,v2):
         else:
             return tool.qset_to_json(q)
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return []
 
 def query_wx_supplier_match_user_first3(k1,v1,k2,v2,k3,v3):
@@ -472,7 +468,7 @@ def query_wx_supplier_match_user_first3(k1,v1,k2,v2,k3,v3):
         }).first()
         return q
     except:
-        print(traceback.format_exc())
+        myConfig.debug_print(traceback.format_exc())
         return None
 
 def create_wx_supplier_match_user(
