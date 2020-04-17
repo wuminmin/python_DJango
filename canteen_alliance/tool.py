@@ -122,6 +122,11 @@ def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
     if flag:
         print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
 
+def check_mobile(tel):
+    import re
+    ret = re.match(r"^1[35678]\d{9}$", tel)
+    return ret
+
 if __name__ == '__main__':
     tokenprogramer = Token('api_secret具体值', 'project_code具体值', 'account具体值')  # 对象实例化
     tokenprogramer.get_token()   #调用token对象

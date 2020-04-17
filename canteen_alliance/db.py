@@ -165,12 +165,28 @@ def delete_wx_openid_first(key,value):
 
 #wx_organization
 def query_wx_organization_first(key,value):
-    try:
-        q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
-        return q
-    except:
-        myConfig.debug_print(traceback.format_exc())
-        return None
+    q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
+    return q
+  
+
+def query_wx_organization_list_by_regex2(k1,v1,k2,v2):
+    q = models.wx_organization.objects(__raw__={'$or':[
+                {
+                    'd.'+k1:{
+                        '$regex':".*"+v1+".*"
+                    }
+                },
+                {
+                    'd.'+k2:{
+                            '$regex':".*"+v2+".*"
+                    }
+                }
+            ]
+        })
+    if list(q) == []:
+        return []
+    else:
+        return tool.qset_to_json(q)
 
 def create_wx_organization_by_cfuscc(cfuscc,d):
     name = None

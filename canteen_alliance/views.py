@@ -155,27 +155,14 @@ def wx_register(request):  #wx注册
 
 def wx_send_sms(request): #wx发短信
     try:
-        d_wx_login_get_openid = wx_login_get_openid(request)
-        myConfig.debug_print(d_wx_login_get_openid)
-        openid = d_wx_login_get_openid['openid']
-        wx_user166 = models.wx_user.objects(__raw__ = {
-                'd.openid':openid
-            }).first()
-        if wx_user166 == None:
-            pass
-        else:
-            code = 4
-            data = {}
-            msg = '不可以重复注册'
-            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
-        sendData = request.GET['sendData']
-        sendData_json = json.loads(sendData)
+        # d_wx_login_get_openid = wx_login_get_openid(request)
+        # openid = d_wx_login_get_openid['openid']
+        # app_id = d_wx_login_get_openid['app_id']
+        # session_key = d_wx_login_get_openid['session_key']
+        sendData_json = json.loads(request.GET['sendData'])
         mobile = sendData_json['mobile']
-        if mobile == '':
-            code = 2
-            data = {}
-            msg = '手机号为空'
-            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        if not tool.check_mobile(mobile):
+            return myHttpResponse({'status':2,'data':{},'msg':'手机号有误'} )
         else:
             import random
             import uuid
@@ -187,22 +174,16 @@ def wx_send_sms(request): #wx发短信
             myConfig.debug_print(r,'---------------阿里云短信网关')
             r2 = json.loads(r)
             if r2['Code'] == 'OK':
-                wx_sms165 = models.wx_sms.objects(__raw__ = {'d.mobile':mobile}).first()
-                if wx_sms165 == None:
-                    d = {'mobile':mobile, 'password':sms_code}
-                    models.wx_sms(d=d).save()
+                q1 = db.create_wx_sms_by_mobile(mobile,sms_code)
+                if q1 ==None:
+                    if db.update_wx_sms_by_mobile(mobile,sms_code):
+                        return myHttpResponse({'status':1,'data':{},'msg':'短信发送成功'})
+                    else:
+                        return myHttpResponse({'status':2,'data':{},'msg':'验证码更新失败'})
                 else:
-                    d = {'mobile':mobile, 'password':sms_code}
-                    wx_sms165.update(d=d)
-                code = 1
-                data = {}
-                msg = r2['Code']
-                res = {'status': code, 'data': data, 'msg': msg}
-                return myHttpResponse(res)
-            code = 3
-            data = {}
-            msg = r2['Code']
-            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+                    return myHttpResponse({'status':1,'data':{},'msg':'短信发送成功'})
+            else:
+                return myHttpResponse({'status':1,'data':{},'msg':'短信发送失败'})
     except:
         myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
@@ -271,41 +252,27 @@ def wx_sync_info(request):
 
 def wx_search_organization(request):
     try:
-        # my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
-        sendData = request.GET['sendData']
-        sendData_json = json.loads(sendData)
+        sendData_json = json.loads(request.GET['sendData'])
         searchVal = sendData_json['searchVal']
-        wx_organization249 = models.wx_organization.objects(__raw__ = {'$or':[
-                {
-                    'd.organization_name':{
-                        '$regex':".*"+searchVal+".*"
-                    }
-                },
-                {
-                    'd.organization_main_id':{
-                            '$regex':".*"+searchVal+".*"
-                        # '$regex':'/^([0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}|[1-9]\d{14})$/'
-                    }
-                }
-            ]
-        })
-        if list(wx_organization249) == []:
-            code = 2
-            data = {'organization_list':[]}
-            msg = '没有组织'
-            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+        l1 = db.query_wx_organization_list_by_regex2(
+            'organization_name',searchVal,
+            'certificate_for_uniform_social_credit_code',searchVal
+        )
+        if l1 == []:
+            return myHttpResponse( {'status': 2, 'data': {'organization_list':[]}, 'msg': '没有组织'} )
         else:
             code = 1
             data = { 'organization_list':tool.wmm_to_json(wx_organization249) }
             msg = '成功'
-            return myHttpResponse( {'status': code, 'data': data, 'msg': msg} )
+            return myHttpResponse({'status':1,'data':{'organization_list':l1},'msg':'成功'})
     except:
         myConfig.debug_print(traceback.format_exc())
-        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
+        return myHttpResponse({'status':0,'data':{},'msg':'系统异常'})
 
 def wx_joinDepartment(request):
     try:
         my_token_login_request = db.query_wx_user_first('token',request.GET['token'])
+
         sendData = request.GET['sendData']
         sendData_json = json.loads(sendData)
         organization_main_id = sendData_json['organization_main_id']
