@@ -15,6 +15,7 @@ urlpatterns = [
     path('wx_send_sms',views.wx_send_sms), #wx 发短信
     path('wx_sync_info',views.wx_sync_info), #同步信息
     path('wx_search_organization',views.wx_search_organization), #搜索组织
+    path('wx_commit_apply_for_organization',views.wx_commit_apply_for_organization), #提交加入组织申请
     path('wx_joinDepartment',views.wx_joinDepartment), #加入部门
     path('wx_create_organization',views.wx_create_organization), #创建组织
     path('wx_get_organizationInfo_list',views.wx_get_organizationInfo_list), #查询用户属于的组织

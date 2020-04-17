@@ -5,9 +5,9 @@ import traceback
 import time
 
 #wx_user
-def query_wx_user_first(key,value):
+def query_wx_user_first(k1,value):
     try:
-        q = models.wx_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_user.objects(__raw__={'d.'+k1:value}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -54,8 +54,8 @@ def update_wx_user_by_mobile(mobile,d):
     else:
         return False
 
-def delete_wx_user_first(key,value):
-    q = query_wx_user_first(key,value)
+def delete_wx_user_first(k1,value):
+    q = query_wx_user_first(k1,value)
     if not q == None:
         q.delete()
         return True
@@ -63,9 +63,9 @@ def delete_wx_user_first(key,value):
         return False
 
 #wx_sms
-def query_wx_sms_first(key,value):
+def query_wx_sms_first(k1,value):
     try:
-        q = models.wx_sms.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_sms.objects(__raw__={'d.'+k1:value}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -101,8 +101,8 @@ def update_wx_sms_by_mobile(mobile,password):
     else:
         return False
 
-def delete_wx_sms_first(key,value):
-    q = query_wx_sms_first(key,value)
+def delete_wx_sms_first(k1,value):
+    q = query_wx_sms_first(k1,value)
     if not q == None:
         q.delete()
         return True
@@ -110,17 +110,17 @@ def delete_wx_sms_first(key,value):
         return False
 
 #wx_openid
-def query_wx_openid_first(key,value):
+def query_wx_openid_first(k1,value):
     try:
-        q = models.wx_openid.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_openid.objects(__raw__={'d.'+k1:value}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
         return None
 
-def query_wx_openid_first2(key,value,key1,value1):
+def query_wx_openid_first2(k1,v1,k2,v2):
     try:
-        q = models.wx_openid.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_openid.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -155,8 +155,8 @@ def update_wx_openid_by_mobile(mobile,openid,app_id,session_key,d):
     else:
         return False
 
-def delete_wx_openid_first(key,value):
-    q = query_wx_openid_first(key,value)
+def delete_wx_openid_first(k1,v1):
+    q = query_wx_openid_first(k1,v1)
     if not q == None:
         q.delete()
         return True
@@ -164,8 +164,8 @@ def delete_wx_openid_first(key,value):
         return False
 
 #wx_organization
-def query_wx_organization_first(key,value):
-    q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
+def query_wx_organization_first(k1,v1):
+    q = models.wx_organization.objects(__raw__={'d.'+k1:v1}).first()
     return q
   
 
@@ -191,8 +191,23 @@ def query_wx_organization_list_by_regex2(k1,v1,k2,v2):
 def create_wx_organization_by_cfuscc(cfuscc,d):
     name = None
     address = None
-    department = ['销售部门','生产部门','管理部门']
-    labor_attribute = ['合同制','派遣制','第三方','其它']
+    role = [
+        {'key':'超级管理员'},
+        {'key':'普通管理员'},
+        {'key':'普通用户'},
+        {'key':'临时用户'},
+    ]
+    department = [
+        {'key':'销售部门'},
+        {'key':'生产部门'},
+        {'key':'管理部门'},
+    ]
+    labor_attribute = [
+        {'key':'合同制'},
+        {'key':'派遣制'},
+        {'key':'第三方'},
+        {'key':'其它'},
+    ]
     create_person_main_id = None
     if 'name' in d:
         name = d['name']
@@ -243,8 +258,8 @@ def update_wx_organization_by_mobile(cfuscc,d):
     else:
         return False
 
-def delete_wx_organization_first(key,value):
-    q = query_wx_organization_first(key,value)
+def delete_wx_organization_first(k1,v1):
+    q = query_wx_organization_first(k1,v1)
     if not q == None:
         q.delete()
         return True
@@ -254,17 +269,17 @@ def delete_wx_organization_first(key,value):
 
 
 #wx_organization_match_user
-def query_wx_organization_match_user_first(key,value):
+def query_wx_organization_match_user_first(k1,v1):
     try:
-        q = models.wx_organization.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_organization.objects(__raw__={'d.'+k1:v1}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
         return None
 
-def query_wx_organization_match_user_first2(key,value,key1,value1):
+def query_wx_organization_match_user_first2(k1,v1,k2,v2):
     try:
-        q = models.wx_organization.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_organization.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -360,9 +375,9 @@ def update_wx_organization_match_user(organization_main_id,user_main_id,d):
         return False
 
 def delete_wx_organization_match_user_first2(
-   key,value,key1,value1
+   k1,v1,k2,v2
 ):
-    q = query_wx_organization_match_user_first2(key,value,key1,value1)
+    q = query_wx_organization_match_user_first2(k1,v1,k2,v2)
     if not q == None:
         q.delete()
         return True
@@ -372,9 +387,9 @@ def delete_wx_organization_match_user_first2(
 
 
 #wx_supplier
-def query_wx_supplier_first(key,value):
+def query_wx_supplier_first(k1,v1):
     try:
-        q = models.wx_supplier.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_supplier.objects(__raw__={'d.'+k1:v1}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -439,8 +454,8 @@ def update_wx_supplier_by_mobile(cfuscc,d):
     else:
         return False
 
-def delete_wx_supplier_first(key,value):
-    q = query_wx_supplier_first(key,value)
+def delete_wx_supplier_first(k1,v1):
+    q = query_wx_supplier_first(k1,v1)
     if not q == None:
         q.delete()
         return True
@@ -450,17 +465,17 @@ def delete_wx_supplier_first(key,value):
 
 
 #wx_supplier_match_user
-def query_wx_supplier_match_user_first(key,value):
+def query_wx_supplier_match_user_first(k1,v1):
     try:
-        q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value}).first()
+        q = models.wx_supplier_match_user.objects(__raw__={'d.'+k1:v1}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
         return None
 
-def query_wx_supplier_match_user_first2(key,value,key1,value1):
+def query_wx_supplier_match_user_first2(k1,v1,k2,v2):
     try:
-        q = models.wx_supplier_match_user.objects(__raw__={'d.'+key:value,'d.'+key1:value1}).first()
+        q = models.wx_supplier_match_user.objects(__raw__={'d.'+k1:v1,'d.'+k2:v2}).first()
         return q
     except:
         myConfig.debug_print(traceback.format_exc())
@@ -556,9 +571,9 @@ def update_wx_supplier_match_user(organization_main_id,user_main_id,d):
         return False
 
 def delete_wx_supplier_match_user_first2(
-   key,value,key1,value1
+   k1,v1,k2,v2
 ):
-    q = query_wx_supplier_match_user_first2(key,value,key1,value1)
+    q = query_wx_supplier_match_user_first2(k1,v1,k2,v2)
     if not q == None:
         q.delete()
         return True

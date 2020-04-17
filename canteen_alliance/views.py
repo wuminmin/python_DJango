@@ -262,12 +262,47 @@ def wx_search_organization(request):
             return myHttpResponse( {'status': 2, 'data': {'organization_list':[]}, 'msg': '没有组织'} )
         else:
             code = 1
-            data = { 'organization_list':tool.wmm_to_json(wx_organization249) }
+            data = {'organization_list':l1}
             msg = '成功'
             return myHttpResponse({'status':1,'data':{'organization_list':l1},'msg':'成功'})
     except:
         myConfig.debug_print(traceback.format_exc())
         return myHttpResponse({'status':0,'data':{},'msg':'系统异常'})
+
+def wx_commit_apply_for_organization(request):
+    try:
+        q1 = db.query_wx_user_first('token',request.GET['token'])
+        if not q1 == None:
+            sendData_json = json.loads(request.GET['sendData'])
+            cfuscc = sendData_json['certificate_for_uniform_social_credit_code']
+            name = sendData_json['name']
+            department = sendData_json['department']
+            labor_contract = sendData_json['labor_contract']
+            q2 = db.query_wx_organization_first('certificate_for_uniform_social_credit_code',cfuscc)
+            if not q2 == None:
+                q3 = db.query_wx_organization_match_user_first2(
+                    'user_main_id',q1.d['main_id'],
+                    'organization_main_id',q2.d['main_id']
+                )
+                if not q3 == None:
+                    if db.update_wx_organization_match_user(
+                        q2.d['main_id'],q1.d['main_id'],
+                        {
+
+                        }
+                    ):
+                        return myHttpResponse({'status':1,'data':{},'msg':'已收到申请'})
+                    else:
+                        return myHttpResponse({'status':1,'data':{},'msg':'更新申请失败'})
+                else:
+                    return myHttpResponse({'status':1,'data':{},'msg':'更新申请失败'})
+            else:
+                return myHttpResponse({'status':1,'data':{},'msg':'更新申请失败'})
+        else:
+            return myHttpResponse({'status':1,'data':{},'msg':'更新申请失败'})
+    except:
+        myConfig.debug_print(traceback.format_exc())
+        return myHttpResponse({'status': 0, 'data': {}, 'msg': '系统异常'})
 
 def wx_joinDepartment(request):
     try:
