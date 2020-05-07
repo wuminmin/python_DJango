@@ -119,12 +119,15 @@ def 订餐没吃统计发邮件(mail_addr,子菜单page_name):
         当月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month, 1).strftime('%Y-%m-%d')
         上月第一天 = datetime.date(2019, 12, 1).strftime('%Y-%m-%d')
        
-        # 上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
-        # dcjg = 订餐结果表.objects(
-        #     用餐日期__gte=上月第一天,
-        #     用餐日期__lt=当月第一天,
-        #     子菜单page_name = 子菜单page_name
-        # )
+        上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
+        dcjg = 订餐结果表.objects(
+            # 用餐日期__gte=上月第一天,
+            # 用餐日期__lt=当月第一天,
+
+            用餐日期__gte='20200401',
+            用餐日期__lt='20200430',
+            子菜单page_name = 子菜单page_name
+        )
         dcjg = 订餐结果表.objects(
             子菜单page_name = 子菜单page_name
         )

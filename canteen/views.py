@@ -19,6 +19,8 @@ from .models import 订餐食堂模版表, 订餐结果表, 订餐主界面表, 
     烟草公司每月外带上限次数
 import sys
 from . import models
+from . import tool
+from . import db
 
 from canteen.auto import 启动定时器
 启动定时器()
@@ -186,30 +188,13 @@ def 下载订餐模版2(request):
                 主菜单name = 订餐模版表_one.主菜单name
                 if 用餐日期 == '':
                     用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-                # 预订开始日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-                # 预订结束日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 864000))
                 会话 = ''
                 描述 = '下载成功'
                 queryset0 = 订餐结果表.objects(手机号=手机号, 用餐日期=用餐日期,子菜单page_name=子菜单page_name,
                     子菜单page_desc=子菜单page_desc, ).first()
-                # if queryset0 == None:
-                #     早餐食堂就餐预订数 = 0
-                #     中餐食堂就餐预订数 = 0
-                #     晚餐食堂就餐预订数 = 0
-                #     早餐食堂外带预订数 = 0
-                #     中餐食堂外带预订数 = 0
-                #     晚餐食堂外带预订数 = 0
-                #     包子外带预订数 = 0
-                # else:
-                #     早餐食堂就餐预订数 = queryset0.早餐食堂就餐预订数
-                #     中餐食堂就餐预订数 = queryset0.中餐食堂就餐预订数
-                #     晚餐食堂就餐预订数 = queryset0.晚餐食堂就餐预订数
-                #     早餐食堂外带预订数 = queryset0.早餐食堂外带预订数
-                #     中餐食堂外带预订数 = queryset0.中餐食堂外带预订数
-                #     晚餐食堂外带预订数 = queryset0.晚餐食堂外带预订数
                 ding_can_list = [ ]
                 from . import models
-                for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
+                for one in models.产品全局字典[wx_login_get_openid_dict['app_id']]['产品列表']:
                     if queryset0 == None:
                         ding_can_list.append(
                             {
@@ -526,49 +511,9 @@ def 异步计算消费金额(wx_login_get_openid_dict):
         pass
     else:
         手机号 = qset订餐用户表.手机号
-        for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
-            pipeline = [
-                {
-                    "$match": {
-                        "手机号":手机号,
-                        "产品."+one['名称']+".签到": "吃过"
-                    }
-                }
-                ,
-                {
-                    "$group": {
-                        "_id": "null",
-                        one['名称']: {
-                            "$sum": "$产品."+one['名称']+".预定数量"
-                        }
-                    }
-                }
-            ]
-            r = list(models.订餐结果表.objects.aggregate(*pipeline))
-            for one2 in r:
-                print('one2[one[]]---------',one2[one['名称']])
-                已消费 = 已消费 + one2[one['名称']]*one['价格']
-            pipeline2 = [
-                {
-                    "$match": {
-                        "手机号":手机号,
-                        "产品."+one['名称']+".签到": "没吃"
-                    }
-                }
-                ,
-                {
-                    "$group": {
-                        "_id": "null",
-                        one['名称']: {
-                            "$sum": "$产品."+one['名称']+".预定数量"
-                        }
-                    }
-                }
-            ]
-            r2 = list(models.订餐结果表.objects.aggregate(*pipeline2))
-            for one2 in r2:
-                print('one2[one[]]---------',one2[one['名称']])
-                预消费 = 预消费 + one2[one['名称']]*one['价格']
+        查询预消费和已消费 = db.查询预消费和已消费(手机号,models.产品全局字典[wx_login_get_openid_dict['app_id']]['产品名称列表'])
+        已消费 = 已消费 + 查询预消费和已消费['已消费']
+        预消费 = 预消费 + 查询预消费和已消费['预消费']
         qset1 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if qset1 == None:
             pass
@@ -595,6 +540,7 @@ def 上传订餐结果2(request):
         else:
             手机号 = 订餐用户表_one.手机号
             订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
+            折扣标签 = 订餐主界面表_first.四级部门
             主菜单name = request.GET['name']
             子菜单page_name = request.GET['page_name']
             子菜单page_desc = request.GET['page_desc']
@@ -640,23 +586,23 @@ def 上传订餐结果2(request):
                     手机号=手机号,子菜单page_name=子菜单page_name,
                     用餐日期=用餐日期
                 ).first()
-                for one in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
+                for one in models.产品全局字典[wx_login_get_openid_dict['app_id']]['产品列表']:
                     if tittle == one['名称']:
                         if qset2 == None :
                             签到 = '没吃'
-                            totalAmount_int = totalAmount_int + index*one['价格']
+                            totalAmount_int = totalAmount_int + tool.动态计算金额(index,one,折扣标签)
                         elif tittle in qset2.产品:
                             签到 = qset2.产品[tittle]['签到']
                             已有预定数量 = qset2.产品[tittle]['预定数量']
                             if index == 已有预定数量:
-                                totalAmount_int = totalAmount_int + (index-已有预定数量)*one['价格']
+                                totalAmount_int = totalAmount_int + tool.动态计算金额((index-已有预定数量),one,折扣标签)
                             elif index < 已有预定数量:
                                 if 签到 == '吃过':
                                     自定义登录状态 = {'描述': tittle+'吃过,不能修改', '会话': ''}
                                     自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
                                     自定义登录状态 = str(自定义登录状态)
                                     return HttpResponse(自定义登录状态)
-                                totalAmount_int = totalAmount_int + (index-已有预定数量)*one['价格']
+                                totalAmount_int = totalAmount_int + tool.动态计算金额((index-已有预定数量),one,折扣标签)
                                 就餐时间 = one['就餐时间']
                                 就餐时间 = 用餐日期 + ' ' + 就餐时间
                                 取消提前秒 = one['取消提前秒']
@@ -681,7 +627,7 @@ def 上传订餐结果2(request):
                                             自定义登录状态 = str(自定义登录状态)
                                             return HttpResponse(自定义登录状态)
                             else:
-                                totalAmount_int = totalAmount_int + (index-已有预定数量)*one['价格']
+                                totalAmount_int = totalAmount_int + tool.动态计算金额((index-已有预定数量),one,折扣标签)
                                 就餐时间 = one['就餐时间']
                                 就餐时间 = 用餐日期 + ' ' + 就餐时间
                                 取消提前秒 = one['取消提前秒']
@@ -698,7 +644,7 @@ def 上传订餐结果2(request):
                             if index == 0:
                                 pass
                             else:
-                                totalAmount_int = totalAmount_int + index*one['价格']
+                                totalAmount_int = totalAmount_int + tool.动态计算金额((index),one,折扣标签)
                                 就餐时间 = one['就餐时间']
                                 就餐时间 = 用餐日期 + ' ' + 就餐时间
                                 取消提前秒 = one['取消提前秒']
@@ -715,7 +661,7 @@ def 上传订餐结果2(request):
                             '预定时间':当前时间,
                             '预定数量':index,
                             '签到':签到,
-                            '价格':one['价格']
+                            '价格':tool.动态计算价格(one,折扣标签)
                         }
                         queryset1.update(产品=产品)
             queryset10 = models.订餐结果临时表.objects(
@@ -836,57 +782,64 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 name_list = []
             else:
                 name_list = 订餐部门表_first.三级部门列表
-            if 子菜单page_desc == 中餐统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('中餐食堂就餐预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('中餐食堂就餐预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂就餐预订数')
-            elif 子菜单page_desc == 晚餐统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('晚餐食堂就餐预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃).sum('晚餐食堂就餐预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过).sum('晚餐食堂就餐预订数')
-            elif 子菜单page_desc == 早餐统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('早餐食堂就餐预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃).sum('早餐食堂就餐预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过).sum('早餐食堂就餐预订数')
-            elif 子菜单page_desc == 早餐外带统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期).sum('早餐食堂外带预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('早餐食堂外带预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('早餐食堂外带预订数')
-            elif 子菜单page_desc == 中餐外带统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期).sum('中餐食堂外带预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('中餐食堂外带预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂外带预订数')
-            elif 子菜单page_desc == 晚餐外带统计:
-                订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)
-                总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)))
-                没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
-                吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
-                总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期).sum('晚餐食堂外带预订数')
-                没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('晚餐食堂外带预订数')
-                吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('晚餐食堂外带预订数')
-            else:
-                订餐结果表_all = []
-                pass
+            总人数 = 0
+            没吃人数 = 0
+            吃过人数 = 0
+            总份数 = 0
+            没吃份数 = 0
+            吃过份数 = 0
+            订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 用餐日期=日期)
+            # if 子菜单page_desc == 中餐统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('中餐食堂就餐预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('中餐食堂就餐预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂就餐预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂就餐预订数')
+            # elif 子菜单page_desc == 晚餐统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('晚餐食堂就餐预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=没吃).sum('晚餐食堂就餐预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂就餐预订数__gte=1, 用餐日期=日期, 晚餐食堂就餐签到=吃过).sum('晚餐食堂就餐预订数')
+            # elif 子菜单page_desc == 早餐统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期).sum('早餐食堂就餐预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=没吃).sum('早餐食堂就餐预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂就餐预订数__gte=1, 用餐日期=日期, 早餐食堂就餐签到=吃过).sum('早餐食堂就餐预订数')
+            # elif 子菜单page_desc == 早餐外带统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期).sum('早餐食堂外带预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('早餐食堂外带预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 早餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('早餐食堂外带预订数')
+            # elif 子菜单page_desc == 中餐外带统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期).sum('中餐食堂外带预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('中餐食堂外带预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 中餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('中餐食堂外带预订数')
+            # elif 子菜单page_desc == 晚餐外带统计:
+            #     订餐结果表_all = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)
+            #     总人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期)))
+            #     没吃人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃)))
+            #     吃过人数 = len(list(订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过)))
+            #     总份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期).sum('晚餐食堂外带预订数')
+            #     没吃份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=没吃).sum('晚餐食堂外带预订数')
+            #     吃过份数 = 订餐结果表.objects(子菜单page_name=子菜单page_name, 晚餐食堂外带预订数__gte=1, 用餐日期=日期, 中餐食堂就餐签到=吃过).sum('晚餐食堂外带预订数')
+            # else:
+            #     订餐结果表_all = []
+            #     pass
             r_list = []
             id = 1
             for name_one in name_list:
@@ -895,68 +848,68 @@ def 异步计算订餐结果(子菜单page_name, 二级部门):
                 id = id + 1
                 r_dict['name'] = name_one
                 pages = []
-                for 订餐结果表_one in 订餐结果表_all:
-                    订餐主界面表_first = 订餐主界面表.objects(手机号=订餐结果表_one.手机号, 三级部门=name_one).first()
-                    if 订餐主界面表_first == None:
-                        continue
-                    else:
-                        rr_dict = {}
-                        if 子菜单page_desc == 早餐外带统计:
-                            if 订餐结果表_one.早餐食堂就餐签到 == 没吃:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
-                                pages.append(rr_dict)
-                        elif 子菜单page_desc == 中餐外带统计:
-                            if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂外带预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
-                                pages.append(rr_dict)
-                        elif 子菜单page_desc == 晚餐外带统计:
-                            if 订餐结果表_one.晚餐食堂就餐签到 == 没吃:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂外带预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
-                                pages.append(rr_dict)
-                        elif 子菜单page_desc == 早餐统计:
-                            if 订餐结果表_one.子菜单page_name == 青阳食堂:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
-                                pages.append(rr_dict)
-                            else:
-                                if 订餐结果表_one.早餐食堂就餐签到 == 没吃:
-                                    rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                    rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂就餐预订数
-                                    rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
-                                    pages.append(rr_dict)
-                        elif 子菜单page_desc == 中餐统计:
-                            if 订餐结果表_one.子菜单page_name == 青阳食堂:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
-                                pages.append(rr_dict)
-                            else:
-                                if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
-                                    rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                    rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
-                                    rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
-                                    pages.append(rr_dict)
-                        elif 子菜单page_desc == 晚餐统计:
-                            if 订餐结果表_one.子菜单page_name == 青阳食堂:
-                                rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
-                                rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
-                                pages.append(rr_dict)
-                            else:
-                                if 订餐结果表_one.晚餐食堂就餐签到 == 没吃:
-                                    rr_dict['page_name'] = 订餐主界面表_first.姓名
-                                    rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
-                                    rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
-                                    pages.append(rr_dict)
-                        else:
-                            pass
+                # for 订餐结果表_one in 订餐结果表_all:
+                #     订餐主界面表_first = 订餐主界面表.objects(手机号=订餐结果表_one.手机号, 三级部门=name_one).first()
+                #     if 订餐主界面表_first == None:
+                #         continue
+                #     else:
+                #         rr_dict = {}
+                        # if 子菜单page_desc == 早餐外带统计:
+                        #     if 订餐结果表_one.早餐食堂就餐签到 == 没吃:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        # elif 子菜单page_desc == 中餐外带统计:
+                        #     if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂外带预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        # elif 子菜单page_desc == 晚餐外带统计:
+                        #     if 订餐结果表_one.晚餐食堂就餐签到 == 没吃:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂外带预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        # elif 子菜单page_desc == 早餐统计:
+                        #     if 订餐结果表_one.子菜单page_name == 青阳食堂:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂外带预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        #     else:
+                        #         if 订餐结果表_one.早餐食堂就餐签到 == 没吃:
+                        #             rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #             rr_dict['shu_liang'] = 订餐结果表_one.早餐食堂就餐预订数
+                        #             rr_dict['page_desc'] = 订餐结果表_one.早餐食堂就餐签到
+                        #             pages.append(rr_dict)
+                        # elif 子菜单page_desc == 中餐统计:
+                        #     if 订餐结果表_one.子菜单page_name == 青阳食堂:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        #     else:
+                        #         if 订餐结果表_one.中餐食堂就餐签到 == 没吃:
+                        #             rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #             rr_dict['shu_liang'] = 订餐结果表_one.中餐食堂就餐预订数
+                        #             rr_dict['page_desc'] = 订餐结果表_one.中餐食堂就餐签到
+                        #             pages.append(rr_dict)
+                        # elif 子菜单page_desc == 晚餐统计:
+                        #     if 订餐结果表_one.子菜单page_name == 青阳食堂:
+                        #         rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #         rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
+                        #         rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
+                        #         pages.append(rr_dict)
+                        #     else:
+                        #         if 订餐结果表_one.晚餐食堂就餐签到 == 没吃:
+                        #             rr_dict['page_name'] = 订餐主界面表_first.姓名
+                        #             rr_dict['shu_liang'] = 订餐结果表_one.晚餐食堂就餐预订数
+                        #             rr_dict['page_desc'] = 订餐结果表_one.晚餐食堂就餐签到
+                        #             pages.append(rr_dict)
+                        # else:
+                        #     pass
                 r_dict['num'] = len(pages)
                 if r_dict['num'] == 0:
                     pass
@@ -995,7 +948,7 @@ def 异步统计产品(食堂名称,二级部门,wx_login_get_openid_dict):
     for 日期_list_one in 日期_list:
         日期 = 日期_list_one
         from . import models
-        for 产品 in models.产品列表字典[wx_login_get_openid_dict['app_id']]:
+        for 产品 in models.产品全局字典[wx_login_get_openid_dict['app_id']]['产品列表']:
             产品名称 = 产品['名称']
             pipeline = [
                 {

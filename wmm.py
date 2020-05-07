@@ -10,8 +10,13 @@ import time
 import sys, os
 root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(root_path)
-
+import myConfig
 #异步函数
+from myConfig import sign_name
+from mysite.chou_jiang_mongo import 采集模版表, 抽奖主界面表, 采集分工表
+from mysite.demo_sms_send import send_sms
+from mysite.ding_can_mongo import 订餐结果表, 订餐主界面表, 订餐提醒短信锁
+
 def deprecated_async(f):
     def wrapper(*args, **kwargs):
         from threading import Thread
@@ -23,23 +28,176 @@ def job():
     创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     print(创建时间,"订餐提醒任务正在执行")
 
-def 自动核销():
-    from canteen import models
-    用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-    qset1 = models.订餐结果表.objects(用餐日期=用餐日期)
-    for one in qset1:
-        产品 = one.产品
-        for one2 in models.产品名称列表字典['wx10547371f9547456']:
-            if one2 in 产品:
-                if 产品[one2]['签到'] == '没吃':
-                    产品[one2]['签到'] = '吃过'
-                    print(产品)
-        one.update(产品=产品)
+def 订餐提醒任务():
+    try:
+        日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+        订餐提醒短信锁_first = 订餐提醒短信锁.objects(日期=日期).first()
+        if 订餐提醒短信锁_first == None:
+            订餐提醒短信锁(日期=日期,短信锁=False).save()
+            订餐提醒任务()
+        else:
+            if 订餐提醒短信锁_first.短信锁 :
+                return False
+            else:
+                订餐提醒短信锁_first.update(短信锁=True)
+                template_code_ding_can_ti_xing = 'SMS_157682401'
+                日期 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
+                订餐结果表_objs = 订餐结果表.objects(用餐日期=日期)
+                手机号_list = []
+                手机号_list.append('13305669898')#这个用户要求屏蔽短信提醒
+                for 订餐结果表_obj in 订餐结果表_objs:
+                    if 订餐结果表_obj.中餐食堂就餐预订数 == 1 or 订餐结果表_obj.晚餐食堂就餐预订数 == 1:
+                        手机号_list.append(订餐结果表_obj.手机号)
+                订餐主界面表_objs = 订餐主界面表.objects
+                for 订餐主界面表_obj in 订餐主界面表_objs:
+                    手机号 = 订餐主界面表_obj.手机号
+                    if 手机号 in 手机号_list:
+                        pass
+                    else:
+                        # 创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                        # print(创建时间, '发送订餐提醒短信给', 手机号)
+                        __business_id = uuid.uuid1()
+                        name = 订餐主界面表_obj.姓名
+                        params = {'name': name,'time':日期}
+                        params = json.dumps(params).encode('utf-8').decode('unicode_escape')
+                        r = send_sms(__business_id, 手机号, sign_name, template_code_ding_can_ti_xing, params)
+                        r2 = json.loads(r)
+                        if r2['Code'] == 'OK':
+                            创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                            print(创建时间, '发送订餐提醒短信给', 手机号)
+                return True
+    except:
+        print(traceback.format_exc())
+        return False
 
+def 发邮件(邮箱, 文件名, 姓名, 附件):
+    import smtplib
+    from email.header import Header
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    mail_host = 'smtp.qq.com'
+    # receivers = '15305513057@189.cn'
+    receivers = 邮箱
+    sender = myConfig.qq_mail_send
+    passwd = myConfig.qq_mail_passwd
+    # 创建一个带附件的实例
+    message = MIMEMultipart()
+    message['From'] = Header("订餐123", 'utf-8')
+    message['To'] = Header(姓名, 'utf-8')
+    subject = '订餐123订餐结果'
+    message['Subject'] = Header(subject, 'utf-8')
+    # 邮件正文内容
+    message.attach(
+        MIMEText(
+            '这是“订餐123”微信小程序自动发出的邮件，请不要回复。若附件后缀名不可用，请下载后自行修改为 .xls',
+            'plain',
+            'utf-8'
+        )
+    )
+    # 文件名 = '13093452622常柯仁淮南市20190323123702.csv'
+    文件路径 = myConfig.django_root_path + '/' + 文件名
+    # 构造附件1，传送当前目录下的 test.txt 文件
+    # att1 = MIMEText(open(文件路径, 'rb').read(), 'base64', 'utf-8')
+    att1 = MIMEText(附件, 'base64', 'utf-8')
+    att1["Content-Type"] = 'application/octet-stream'
+    # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+    att1["Content-Disposition"] = 'attachment; filename="excel.xls"'
+    message.attach(att1)
+    try:
+        server = smtplib.SMTP_SSL(mail_host)
+        server.login(sender, passwd)
+        server.sendmail(sender, receivers, message.as_string())
+        print('发送成功')
+        return True
+    except smtplib.SMTPException:
+        print('无法发送')
+        return False
+
+def 订餐没吃统计发邮件(mail_addr,子菜单page_name):
+    try:
+        # 子菜单page_name = '市公司食堂'
+        当月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month, 1).strftime('%Y-%m-%d')
+        上月第一天 = datetime.date(2019, 12, 1).strftime('%Y-%m-%d')
+       
+        上月第一天 = datetime.date(datetime.date.today().year, datetime.date.today().month - 1, 1).strftime('%Y-%m-%d')
+        dcjg = 订餐结果表.objects(
+            # 用餐日期__gte=上月第一天,
+            # 用餐日期__lt=当月第一天,
+
+            # 用餐日期__gte='20200401',
+            # 用餐日期__lt='20200430',
+            子菜单page_name = 子菜单page_name
+        )
+        dcjg = 订餐结果表.objects(
+            子菜单page_name = 子菜单page_name
+        )
+        l1 = []
+        l2 = []
+        l3 = []
+        l4 = []
+        l5 = []
+        l6 = []
+        l7 = []
+        l8 = []
+        l9 = []
+        for dcjg_1 in dcjg:
+            手机号 = dcjg_1.手机号
+            用餐日期 = dcjg_1.用餐日期
+            早餐食堂就餐签到 = dcjg_1.早餐食堂就餐签到
+            中餐食堂就餐签到 = dcjg_1.中餐食堂就餐签到
+            晚餐食堂就餐签到 = dcjg_1.晚餐食堂就餐签到
+            dczjm = 订餐主界面表.objects(
+                手机号=手机号
+            ).first()
+            if dczjm == None:
+                continue
+            二级部门 = dczjm.二级部门
+            三级部门 = dczjm.三级部门
+            四级部门 = dczjm.四级部门
+            姓名 = dczjm.姓名
+            l1.append(手机号)
+            l2.append(用餐日期)
+            l9.append(早餐食堂就餐签到)
+            l3.append(中餐食堂就餐签到)
+            l4.append(晚餐食堂就餐签到)
+            l5.append(二级部门)
+            l6.append(三级部门)
+            l7.append(四级部门)
+            l8.append(姓名)
+        jie_guo_df = pandas.DataFrame({
+             '手机号': l1,
+            '用餐日期': l2,
+            '早餐食堂就餐签到': l9,
+            '中餐食堂就餐签到': l3,
+            '晚餐食堂就餐签到': l4,
+            '二级部门': l5,
+            '三级部门': l6,
+            '四级部门': l7,
+            '姓名':l8
+        })
+        创建时间 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+        file_name = '订餐没吃统计发邮件' + 创建时间 + '.xls'
+        邮箱 = mail_addr
+        文件名 = file_name
+        姓名 = '管理员'
+        import io
+        s_buf = io.StringIO()
+        # jie_guo_df.to_excel(s_buf)
+        jie_guo_df.to_excel(file_name, encoding='gbk')
+        附件 =  open(file_name,'rb').read()
+        发邮件(邮箱, 文件名, 姓名,附件)
+    except:
+        print(traceback.format_exc())
+
+def 发生日短信():
+    pass
 
 @deprecated_async
-def 启动定时器():
-    schedule.every().day.at("17:14").do(自动核销)
+def 启动订餐提醒定时器():
+    # mail_addr = ['15305669601@189.cn','15305669706@189.cn','15305666002@189.cn','18905667300@189.cn']
+    # mail_addr = ['buckwmm@qq.com']
+    schedule.every().monday.do(订餐没吃统计发邮件,'15305669706@189.cn')
+    # schedule.every().day.at("17:14").do(订餐没吃统计发邮件,mail_addr)
     # schedule.every(10).seconds.do(job)
     # schedule.every(10).minutes.do(job)
     # schedule.every().hour.do(job)
@@ -52,60 +210,10 @@ def 启动定时器():
         schedule.run_pending()
         time.sleep(1)
 
-def 食堂管理后台添加管理员():
-    from canteen import manage_models 
-    from canteen import models
-    manage_models.my_user(
-        d = {'username':'cztt','password':'ttgs@20200406'}
-    ).save()
-
-    # q1 = models.订餐结果表.objects(手机号='13355661100').first()
-    # print(q1)
-
-    q1 = manage_models.my_user.objects().to_json()
-    print(q1)
-
-def 食堂管理后台删除管理员():
-    from canteen import manage_models 
-    from canteen import models
-    q1 = manage_models.my_user.objects(__raw__ = {'d.username':'admin'}).first()
-    q1.delete()
-    q2 = manage_models.my_user.objects().to_json()
-    print(q2)
-
-def b():
-    from canteen import models
-    手机号 = '13355661100'
-    当前月份 = '2020-04'
-    订餐取消计数表1 = models.订餐取消计数表.objects(__raw__ = {'d.手机号':手机号,'d.月份':当前月份})
-    print(订餐取消计数表1)  
-
-def a1():
-    from canteen import models
-    r = models.订餐主界面表.objects(二级部门='池州铁塔')   
-    print(r.to_json().encode('utf-8').decode('unicode_escape'))
-
-
-def 教师管理后台添加管理员():
-    from teacher import manage_models 
-    manage_models.my_user(
-        d = {'username':'gcjw','password':'jiaowei@20200407'}
-    ).save()
-    q1 = manage_models.my_user.objects().to_json()
-    print(q1)
-
-def myuuid():
-    import uuid
-    print( str(uuid.uuid1()) )
-
-def wmm_not_none():
-    a = 2222 
-    if not a==None:
-        print(1)
-    else:
-        print(2)
-
 if __name__ == '__main__':
-    wmm_not_none()
-
+    # 订餐没吃统计发邮件('15305669706@189.cn' , '市公司食堂')
+    # 订餐没吃统计发邮件('743009564@qq.com')
+    订餐没吃统计发邮件('743009564@qq.com' , '市公司食堂')
+    # 订餐没吃统计发邮件('buckwmm@qq.com' , '市局（公司）食堂')
+    # 订餐没吃统计发邮件('59559558@qq.com', '市局（公司）食堂')
 
