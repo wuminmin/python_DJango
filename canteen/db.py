@@ -31,3 +31,14 @@ def 查询预消费和已消费(手机号,产品名称列表):
     }
     print('查询预消费和已消费-------',r)
     return r
+
+def 查询第一个订单结果(oid):
+    from bson.objectid import ObjectId
+    qset1 = models.订餐结果表.objects(__raw__={
+        '_id':ObjectId(oid)
+    }).first()
+    return qset1
+
+def 创建订餐提醒发货表(d):
+    
+    models.订餐提醒发货表(d=d).save()

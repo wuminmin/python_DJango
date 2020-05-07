@@ -2568,7 +2568,44 @@ def buy_product(request):
         print(traceback.format_exc())
         return HttpResponse('500')
 
+def ti_xing_fa_huo(request):
+    try:
+        data = request.GET['data']
+        print(data)
+        data = json.loads(data)
+        if 'code' in data and 'oid' in data and 'name' in data and 'key' in data:
+            app_id = data['app_id']
+            code = data['code']
+            oid = data['oid']
+            name = data['name']
+            key = data['key']
+            qset1 = db.查询第一个订单结果(oid)
+            if qset1 == None:
+                return tool.my_httpResponse(0,{},'订单不存在')
+            产品 = qset1.产品
+            if not name in 产品:
+                return tool.my_httpResponse(0,{},'产品不存在')
+            预定数量 = 产品[name]['预定数量']
+            手机号 = qset1.手机号
+            qset2 = models.订餐主界面表.objects(手机号=手机号).first()
+            if qset2 == None:
+                return tool.my_httpResponse(0,{},'手机号未注册')
+            姓名 = qset2.姓名
+            微信认证 = tool.微信认证(code,app_id)
+            openid = 微信认证['openid']
+            app_id = 微信认证['app_id']
+
+            db.创建订餐提醒发货表({
+                '手机号':手机号,
+                '预定数量':预定数量,
+                '姓名':姓名,
+                'name':name,
+                'create_time': tool.get_str_time(0)
+            })
+            return tool.my_httpResponse(1,{},'成功')
+        return tool.my_httpResponse(0,{},'参数出错误')
+    except:
+        print(traceback.format_exc())
+        return  tool.my_httpResponse(0,{},'异常')
 
 
-if __name__ == '__main__':
-    异步计算订餐结果('市公司食堂', '池州市分公司')

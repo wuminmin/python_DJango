@@ -149,7 +149,6 @@ class 订餐食堂模版表(Document):
                 '就餐时间':'18:00:00'
             }
         ],
-       
     },
 }
 
@@ -307,3 +306,6 @@ class 订餐取消计数表(Document):
     meta = {"db_alias": "canteen_alias"}
     d = DictField(default={})
 
+class 订餐提醒发货表(Document):
+    meta = {"db_alias": "canteen_alias"}
+    d = DictField(default={})
