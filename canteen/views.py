@@ -1417,23 +1417,15 @@ def 订餐扫核销码(request):
                 return HttpResponse(自定义登录状态)
 
 
-def 订餐下载核销码mp3(request):
-    子菜单page_name = str(request.GET['page_name'])
-    子菜单page_desc = str(request.GET['page_desc'])
-    # 子菜单page_name = '市公司食堂'
-    # 子菜单page_desc = '晚餐核销码'
-    订餐中餐核销码表_first = 订餐核销码表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
-    if 订餐中餐核销码表_first == None:
-        姓名 = '您没有订餐'
-    else:
-        姓名 = '欢迎' + 订餐中餐核销码表_first.姓名
+def ding_can_xia_zai_mp3(request):
+    mp3_text = str(request.GET['mp3_text'])
     from aip import AipSpeech
     """ 你的 APPID AK SK """
     APP_ID = '15273029'
     API_KEY = 'skY2wM5whRPfHgC7vc9DrsmW'
     SECRET_KEY = 'UblS7MlmG30UWZjKCLL8p5HEZ9M0SG1A '
     client = AipSpeech(APP_ID, API_KEY, SECRET_KEY)
-    result = client.synthesis(姓名, 'zh', 1, {'vol': 5, 'per': 4})
+    result = client.synthesis(mp3_text, 'zh', 1, {'vol': 5, 'per': 0,'spd':2})
     response = HttpResponse(result)
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename="auido.mp3"'
@@ -2295,17 +2287,18 @@ def get_ding_dan(request):
                 订餐结果列表 = []
                 for one in ding_can_mongo.产品全局字典[wx_login_get_openid_dict['app_id']]['产品名称列表']:
                     if one in ding_can_mongo2.产品:
-                        订餐结果列表.append(
-                             {
-                                'oid':str(ding_can_mongo2.id),
-                                'name':one,
-                                'number':ding_can_mongo2.产品[one]['预定数量'],
-                                'ordertime':ding_can_mongo2.产品[one]['预定时间'],
-                                'price':ding_can_mongo2.产品[one]['价格'],
-                                'mark':ding_can_mongo2.产品[one]['签到']
-                            }
-                        )
-                
+                        number = ding_can_mongo2.产品[one]['预定数量']
+                        if not number == 0 or number == None:
+                            订餐结果列表.append(
+                                {
+                                    'oid':str(ding_can_mongo2.id),
+                                    'name':one,
+                                    'number':number,
+                                    'ordertime':ding_can_mongo2.产品[one]['预定时间'],
+                                    'price':ding_can_mongo2.产品[one]['价格'],
+                                    'mark':ding_can_mongo2.产品[one]['签到']
+                                }
+                            )
                 response = HttpResponse(json.dumps({'描述':'成功','数据':订餐结果列表}))
                 response["Access-Control-Allow-Origin"] = "*"
                 response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
@@ -2585,6 +2578,14 @@ def ti_xing_fa_huo(request):
             产品 = qset1.产品
             if not name in 产品:
                 return tool.my_httpResponse(0,{},'产品不存在')
+            if not name in 产品:
+                return tool.my_httpResponse(0,{},name+'不存在')
+            if not '签到' in 产品[name]:
+                return tool.my_httpResponse(0,{},'签到不存在')
+            签到 = 产品[name]['签到']
+            if 签到 == '吃过':
+                return tool.my_httpResponse(0,{},'已吃过,不能提醒')
+            用餐日期 = qset1.用餐日期
             预定数量 = 产品[name]['预定数量']
             手机号 = qset1.手机号
             qset2 = models.订餐主界面表.objects(手机号=手机号).first()
@@ -2594,13 +2595,19 @@ def ti_xing_fa_huo(request):
             微信认证 = tool.微信认证(code,app_id)
             openid = 微信认证['openid']
             app_id = 微信认证['app_id']
-
-            db.创建订餐提醒发货表({
+            create_date = tool.get_str_date(0)
+            create_time = tool.get_str_time(0)
+            db.创建订餐提醒发货表(
+                oid,name,
+                {
+                'oid':oid,
                 '手机号':手机号,
                 '预定数量':预定数量,
+                '用餐日期':用餐日期,
                 '姓名':姓名,
                 'name':name,
-                'create_time': tool.get_str_time(0)
+                'create_date': create_date,
+                'create_time': create_time
             })
             return tool.my_httpResponse(1,{},'成功')
         return tool.my_httpResponse(0,{},'参数出错误')
@@ -2608,4 +2615,55 @@ def ti_xing_fa_huo(request):
         print(traceback.format_exc())
         return  tool.my_httpResponse(0,{},'异常')
 
+def start_voice(request):
+    try:
+        data = request.GET['data']
+        print(data)
+        data = json.loads(data)
+        if not 'code' in data and 'app_id' in data:
+            return  tool.my_httpResponse(0,{},'参数错误')
+        code = data['code']
+        app_id = data['app_id']
+        微信认证 = tool.微信认证(code,app_id)
+        now_date = tool.get_str_date(0)
+        qset1 = models.订餐提醒发货表.objects(__raw__={
+            'd.用餐日期':now_date,
+        }).order_by('create_time').first()
+        if qset1 == None:
+            return  tool.my_httpResponse(2,{},'无提醒')
+        dict1 = qset1.d
+        # dict1['create_time'] = tool.get_str_time(-10)
+        # qset1.update(d=dict1)
+        qset1.delete()
+        return  tool.my_httpResponse(1,dict1,'成功')
+    except:
+        print(traceback.format_exc())
+        return  tool.my_httpResponse(0,{},'异常')
 
+def send_goods(request):
+    try:
+        data = request.GET['data']
+        print(data)
+        data = json.loads(data)
+        if not 'code' in data and 'app_id' in data and 'order' in data:
+            return  tool.my_httpResponse(0,{},'参数错误')
+        code = data['code']
+        app_id = data['app_id']
+        微信认证 = tool.微信认证(code,app_id)
+        openid = 微信认证['openid']
+        app_id = 微信认证['app_id']
+        order = data['order']
+        if not 'oid' in order:
+            return tool.my_httpResponse(0,{},'订单号错误')
+        oid = order['oid']
+        qset1 = db.查询第一个订单结果(oid)
+        if qset1 == None:
+            return tool.my_httpResponse(0,{},'订单不存在')
+        产品 = qset1.产品
+        name = order['name']
+        产品[name]['签到'] = '吃过'
+        qset1.update(产品=产品)
+        return  tool.my_httpResponse(1,{},'成功')
+    except:
+        print(traceback.format_exc())
+        return  tool.my_httpResponse(0,{},'异常')

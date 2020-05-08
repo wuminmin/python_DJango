@@ -39,6 +39,15 @@ def 查询第一个订单结果(oid):
     }).first()
     return qset1
 
-def 创建订餐提醒发货表(d):
-    
-    models.订餐提醒发货表(d=d).save()
+def 创建订餐提醒发货表(oid,name,d):
+    d['oid'] = oid
+    d['name'] = name
+    qset1 = models.订餐提醒发货表.objects(__raw__={
+        'd.oid':oid,'d.name':name
+    }).first()
+    if qset1 == None:
+        models.订餐提醒发货表(d=d).save()
+    else:
+        qset1.update(d=d)
+
+# def 更新订餐结果表(oid)

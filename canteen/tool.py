@@ -65,3 +65,7 @@ def 微信认证(js_code,app_id):
 def get_str_time(i):
     import time
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time() + i*86400))
+
+def get_str_date(i):
+    import time
+    return time.strftime('%Y-%m-%d', time.localtime(time.time() + i*86400))
