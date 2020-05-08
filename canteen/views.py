@@ -569,6 +569,7 @@ def 上传订餐结果2(request):
                             totalAmount_int = totalAmount_int + tool.动态计算金额(index,one,折扣标签)
                         elif tittle in qset2.产品:
                             签到 = qset2.产品[tittle]['签到']
+                            
                             已有预定数量 = qset2.产品[tittle]['预定数量']
                             if index == 已有预定数量:
                                 totalAmount_int = totalAmount_int + tool.动态计算金额((index-已有预定数量),one,折扣标签)
@@ -603,6 +604,11 @@ def 上传订餐结果2(request):
                                             自定义登录状态 = str(自定义登录状态)
                                             return HttpResponse(自定义登录状态)
                             else:
+                                if 签到 == '吃过':
+                                    自定义登录状态 = {'描述': tittle+'吃过,不能修改', '会话': ''}
+                                    自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+                                    自定义登录状态 = str(自定义登录状态)
+                                    return HttpResponse(自定义登录状态)
                                 totalAmount_int = totalAmount_int + tool.动态计算金额((index-已有预定数量),one,折扣标签)
                                 就餐时间 = one['就餐时间']
                                 就餐时间 = 用餐日期 + ' ' + 就餐时间

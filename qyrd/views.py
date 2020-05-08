@@ -741,7 +741,7 @@ def get_tablei_data_by_lanmu(request):
     try:
         ban_kuai = request.POST['ban_kuai']
         lan_mu = request.POST['lan_mu']
-        qset1 = models.qyrd_article_col.objects(type=lan_mu).order_by('-my_date')
+        qset1 = models.qyrd_article_col.objects(type=lan_mu).order_by('-my_date').limit(20)
         res_list = []
         i = 0
         for one in qset1:
