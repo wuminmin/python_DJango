@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^ding_can_get_home_data/$', views.订餐下载主界面数据),
     url(r'^get_ding_can_data/$', views.下载订餐模版),
     url(r'^get_ding_can_data2/$', views.下载订餐模版2),
-    url(r'^send_ding_can_data/$', views.上传订餐结果),
+    # url(r'^send_ding_can_data/$', views.上传订餐结果),
     url(r'^send_ding_can_data2/$', views.上传订餐结果2),
     url(r'^ding_can_tong_ji_zhong_can/$', views.订餐统计),
     url(r'^ding_can_xia_zai_he_xiao_ma/$', views.订餐下载核销码),

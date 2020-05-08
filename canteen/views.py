@@ -261,245 +261,221 @@ def 下载订餐模版2(request):
         return HttpResponse('500')
 
 
-def 上传订餐结果(request):
-    try:
-        js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
-        当前时间戳 = time.time()
-        当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
-        当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
-        手机号 = 订餐用户表_one.手机号
-        订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
-        食堂就餐订餐选项 = [0, 1, 2, 3]
-        食堂就餐订餐有效选项 = [1, 2, 3]
-        if 订餐用户表_one == None:
-            自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
-            return HttpResponse(自定义登录状态)
-        else:
-            if request.GET.get('countryIndex'):
-                早餐食堂 = request.GET['countryIndex']
-            else:
-                早餐食堂 = None
-            if request.GET.get('zhong_can_shi_tang'):
-                中餐食堂 = request.GET['zhong_can_shi_tang']
-            else:
-                中餐食堂 = None
-            if request.GET.get('wan_can_shi_tang'):
-                晚餐食堂 = request.GET['wan_can_shi_tang']
-            else:
-                晚餐食堂 = None
-            if request.GET.get('zhong_can_wai_dai'):
-                中餐外带 = request.GET['zhong_can_wai_dai']
-            else:
-                中餐外带 = None
-            if request.GET.get('wan_can_wai_dai'):
-                晚餐外带 = request.GET['wan_can_wai_dai']
-            else:
-                晚餐外带 = None
-            主菜单name = request.GET['name']
-            子菜单page_name = request.GET['page_name']
-            子菜单page_desc = request.GET['page_desc']
-            用餐日期 = request.GET['date']
-            if 用餐日期 < 当前日期:
-                自定义登录状态 = "{\"描述\":\"预订日期不正确\",\"会话\":\"\"}"
-                return HttpResponse(自定义登录状态)
-            try:
-                早餐食堂 = int(早餐食堂)
-                中餐食堂 = int(中餐食堂)
-                晚餐食堂 = int(晚餐食堂)
-                中餐外带 = int(中餐外带)
-                晚餐外带 = int(晚餐外带)
-            except:
-                自定义登录状态 = "{\"描述\":\"预订数量必须是数字\",\"会话\":\"\"}"
-                return HttpResponse(自定义登录状态)
-            手机号 = 订餐用户表_one.手机号
-            订餐食堂模版表_one = 订餐食堂模版表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
-            if 订餐食堂模版表_one == None:
-                描述 = '没有食堂数据'
-                自定义登录状态 = {'描述': 描述, '会话': ''}
-                自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                自定义登录状态 = str(自定义登录状态)
-                return HttpResponse(自定义登录状态)
-            else:
-                早餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.早餐就餐时间
-                中餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.中餐就餐时间
-                晚餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.晚餐就餐时间
-                预定早餐提前秒 = 订餐食堂模版表_one.预定早餐提前秒
-                预定中餐提前秒 = 订餐食堂模版表_one.预定中餐提前秒
-                预定晚餐提前秒 = 订餐食堂模版表_one.预定晚餐提前秒
-                取消早餐提前秒 = 订餐食堂模版表_one.取消早餐提前秒
-                取消中餐提前秒 = 订餐食堂模版表_one.取消中餐提前秒
-                取消晚餐提前秒 = 订餐食堂模版表_one.取消晚餐提前秒
-                预定早餐提前截止时间 = time.mktime(time.strptime(早餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定早餐提前秒
-                预定中餐提前截止时间 = time.mktime(time.strptime(中餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定中餐提前秒
-                预定晚餐提前截止时间 = time.mktime(time.strptime(晚餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定晚餐提前秒
+# def 上传订餐结果(request):
+#     try:
+#         js_code = request.GET['code']
+#         wx_login_get_openid_dict = wx_login_get_openid(request)
+#         当前时间戳 = time.time()
+#         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+#         当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
+#         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
+#         订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
+#         手机号 = 订餐用户表_one.手机号
+#         订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
+#         食堂就餐订餐选项 = [0, 1, 2, 3]
+#         食堂就餐订餐有效选项 = [1, 2, 3]
+#         if 订餐用户表_one == None:
+#             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
+#             return HttpResponse(自定义登录状态)
+#         else:
+#             if request.GET.get('countryIndex'):
+#                 早餐食堂 = request.GET['countryIndex']
+#             else:
+#                 早餐食堂 = None
+#             if request.GET.get('zhong_can_shi_tang'):
+#                 中餐食堂 = request.GET['zhong_can_shi_tang']
+#             else:
+#                 中餐食堂 = None
+#             if request.GET.get('wan_can_shi_tang'):
+#                 晚餐食堂 = request.GET['wan_can_shi_tang']
+#             else:
+#                 晚餐食堂 = None
+#             if request.GET.get('zhong_can_wai_dai'):
+#                 中餐外带 = request.GET['zhong_can_wai_dai']
+#             else:
+#                 中餐外带 = None
+#             if request.GET.get('wan_can_wai_dai'):
+#                 晚餐外带 = request.GET['wan_can_wai_dai']
+#             else:
+#                 晚餐外带 = None
+#             主菜单name = request.GET['name']
+#             子菜单page_name = request.GET['page_name']
+#             子菜单page_desc = request.GET['page_desc']
+#             用餐日期 = request.GET['date']
+#             if 用餐日期 < 当前日期:
+#                 自定义登录状态 = "{\"描述\":\"预订日期不正确\",\"会话\":\"\"}"
+#                 return HttpResponse(自定义登录状态)
+#             try:
+#                 早餐食堂 = int(早餐食堂)
+#                 中餐食堂 = int(中餐食堂)
+#                 晚餐食堂 = int(晚餐食堂)
+#                 中餐外带 = int(中餐外带)
+#                 晚餐外带 = int(晚餐外带)
+#             except:
+#                 自定义登录状态 = "{\"描述\":\"预订数量必须是数字\",\"会话\":\"\"}"
+#                 return HttpResponse(自定义登录状态)
+#             手机号 = 订餐用户表_one.手机号
+#             订餐食堂模版表_one = 订餐食堂模版表.objects(主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
+#             if 订餐食堂模版表_one == None:
+#                 描述 = '没有食堂数据'
+#                 自定义登录状态 = {'描述': 描述, '会话': ''}
+#                 自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                 自定义登录状态 = str(自定义登录状态)
+#                 return HttpResponse(自定义登录状态)
+#             else:
+#                 早餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.早餐就餐时间
+#                 中餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.中餐就餐时间
+#                 晚餐就餐时间 = 用餐日期 + ' ' + 订餐食堂模版表_one.晚餐就餐时间
+#                 预定早餐提前秒 = 订餐食堂模版表_one.预定早餐提前秒
+#                 预定中餐提前秒 = 订餐食堂模版表_one.预定中餐提前秒
+#                 预定晚餐提前秒 = 订餐食堂模版表_one.预定晚餐提前秒
+#                 取消早餐提前秒 = 订餐食堂模版表_one.取消早餐提前秒
+#                 取消中餐提前秒 = 订餐食堂模版表_one.取消中餐提前秒
+#                 取消晚餐提前秒 = 订餐食堂模版表_one.取消晚餐提前秒
+#                 预定早餐提前截止时间 = time.mktime(time.strptime(早餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定早餐提前秒
+#                 预定中餐提前截止时间 = time.mktime(time.strptime(中餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定中餐提前秒
+#                 预定晚餐提前截止时间 = time.mktime(time.strptime(晚餐就餐时间, "%Y-%m-%d %H:%M:%S")) - 预定晚餐提前秒
 
-                订餐结果表_one = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                          子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
-                # if 订餐结果表_one == None:
-                早餐食堂就餐预订数 = 0
-                中餐食堂就餐预订数 = 0
-                中餐食堂外带预订数 = 0
-                晚餐食堂就餐预订数 = 0
-                晚餐食堂外带预订数 = 0
-                if 早餐食堂 in 食堂就餐订餐选项:
-                    if 早餐食堂 in 食堂就餐订餐有效选项:
-                        if 当前时间戳 < 预定早餐提前截止时间:
-                            早餐食堂就餐预订数 = 早餐食堂
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接收早餐预定\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
-                    return HttpResponse(自定义登录状态)
-                if 中餐食堂 in 食堂就餐订餐选项:
-                    if 中餐食堂 in 食堂就餐订餐有效选项:
-                        if 当前时间戳 < 预定中餐提前截止时间:
-                            中餐食堂就餐预订数 = 中餐食堂
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接收中餐预定\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
-                    return HttpResponse(自定义登录状态)
-                # if 当前时间戳 < 预定中餐提前截止时间:
-                #     中餐食堂外带预订数 = 中餐外带
-                # else:
-                #     自定义登录状态 = "{\"描述\":\"已过期，不接收中餐预定\",\"会话\":\"\"}"
-                #     return HttpResponse(自定义登录状态)
-                if 晚餐食堂 in 食堂就餐订餐选项:
-                    if 晚餐食堂 in 食堂就餐订餐有效选项:
-                        if 当前时间戳 < 预定晚餐提前截止时间:
-                            晚餐食堂就餐预订数 = 晚餐食堂
-                        else:
-                            自定义登录状态 = "{\"描述\":\"已过期，不接收晚餐预定\",\"会话\":\"\"}"
-                            return HttpResponse(自定义登录状态)
-                else:
-                    自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
-                    return HttpResponse(自定义登录状态)
-                # if 当前时间戳 < 预定晚餐提前截止时间:
-                #     晚餐食堂外带预订数 = 晚餐外带
-                # else:
-                #     自定义登录状态 = "{\"描述\":\"已过期，不接收晚餐预定\",\"会话\":\"\"}"
-                #     return HttpResponse(自定义登录状态)
-                if 早餐食堂就餐预订数 == 0 and 中餐食堂就餐预订数 == 0 and 中餐食堂外带预订数 == 0 and 晚餐食堂就餐预订数 == 0 and 晚餐食堂外带预订数 == 0:
-                    自定义登录状态 = "{\"描述\":\"至少选择一项订餐\",\"会话\":\"\"}"
-                    return HttpResponse(自定义登录状态)
-                else:
-                    if 订餐结果表_one == None:
-                        早餐食堂就餐签到 = ''
-                        早餐订餐时间 = ''
-                        中餐食堂就餐签到 = ''
-                        中餐订餐时间 = ''
-                        晚餐食堂就餐签到 = ''
-                        晚餐订餐时间 = ''
-                        if 早餐食堂就餐预订数 > 0:
-                            早餐食堂就餐签到 = 没吃
-                            早餐订餐时间 = 当前时间
-                        if 中餐食堂就餐预订数 > 0:
-                            中餐食堂就餐签到 = 没吃
-                            中餐订餐时间 = 当前时间
-                        if 晚餐食堂就餐预订数 > 0:
-                            晚餐食堂就餐签到 = 没吃
-                            晚餐订餐时间 = 当前时间
+#                 订餐结果表_one = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+#                                           子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+#                 # if 订餐结果表_one == None:
+#                 早餐食堂就餐预订数 = 0
+#                 中餐食堂就餐预订数 = 0
+#                 中餐食堂外带预订数 = 0
+#                 晚餐食堂就餐预订数 = 0
+#                 晚餐食堂外带预订数 = 0
+#                 if 早餐食堂 in 食堂就餐订餐选项:
+#                     if 早餐食堂 in 食堂就餐订餐有效选项:
+#                         if 当前时间戳 < 预定早餐提前截止时间:
+#                             早餐食堂就餐预订数 = 早餐食堂
+#                         else:
+#                             自定义登录状态 = "{\"描述\":\"已过期，不接收早餐预定\",\"会话\":\"\"}"
+#                             return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
+#                     return HttpResponse(自定义登录状态)
+#                 if 中餐食堂 in 食堂就餐订餐选项:
+#                     if 中餐食堂 in 食堂就餐订餐有效选项:
+#                         if 当前时间戳 < 预定中餐提前截止时间:
+#                             中餐食堂就餐预订数 = 中餐食堂
+#                         else:
+#                             自定义登录状态 = "{\"描述\":\"已过期，不接收中餐预定\",\"会话\":\"\"}"
+#                             return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
+#                     return HttpResponse(自定义登录状态)
+#                 # if 当前时间戳 < 预定中餐提前截止时间:
+#                 #     中餐食堂外带预订数 = 中餐外带
+#                 # else:
+#                 #     自定义登录状态 = "{\"描述\":\"已过期，不接收中餐预定\",\"会话\":\"\"}"
+#                 #     return HttpResponse(自定义登录状态)
+#                 if 晚餐食堂 in 食堂就餐订餐选项:
+#                     if 晚餐食堂 in 食堂就餐订餐有效选项:
+#                         if 当前时间戳 < 预定晚餐提前截止时间:
+#                             晚餐食堂就餐预订数 = 晚餐食堂
+#                         else:
+#                             自定义登录状态 = "{\"描述\":\"已过期，不接收晚餐预定\",\"会话\":\"\"}"
+#                             return HttpResponse(自定义登录状态)
+#                 else:
+#                     自定义登录状态 = "{\"描述\":\"预订数量超限制\",\"会话\":\"\"}"
+#                     return HttpResponse(自定义登录状态)
+#                 if 早餐食堂就餐预订数 == 0 and 中餐食堂就餐预订数 == 0 and 中餐食堂外带预订数 == 0 and 晚餐食堂就餐预订数 == 0 and 晚餐食堂外带预订数 == 0:
+#                     自定义登录状态 = "{\"描述\":\"至少选择一项订餐\",\"会话\":\"\"}"
+#                     return HttpResponse(自定义登录状态)
+#                 else:
+#                     if 订餐结果表_one == None:
+#                         早餐食堂就餐签到 = ''
+#                         早餐订餐时间 = ''
+#                         中餐食堂就餐签到 = ''
+#                         中餐订餐时间 = ''
+#                         晚餐食堂就餐签到 = ''
+#                         晚餐订餐时间 = ''
+#                         if 早餐食堂就餐预订数 > 0:
+#                             早餐食堂就餐签到 = 没吃
+#                             早餐订餐时间 = 当前时间
+#                         if 中餐食堂就餐预订数 > 0:
+#                             中餐食堂就餐签到 = 没吃
+#                             中餐订餐时间 = 当前时间
+#                         if 晚餐食堂就餐预订数 > 0:
+#                             晚餐食堂就餐签到 = 没吃
+#                             晚餐订餐时间 = 当前时间
 
                         
-                        订餐结果表(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期,
-                            #
-                            早餐食堂就餐预订数=早餐食堂就餐预订数, 早餐食堂就餐签到=早餐食堂就餐签到, 早餐订餐时间=早餐订餐时间, #
-                            中餐食堂就餐预订数=中餐食堂就餐预订数, 中餐食堂就餐签到=中餐食堂就餐签到, 中餐订餐时间=中餐订餐时间, #
-                            晚餐食堂就餐预订数=晚餐食堂就餐预订数, 晚餐食堂就餐签到=晚餐食堂就餐签到, 晚餐订餐时间=晚餐订餐时间).save()
-                        订餐结果表_first = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                                                    子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
-                        描述 = '上传成功'
-                        订餐结果描述 = '早餐食堂就餐预订数' + str(订餐结果表_first.早餐食堂就餐预订数) + ',中餐食堂就餐预订数' + str(
-                            订餐结果表_first.中餐食堂就餐预订数) + ',晚餐食堂就餐预订数' + str(订餐结果表_first.晚餐食堂就餐预订数)
-                        totalAmount_int = 订餐结果表_first.早餐食堂就餐预订数*4+订餐结果表_first.中餐食堂就餐预订数*8+订餐结果表_first.晚餐食堂就餐预订数*7
-                        goods = [
-                            {'body':'早餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '早餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.早餐食堂就餐预订数,
-                            'goodsCategory': '早餐'},
-                            {'body':'中餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '中餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.中餐食堂就餐预订数,
-                            'goodsCategory': '中餐'},
-                            {'body':'晚餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '晚餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
-                            'goodsCategory': '晚餐'}
-                        ]
-                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
-                        自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
-                        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                        自定义登录状态 = str(自定义登录状态)
-                        # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
-                        return HttpResponse(自定义登录状态)
-                    else:
-                        if 早餐食堂就餐预订数 > 0:
-                            if 订餐结果表_one.早餐食堂就餐预订数 > 0:
-                                自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
-                                return HttpResponse(自定义登录状态)
-                            else:
-                                订餐结果表_one.update(早餐食堂就餐预订数=早餐食堂就餐预订数, 早餐食堂就餐签到=没吃, 早餐订餐时间=当前时间, 早餐取消时间='')
-                        if 中餐食堂就餐预订数 > 0:
-                            if 订餐结果表_one.中餐食堂就餐预订数 > 0:
-                                自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
-                                return HttpResponse(自定义登录状态)
-                            else:
-                                订餐结果表_one.update(中餐食堂就餐预订数=中餐食堂就餐预订数, 中餐食堂就餐签到=没吃, 中餐订餐时间=当前时间, 中餐取消时间='')
-                        if 晚餐食堂就餐预订数 > 0:
-                            if 订餐结果表_one.晚餐食堂就餐预订数 > 0:
-                                自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
-                                return HttpResponse(自定义登录状态)
-                            else:
-                                订餐结果表_one.update(晚餐食堂就餐预订数=晚餐食堂就餐预订数, 晚餐食堂就餐签到=没吃, 晚餐订餐时间=当前时间, 晚餐取消时间='')
+#                         订餐结果表(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期,
+#                             #
+#                             早餐食堂就餐预订数=早餐食堂就餐预订数, 早餐食堂就餐签到=早餐食堂就餐签到, 早餐订餐时间=早餐订餐时间, #
+#                             中餐食堂就餐预订数=中餐食堂就餐预订数, 中餐食堂就餐签到=中餐食堂就餐签到, 中餐订餐时间=中餐订餐时间, #
+#                             晚餐食堂就餐预订数=晚餐食堂就餐预订数, 晚餐食堂就餐签到=晚餐食堂就餐签到, 晚餐订餐时间=晚餐订餐时间).save()
+#                         订餐结果表_first = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+#                                                     子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+#                         描述 = '上传成功'
+#                         订餐结果描述 = '早餐食堂就餐预订数' + str(订餐结果表_first.早餐食堂就餐预订数) + ',中餐食堂就餐预订数' + str(
+#                             订餐结果表_first.中餐食堂就餐预订数) + ',晚餐食堂就餐预订数' + str(订餐结果表_first.晚餐食堂就餐预订数)
+#                         totalAmount_int = 订餐结果表_first.早餐食堂就餐预订数*4+订餐结果表_first.中餐食堂就餐预订数*8+订餐结果表_first.晚餐食堂就餐预订数*7
+#                         goods = [
+#                             {'body':'早餐食堂就餐预订数',
+#                             'price': '4',
+#                             'goodsName': '早餐食堂就餐预订数',
+#                             'goodsId': '1',
+#                             'quantity': 订餐结果表_first.早餐食堂就餐预订数,
+#                             'goodsCategory': '早餐'},
+#                             {'body':'中餐食堂就餐预订数',
+#                             'price': '4',
+#                             'goodsName': '中餐食堂就餐预订数',
+#                             'goodsId': '1',
+#                             'quantity': 订餐结果表_first.中餐食堂就餐预订数,
+#                             'goodsCategory': '中餐'},
+#                             {'body':'晚餐食堂就餐预订数',
+#                             'price': '4',
+#                             'goodsName': '晚餐食堂就餐预订数',
+#                             'goodsId': '1',
+#                             'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
+#                             'goodsCategory': '晚餐'}
+#                         ]
+#                         ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
+#                         自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
+#                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                         自定义登录状态 = str(自定义登录状态)
+#                         # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+#                         异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+#                         return HttpResponse(自定义登录状态)
+#                     else:
+#                         if 早餐食堂就餐预订数 > 0:
+#                             if 订餐结果表_one.早餐食堂就餐预订数 > 0:
+#                                 自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
+#                                 return HttpResponse(自定义登录状态)
+#                             else:
+#                                 订餐结果表_one.update(早餐食堂就餐预订数=早餐食堂就餐预订数, 早餐食堂就餐签到=没吃, 早餐订餐时间=当前时间, 早餐取消时间='')
+#                         if 中餐食堂就餐预订数 > 0:
+#                             if 订餐结果表_one.中餐食堂就餐预订数 > 0:
+#                                 自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
+#                                 return HttpResponse(自定义登录状态)
+#                             else:
+#                                 订餐结果表_one.update(中餐食堂就餐预订数=中餐食堂就餐预订数, 中餐食堂就餐签到=没吃, 中餐订餐时间=当前时间, 中餐取消时间='')
+#                         if 晚餐食堂就餐预订数 > 0:
+#                             if 订餐结果表_one.晚餐食堂就餐预订数 > 0:
+#                                 自定义登录状态 = "{\"描述\":\"不能重复订餐\",\"会话\":\"\"}"
+#                                 return HttpResponse(自定义登录状态)
+#                             else:
+#                                 订餐结果表_one.update(晚餐食堂就餐预订数=晚餐食堂就餐预订数, 晚餐食堂就餐签到=没吃, 晚餐订餐时间=当前时间, 晚餐取消时间='')
 
-                        订餐结果表_first = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
-                            子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
-                        描述 = '上传成功'
-                        订餐结果描述 = '早餐食堂就餐预订数' + str(订餐结果表_first.早餐食堂就餐预订数) + ',中餐食堂就餐预订数' + str(
-                            订餐结果表_first.中餐食堂就餐预订数) + ',晚餐食堂就餐预订数' + str(订餐结果表_first.晚餐食堂就餐预订数)
-                        totalAmount_int = 订餐结果表_first.早餐食堂就餐预订数*4+订餐结果表_first.中餐食堂就餐预订数*8+订餐结果表_first.晚餐食堂就餐预订数*7
-                        goods = [
-                            {'body':'早餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '早餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.早餐食堂就餐预订数,
-                            'goodsCategory': '早餐'},
-                            {'body':'中餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '中餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.中餐食堂就餐预订数,
-                            'goodsCategory': '中餐'},
-                            {'body':'晚餐食堂就餐预订数',
-                            'price': '4',
-                            'goodsName': '晚餐食堂就餐预订数',
-                            'goodsId': '1',
-                            'quantity': 订餐结果表_first.晚餐食堂就餐预订数,
-                            'goodsCategory': '晚餐'}
-                        ]
-                        ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
-                        自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
-                        自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
-                        自定义登录状态 = str(自定义登录状态)
-                        # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
-                        异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
-                        return HttpResponse(自定义登录状态)
-    except:
-        print(traceback.format_exc())
-        return HttpResponse('500')
+#                         订餐结果表_first = 订餐结果表.objects(手机号=手机号, 主菜单name=主菜单name, 子菜单page_name=子菜单page_name,
+#                             子菜单page_desc=子菜单page_desc, 用餐日期=用餐日期).first()
+#                         描述 = '上传成功'
+#                         订餐结果描述 = '早餐食堂就餐预订数' + str(订餐结果表_first.早餐食堂就餐预订数) + ',中餐食堂就餐预订数' + str(
+#                             订餐结果表_first.中餐食堂就餐预订数) + ',晚餐食堂就餐预订数' + str(订餐结果表_first.晚餐食堂就餐预订数)
+#                         totalAmount_int = 订餐结果表_first.早餐食堂就餐预订数*4+订餐结果表_first.中餐食堂就餐预订数*8+订餐结果表_first.晚餐食堂就餐预订数*7
+#                         goods = []
+#                         ding_can_chinaums_pay_order_res = ding_can_chinaums_pay_order(str(totalAmount_int),goods,wx_login_get_openid_dict)
+#                         自定义登录状态 = {'描述': 描述, '会话': '', '订餐结果描述': 订餐结果描述,'miniPayRequest':ding_can_chinaums_pay_order_res['miniPayRequest']}
+#                         自定义登录状态 = json.dumps(自定义登录状态).encode('utf-8').decode('unicode_escape')
+#                         自定义登录状态 = str(自定义登录状态)
+#                         # 异步计算订餐结果(子菜单page_name, 订餐主界面表_first.二级部门)
+#                         异步统计产品(子菜单page_name, 订餐主界面表_first.二级部门,wx_login_get_openid_dict)
+#                         return HttpResponse(自定义登录状态)
+#     except:
+#         print(traceback.format_exc())
+#         return HttpResponse('500')
 
 @deprecated_async
 def 异步计算消费金额(wx_login_get_openid_dict):
