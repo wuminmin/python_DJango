@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from . import db,tool
 # Create your views here.
 
 
@@ -119,6 +120,7 @@ def 上传新闻(request):
 
 def images(request):
     from . import models
+    import myConfig
     from django.http import HttpResponse, FileResponse
     try:
         id = request.GET['id']
@@ -741,23 +743,23 @@ def get_tablei_data_by_lanmu(request):
     try:
         ban_kuai = request.POST['ban_kuai']
         lan_mu = request.POST['lan_mu']
-        qset1 = models.qyrd_article_col.objects(type=lan_mu).order_by('-my_date').limit(20)
+        r = db.根据栏目查询文章列表(lan_mu)
         res_list = []
         i = 0
-        for one in qset1:
+        for one in r:
             i = i+1
-            if 'count' in one.other:
-                address = one.other['count']
+            if 'count' in one['other']:
+                address = one['other']['count']
             else:
                 address = 0
             res_list.append(
                 {
                     'key': i,
                     'name': {
-                        '标题': one.tittle,
-                        '地址': 'mynews?ban_kuai='+ban_kuai+'&lan_mu='+lan_mu+'&tittle='+one.tittle,
+                        '标题': one['tittle'],
+                        '地址': 'mynews?ban_kuai='+ban_kuai+'&lan_mu='+lan_mu+'&tittle='+one['tittle'],
                     },
-                    'age': str(one.my_date.year)+'-'+str(one.my_date.month)+'-'+str(one.my_date.day),
+                    'age': str(one['my_date'].year)+'-'+str(one['my_date'].month)+'-'+str(one['my_date'].day),
                     'address': address,
                 }
             )
