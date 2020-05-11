@@ -17,6 +17,11 @@ def 根据栏目查询文章列表(lan_mu):
                 'article':False,
             }
         },
+        {
+            '$sort':{
+                'my_date':-1
+            }
+        }
     ]
     r = mydb.qyrd_article_col.aggregate(pipeline)
     return list(r)
