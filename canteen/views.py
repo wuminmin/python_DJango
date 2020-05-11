@@ -179,13 +179,12 @@ def 下载订餐模版2(request):
             if 订餐主界面表first == None:
                 自定义登录状态 = "{\"描述\":\"用户未授权\",\"会话\":\"" + '' + "\"}"
                 return HttpResponse(自定义登录状态)
-
-            订餐模版表_one = 订餐食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
-            if 订餐模版表_one == None:
-                自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + '' + "\"}"
-                return HttpResponse(自定义登录状态)
+            # 订餐模版表_one = 订餐食堂模版表.objects(子菜单page_name=子菜单page_name, 子菜单page_desc=子菜单page_desc).first()
+            # if 订餐模版表_one == None:
+            #     自定义登录状态 = "{\"描述\":\"没有食堂\",\"会话\":\"" + '' + "\"}"
+            #     return HttpResponse(自定义登录状态)
             else:
-                主菜单name = 订餐模版表_one.主菜单name
+                # 主菜单name = 订餐模版表_one.主菜单name
                 if 用餐日期 == '':
                     用餐日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
                 会话 = ''
@@ -247,7 +246,7 @@ def 下载订餐模版2(request):
                     '描述': 描述, '会话': 会话, 
                     '预订开始日期': '', 
                     '预订结束日期': '',
-                    '主菜单name': 主菜单name, 
+                    # '主菜单name': 主菜单name, 
                     '子菜单page_name': 子菜单page_name, 
                     '子菜单page_desc': 子菜单page_desc, 
                     '食堂地址': 钱包,
