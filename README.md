@@ -16,7 +16,7 @@ nohup python3 manage.py runserver 0.0.0.0:8005 >/dev/null 2>&1 &
 
 
 #docker启动
-docker run -ti -p 8006:80 --name py_wx1 -v $(pwd):/workspace docker.io/python  bash
+docker run -ti -p 8006:80 --name py_wx1 -v $(pwd):/workspace docker.io/python  bash  
 cd workspace
 python manage.py runserver 0.0.0.0:80
 docker exec -it py_wx1 /bin/bash
@@ -30,7 +30,7 @@ pip3 install -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.al
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple/  pandas
 
 
-
+docker run -ti -p 5005:80 --name py37_alpine_wmm_20200511 -v $(pwd):/workspace docker.io/python:3.7-alpine  sh
 
 
 

@@ -195,7 +195,7 @@ def async_import_excel(mydata,flag,action):
                 备注 = row_main[1]['备注']
                 ding_can_mongo.订餐钱包充值表(
                     手机号=手机号,
-                    充值金额 = int(充值金额),
+                    充值金额 = int(充值金额)*100, #分转换元
                     充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
                     备注 = 备注
                 ).save()

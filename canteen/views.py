@@ -1915,7 +1915,11 @@ def 订餐评价初始化图片(request):
 #银联支付下订单
 def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
     try:
-        totalAmount = '1' #支付1分钱
+        # totalAmount = '1' #支付1分钱
+        totalAmount = str(totalAmount)
+        print('totalAmount----',totalAmount)
+        totalAmount_list = totalAmount.split('.')
+        totalAmount = totalAmount_list[0]
 
         print('ding_can_chinaums_pay_order------------------',wx_login_get_openid_dict)
         scrit_key = myConfig.chinaums_scrit_key
@@ -1964,7 +1968,9 @@ def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
         import requests
         r = requests.post(
             'https://qr.chinaums.com/netpay-route-server/api/', json=wmm_json)
+        
         json_res = r.json()
+        print(json_res)
         from . import models
         models.ding_can_chinaums_pay_order_res_col(json_res=json_res,openid=wx_login_get_openid_dict['openid']).save()
         if json_res['errCode'] == 'SUCCESS':
