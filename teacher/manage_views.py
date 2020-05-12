@@ -401,68 +401,15 @@ def base_table_fetchList(request):
     from django.http import JsonResponse
     from . import models as ding_can_mongo  #新版订餐后台
     import myConfig
+    from . import tool
     try:
-        # page = request.GET['page']
-        # limit = request.GET['limit']
-        listQuery = request.GET['listQuery']
-        print( listQuery ,'-----------------listQuery' )
-        listQuery_json = json.loads(listQuery)
-
-        identity_number = listQuery_json['identity_number']
-        identity_number_condition = listQuery_json['identity_number_condition']
-        department = listQuery_json['department']
-        department_condition = listQuery_json['department_condition']
-        job_sequence = listQuery_json['job_sequence']
-        job_sequence_condition = listQuery_json['job_sequence_condition']
-        job_name = listQuery_json['job_name']
-        job_name_condition = listQuery_json['job_name_condition']
-        job_date = listQuery_json['job_date']
-        job_date_condition = listQuery_json['job_date_condition']
-        working_time = listQuery_json['working_time']
-        working_time_condition = listQuery_json['working_time_condition']
-        raw_condition_json = {}
-        if identity_number_condition == '等于':
-            raw_condition_json['d.identity_number'] = identity_number
-        elif identity_number_condition == '大于':
-            raw_condition_json['d.identity_number'] = {
-                '$gt':identity_number
-            }
-        elif identity_number_condition == '小于':
-            raw_condition_json['d.identity_number'] = {
-                '$lt':identity_number
-            }
-        elif identity_number_condition == '包含':
-            raw_condition_json['d.identity_number'] = {
-                '$regex':".*"+identity_number+".*"
-            }
+        code = request.GET['code']
+        if code == 1 or code == '1':
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.get_my_filter_list(data)
         else:
-            pass
-        teacher_base_info409 = manage_models.teacher_base_info.objects( __raw__ = raw_condition_json)
-        
-        total = len(teacher_base_info409)
-        # items = []
-        # id = 0
-        # for o in teacher_base_info409:
-        #     items.append({
-        #         'id':id,
-        #         'identity_number':o.d['identity_number'],
-        #         'department':o.d['department'],
-        #         'job_sequence':o.d['job_sequence'],
-        #         'job_name':o.d['job_name'],
-        #         'job_date':o.d['job_date'],
-        #         'working_time':o.d['working_time'],
-        #         # 'identity_number':o.d['identity_number'],
-        #     })
-        #     id = id +1
-        items = teacher_base_info409.to_json().encode('utf-8').decode('unicode_escape')
-        items = json.loads(items)
-        code = 20000
-        data = {
-            'total':total,
-            'items':items
-        }
-        message = '成功'
-        res = {'code': code, 'data': data, 'message': message}
+            res = {'code': 0, 'data': {}, 'message': '参数错误'}
         return myHttpResponse(res)
     except:
         print(traceback.format_exc())
