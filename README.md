@@ -18,7 +18,9 @@ nohup python3 manage.py runserver 0.0.0.0:8005 >/dev/null 2>&1 &
 #docker启动
 docker run -ti -p 8006:80 --name py_wx1 -v $(pwd):/workspace docker.io/python  bash  
 cd workspace
+
 python manage.py runserver 0.0.0.0:80
+
 docker exec -it py_wx1 /bin/bash
 docker logs -f -t --tail=10 9d766cea6a3f
 

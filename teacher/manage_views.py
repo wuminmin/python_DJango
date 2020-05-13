@@ -407,7 +407,11 @@ def base_table_fetchList(request):
         if code == 1 or code == '1':
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.get_my_filter_list(data)
+            res = tool.get_my_basic_filter_list(data)
+        elif code == 2 or code == '2':
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.get_my_basic_table_list(data)
         else:
             res = {'code': 0, 'data': {}, 'message': '参数错误'}
         return myHttpResponse(res)
