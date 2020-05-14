@@ -1,3 +1,10 @@
+import pymongo
+import myConfig
+mongo_src = "mongodb://"+myConfig.stzzb_name+":"+myConfig.stzzb_password + \
+    "@"+myConfig.host+":"+myConfig.port_str+"/?authSource="+myConfig.stzzb_db
+myclient = pymongo.MongoClient(mongo_src)
+mydb = myclient[myConfig.db]
+
 def 根据栏目查询文章列表(lan_mu):
     import pymongo
     import myConfig
