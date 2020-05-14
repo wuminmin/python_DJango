@@ -4,7 +4,8 @@ import json
 import uuid
 import sys
 
-def objectid_to_json(data):
+def objectid_to_json(data): #转换ObjectId未'$oid'
+    import json
     from bson import json_util, ObjectId
     res = json.loads(json_util.dumps(data))
     return res

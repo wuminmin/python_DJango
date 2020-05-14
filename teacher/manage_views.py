@@ -231,10 +231,12 @@ def upload_canteen_list(request):
     from . import models as ding_can_mongo  #新版订餐后台
     try:
         req_body = request.body.decode('utf-8')
-        print(req_body)
+        # print(req_body)
         req_json = json.loads(req_body)
         mydata = req_json['data']
         mydata = json.dumps(mydata)
+        print('mydata---',mydata)
+
         flag =  req_json['flag']
         action = req_json['key']
         token = req_json['token']

@@ -3,7 +3,9 @@ from mongoengine import *
 # 数据库连接
 import myConfig
 # disconnect(alias='default')
-connect(alias='canteen_alias',db=myConfig.canteen_db, host=myConfig.canteen_host, port=myConfig.canteen_port, username=myConfig.canteen_username, password=myConfig.canteen_password)
+connect(alias='canteen_alias',db=myConfig.canteen_db,
+ host=myConfig.canteen_host, port=myConfig.canteen_port,
+  username=myConfig.canteen_username, password=myConfig.canteen_password)
 
 class 订餐导入时间戳表(Document):
     flag = StringField(default='')
@@ -126,7 +128,7 @@ class 订餐食堂模版表(Document):
                 '折扣':{
                     '合同制':0.9
                 },
-                '就餐时间':'08:00:00'
+                '就餐时间':'09:00:00'
             },
             {
                 '名称':'中餐',
@@ -136,7 +138,7 @@ class 订餐食堂模版表(Document):
                 '折扣':{
                     '合同制':0.9
                 },
-                '就餐时间':'12:00:00'
+                '就餐时间':'13:00:00'
             },
             {
                 '名称':'晚餐',
@@ -146,7 +148,7 @@ class 订餐食堂模版表(Document):
                 '折扣':{
                     '合同制':0.9
                 },
-                '就餐时间':'18:00:00'
+                '就餐时间':'19:00:00'
             }
         ],
     },

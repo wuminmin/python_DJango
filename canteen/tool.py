@@ -1,3 +1,10 @@
+from . import db
+
+def objectid_to_json(data): #转换ObjectId未'$oid'
+    import json
+    from bson import json_util, ObjectId
+    res = json.loads(json_util.dumps(data))
+    return res
 
 # 异步函数
 def deprecated_async(f):
@@ -69,3 +76,59 @@ def get_str_time(i):
 def get_str_date(i):
     import time
     return time.strftime('%Y-%m-%d', time.localtime(time.time() + i*86400))
+
+
+
+@deprecated_async
+def async_import_excel(mydata,flag,action):
+    # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
+    from . import models as ding_can_mongo  #新版订餐后台
+    import pandas
+    import time
+    try:
+        if action == '上传用餐人员清单':
+            for one in mydata:
+                db.订餐人员表新增(one)
+            db.创建订餐主界面表()
+            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+            if ding_can_mongo1 == None:
+                ding_can_mongo.订餐导入时间戳表(
+                    flag=flag,
+                    isOk=True
+                ).save()
+            else:
+                ding_can_mongo1.update(isOk=True)
+        elif action == '上传充值清单':
+            for one in mydata:
+                手机号 = str(one['手机号'])
+                充值金额 = one['充值金额']
+                备注 = one['备注']
+                ding_can_mongo.订餐钱包充值表(
+                    手机号=手机号,
+                    充值金额 = int(充值金额)*100, #分转换元
+                    充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
+                    备注 = 备注
+                ).save()
+            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+            if ding_can_mongo1 == None:
+                ding_can_mongo.订餐导入时间戳表(
+                    flag=flag,
+                    isOk=True
+                ).save()
+            else:
+                ding_can_mongo1.update(isOk=True)
+        else:
+            print('无效请求')
+    except:
+        import traceback
+        r = traceback.format_exc()
+        print(r)
+        ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
+        if ding_can_mongo1 == None:
+            ding_can_mongo.订餐导入时间戳表(
+                flag=flag,
+                isOk=False,
+                eLog={'log':r}
+            ).save()
+        else:
+            ding_can_mongo1.update(isOk=False,eLog={'log':r})
