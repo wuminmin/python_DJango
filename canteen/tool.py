@@ -81,7 +81,6 @@ def get_str_date(i):
 
 @deprecated_async
 def async_import_excel(mydata,flag,action):
-    # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
     from . import models as ding_can_mongo  #新版订餐后台
     import pandas
     import time
@@ -89,15 +88,25 @@ def async_import_excel(mydata,flag,action):
         if action == '上传用餐人员清单':
             for one in mydata:
                 db.订餐人员表新增(one)
-            db.创建订餐主界面表()
+            res = db.创建订餐主界面表()
             ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
             if ding_can_mongo1 == None:
-                ding_can_mongo.订餐导入时间戳表(
-                    flag=flag,
-                    isOk=True
-                ).save()
+                if res:
+                    ding_can_mongo.订餐导入时间戳表(
+                        flag=flag,
+                        isOk=True
+                    ).save()
+                else:
+                    ding_can_mongo.订餐导入时间戳表(
+                        flag=flag,
+                        isOk=False
+                    ).save()
             else:
-                ding_can_mongo1.update(isOk=True)
+                if res:
+                    ding_can_mongo1.update(isOk=True)
+                else:
+                    ding_can_mongo1.update(isOk=False)
+
         elif action == '上传充值清单':
             for one in mydata:
                 手机号 = str(one['手机号'])
