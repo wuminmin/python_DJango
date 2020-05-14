@@ -12,7 +12,7 @@ python manage.py migrate
 python manage.py startapp polls
 
 #nohup后台启动
-nohup python3 manage.py runserver 0.0.0.0:8005 >/dev/null 2>&1 &
+nohup python3 manage.py runserver 0.0.0.0:20001 >/dev/null 2>&1 &
 
 
 #docker启动
@@ -44,4 +44,7 @@ git checkout stx_zzb
 git pull origin  stx_zzb:stx_zzb
 #推送远程分支
 git push origin  stx_zzb:stx_zzb
+
+python3 manage.py runserver 0.0.0.0:20001
+
 

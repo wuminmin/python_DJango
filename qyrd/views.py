@@ -159,12 +159,6 @@ def 新闻下载(request):
     import traceback
     mytype = request.POST['type']
     import myConfig
-    # from pymongo import MongoClient
-    # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
-    #                      '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-    # db = client['mydb']
-    # qyrd_article_col2 = list( models.qyrd_article_col.objects(type=mytype).limit(10).order_by('-my_date') )
-    # r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)])
     r = list(models.qyrd_article_col.objects(
         type=mytype).limit(10).order_by('-my_date'))
     if r == []:
@@ -193,12 +187,8 @@ def 新闻列表下载(request):
     from django.http import HttpResponse
     import traceback
     mytype = request.POST['type']
-    import myConfig
-    from pymongo import MongoClient
-    client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password +
-                         '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-    db = client['mydb']
     r = db.qyrd_article_col.find({'type': mytype}).sort([("_id", -1)]).limit(6)
+    r = db.query_qyrd_article_col(mytype)
     if r == []:
         response = HttpResponse('[]')
         response["Access-Control-Allow-Origin"] = "*"
@@ -310,10 +300,6 @@ def 根据栏目下载目录(request):
     import traceback
     myVar = request.POST['type']
     print('根据栏目下载目录', myVar)
-    # import myConfig
-    # from pymongo import MongoClient
-    # client = MongoClient('mongodb://' + myConfig.username + ':' + myConfig.password + '@' + str(myConfig.host) + ':' + str(myConfig.port) + '/'+myConfig.db)
-    # db = client['mydb']
     qset1 = models.qyrd_article_col.objects(type=myVar).order_by('-my_date')
     myVar2 = []
     myVar3 = []
@@ -490,7 +476,7 @@ def 天气下载(request):
     return response
 
 
-def get_headermenu_list_data(request):
+def get_header_menu_list_data(request):
     import json
     from . import models
     from django.http import HttpResponse
@@ -499,21 +485,21 @@ def get_headermenu_list_data(request):
     try:
         mylist = []
         首页 = models.ban_kuai_lan_mu_dict['首页']
-        新闻中心 = models.ban_kuai_lan_mu_dict['新闻中心']
-        人大概况 = models.ban_kuai_lan_mu_dict['人大概况']
-        依法履职 = models.ban_kuai_lan_mu_dict['依法履职']
-        代表工作 = models.ban_kuai_lan_mu_dict['代表工作']
-        会议之窗 = models.ban_kuai_lan_mu_dict['会议之窗']
-        一府一委两院 = models.ban_kuai_lan_mu_dict['一府一委两院']
-        乡镇人大 = models.ban_kuai_lan_mu_dict['乡镇人大']
+        走进部门 = models.ban_kuai_lan_mu_dict['走进部门']
+        今日石台 = models.ban_kuai_lan_mu_dict['今日石台']
+        本部动态 = models.ban_kuai_lan_mu_dict['本部动态']
+        党建工作 = models.ban_kuai_lan_mu_dict['党建工作']
+        基层动态 = models.ban_kuai_lan_mu_dict['基层动态']
+        选派选聘 = models.ban_kuai_lan_mu_dict['选派选聘']
+        远教电教 = models.ban_kuai_lan_mu_dict['远教电教']
         mylist.append({'name': '首页', 'mymenu': 首页})
-        mylist.append({'name': '新闻中心', 'mymenu': 新闻中心})
-        mylist.append({'name': '人大概况', 'mymenu': 人大概况})
-        mylist.append({'name': '依法履职', 'mymenu': 依法履职})
-        mylist.append({'name': '代表工作', 'mymenu': 代表工作})
-        mylist.append({'name': '会议之窗', 'mymenu': 会议之窗})
-        mylist.append({'name': '一府一委两院', 'mymenu': 一府一委两院})
-        mylist.append({'name': '乡镇人大', 'mymenu': 乡镇人大})
+        mylist.append({'name': '走进部门', 'mymenu': 走进部门})
+        mylist.append({'name': '今日石台', 'mymenu': 今日石台})
+        mylist.append({'name': '本部动态', 'mymenu': 本部动态})
+        mylist.append({'name': '党建工作', 'mymenu': 党建工作})
+        mylist.append({'name': '基层动态', 'mymenu': 基层动态})
+        mylist.append({'name': '选派选聘', 'mymenu': 选派选聘})
+        mylist.append({'name': '远教电教', 'mymenu': 远教电教})
         headermenu_list_data = []
         for one in mylist:
             myMenu = []
