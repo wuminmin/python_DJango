@@ -35,5 +35,13 @@ pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple/  pandas
 docker run -ti -p 5005:80 --name py37_alpine_wmm_20200511 -v $(pwd):/workspace docker.io/python:3.7-alpine  sh
 
 
-
+#git
+#创建分支
+git branch stx_zzb
+#切换分支
+git checkout stx_zzb
+#拉去远程分支
+git pull origin  stx_zzb:stx_zzb
+#推送远程分支
+git push origin  stx_zzb:stx_zzb
 
