@@ -16,13 +16,17 @@ def 订餐人员表新增(d):
     
 
 def 订餐主界面新增(d):
-    print('订餐主界面新增----',d)
-    r = tool.objectid_to_json( mydb.订餐主界面表.find(d) )
+    if not '手机号' in d:
+        return False
+    手机号 = d['手机号']
+    r = tool.objectid_to_json( mydb.订餐主界面表.find({'手机号':手机号}) )
     if r == []:
         mydb.订餐主界面表.insert(d)
         return True
     else:
-        return False
+        mydb.订餐主界面表.remove({'手机号':手机号})
+        mydb.订餐主界面表.insert(d)
+        return True
 
 def 查询预消费和已消费(手机号,产品名称列表):
     index1 = 0
