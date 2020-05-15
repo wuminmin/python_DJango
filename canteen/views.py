@@ -25,20 +25,6 @@ from . import db
 from canteen.auto import 启动定时器
 启动定时器()
 
-def wx_login_get_openid(request):
-    try:
-        js_code = request.GET['code']
-        app_id = request.GET['app_id']
-        url = 'https://api.weixin.qq.com/sns/jscode2session'
-        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': js_code,
-                    'grant_type': 'authorization_code'}
-        r = requests.get(url=url, params=payload)
-        r_json = json.loads(r.text)
-        openid = r_json['openid']
-        return {'openid':openid,'app_id':app_id}
-    except:
-        print(traceback.format_exc())
-        return None
 
 def myHttpResponse(res):  # 合并跨域配置
     import json
@@ -60,7 +46,7 @@ def deprecated_async(f):
 
 def 订餐登录检查(request):
     try:
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         查询结果 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 查询结果 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"\"}"
@@ -76,7 +62,7 @@ def 订餐登录检查(request):
 
 def 订餐下载主界面数据(request):
     try:
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', '姓名': '', '当前日期': '', '类型': ''}
@@ -114,7 +100,7 @@ def 下载订餐模版(request):
         子菜单page_name = request.GET['page_name']
         子菜单page_desc = request.GET['page_desc']
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + '' + "\"}"
@@ -168,7 +154,7 @@ def 下载订餐模版2(request):
         主菜单name = request.GET['name']
         子菜单page_name = request.GET['page_name']
         子菜单page_desc = request.GET['page_desc']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = "{\"描述\":\"用户不存在\",\"会话\":\"" + '' + "\"}"
@@ -285,7 +271,7 @@ def 上传订餐结果2(request):
     from . import models
     try:
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))
@@ -499,7 +485,7 @@ def 订餐校验验证码(request):
     from . import models
     手机号 = str(request.GET['phone'])
     验证码 = str(request.GET['sms_code'])
-    wx_login_get_openid_dict = wx_login_get_openid(request)
+    wx_login_get_openid_dict = tool.wx_login_get_openid(request)
     r = models.订餐验证码表.objects(手机号=手机号)
     for rr in r:
         if rr.验证码 == 验证码:
@@ -908,7 +894,7 @@ def 订餐下载核销码(request):
 #         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
 #         当前小时 = time.strftime('%H', time.localtime(time.time()))
 #         js_code = request.GET['code']
-#         wx_login_get_openid_dict = wx_login_get_openid(request)
+#         wx_login_get_openid_dict = tool.wx_login_get_openid(request)
 #         session_key = ''
 #         openid=wx_login_get_openid_dict['openid']
 #         订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
@@ -1019,7 +1005,7 @@ def ding_can_sao_he_xiao_ma2(request):
             日期 = 当前日期
         产品名称 = 核销码json['name']
         oid = 核销码json['oid']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         订餐用户表_one = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 订餐用户表_one == None:
             自定义登录状态 = {'描述': '管理员未注册', '姓名': '', '当前日期': '', '类型': ''}
@@ -1135,7 +1121,7 @@ def 订餐扫核销码(request):
     else:
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         订餐用户表_first = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         手机号 = 订餐用户表_first.手机号
         订餐主界面表_first = 订餐主界面表.objects(手机号=手机号).first()
@@ -1201,7 +1187,7 @@ def 订餐订单(request):
         page_name = request.GET['page_name']
         日期 = request.GET['date']
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         if 日期 == '':
             日期 = 当前日期
@@ -1266,7 +1252,7 @@ def 订餐取消(request):
         page_name = request.GET['page_name']
         日期 = request.GET['date']
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前日期 = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
@@ -1405,7 +1391,7 @@ def 订餐菜单初始化(request):
         name = request.GET['name']
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'name': name, 'page_name': page_name, 'page_desc': page_desc,
@@ -1467,7 +1453,7 @@ def 订餐菜单点击分页(request):
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
         countries_val = int(request.GET['countries_val'])
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'name': name, 'page_name': page_name, 'page_desc': page_desc,
@@ -1524,7 +1510,7 @@ def 订餐菜单点击分页(request):
 def 订餐采集初始化(request):
     try:
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             自定义登录状态 = {'描述': '未注册手机号', 'countries': [''], 'countries2': [''], 'countries3': [''],
@@ -1594,7 +1580,7 @@ def 订餐采集初始化(request):
 def 订餐评价初始化(request):
     try:
         js_code = request.GET['code']
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         queryset0 = 订餐主界面表.objects(手机号=用户.手机号).first()
         if queryset0 == None:
@@ -1621,7 +1607,7 @@ def 订餐上传评价(request):
     try:
         if request.method == 'GET':
             js_code = request.GET['code']
-            wx_login_get_openid_dict = wx_login_get_openid(request)
+            wx_login_get_openid_dict = tool.wx_login_get_openid(request)
             用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
             if 用户 == None:
                 return HttpResponse('未注册手机号')
@@ -1637,7 +1623,7 @@ def 订餐上传评价(request):
             return HttpResponse('成功')
         if request.method == 'POST':
             js_code = request.POST['code']
-            wx_login_get_openid_dict = wx_login_get_openid(request)
+            wx_login_get_openid_dict = tool.wx_login_get_openid(request)
             用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
             if 用户 == None:
                 return HttpResponse('未注册手机号')
@@ -1697,7 +1683,7 @@ def 订餐评价初始化图片(request):
 #银联支付下订单
 def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
     try:
-        # totalAmount = '1' #支付1分钱
+        totalAmount = '1' #支付1分钱
         totalAmount = str(totalAmount)
         print('totalAmount----',totalAmount)
         totalAmount_list = totalAmount.split('.')
@@ -1768,13 +1754,14 @@ def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
 def wx_pay_success(request):
     from . import models
     try:
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        app_id = request.GET['app_id']
         state = request.GET['state']
         state_json = json.loads(state)
         oid = state_json['oid']
         totalAmount = state_json['totalAmount']
         子菜单page_name = state_json['子菜单page_name']
         二级部门 = state_json['二级部门']
+        wx_login_get_openid_dict = tool.wx_pay_success_get_openid(app_id,oid)
         from bson import ObjectId
         qset1 = models.订餐结果临时表.objects(id=ObjectId(oid)).first()
         if qset1 == None:
@@ -1782,8 +1769,6 @@ def wx_pay_success(request):
             订餐结果描述 = '订单不存在'
             oid = ''
         else:
-            # qset4 = models.订餐用户表.objects(手机号=qset1.手机号).first()
-            # openid = qset4.openid
             qset3 = models.订餐钱包表.objects(openid=wx_login_get_openid_dict['openid']).first()
             qset2 = models.订餐结果表.objects(
                 手机号=qset1.手机号,
@@ -1807,7 +1792,10 @@ def wx_pay_success(request):
                 )
                 异步计算消费金额(wx_login_get_openid_dict)
             if qset3 == None:
-                models.订餐钱包表(openid=qset4.openid,已充值=totalAmount).save()
+                models.订餐钱包表(
+                    openid=wx_login_get_openid_dict['openid'],
+                    已充值=totalAmount
+                ).save()
             else:
                 qset3.update(已充值 = qset3.已充值+totalAmount)
             qset2095 = models.订餐结果表.objects(
@@ -2025,7 +2013,7 @@ def get_ding_dan(request):
         page_desc = request.GET['page_desc']
         js_code = request.GET['code']
         print(code,日期,name,page_name,page_desc)
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             response = HttpResponse(json.dumps({'描述':'无手机号','数据':[]}))
@@ -2100,7 +2088,7 @@ def get_none_prep_ding_dan(request):
         page_name = request.GET['page_name']
         page_desc = request.GET['page_desc']
         print(code,日期,name,page_name,page_desc)
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         用户 = 订餐用户表.objects(openid=wx_login_get_openid_dict['openid']).first()
         if 用户 == None:
             response = HttpResponse(json.dumps({'描述':'无手机号','数据':[]}))
@@ -2163,7 +2151,7 @@ def get_none_prep_ding_dan(request):
 def buy_product(request):
     from . import models
     try:
-        wx_login_get_openid_dict = wx_login_get_openid(request)
+        wx_login_get_openid_dict = tool.wx_login_get_openid(request)
         当前时间戳 = time.time()
         当前时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         当前日期加一天 = time.strftime('%Y-%m-%d', time.localtime(time.time() + 86400))

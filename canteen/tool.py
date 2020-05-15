@@ -77,7 +77,29 @@ def get_str_date(i):
     import time
     return time.strftime('%Y-%m-%d', time.localtime(time.time() + i*86400))
 
+def wx_login_get_openid(request):
+    import requests
+    import json
+    import traceback
+    import myConfig
+    try:
+        js_code = request.GET['code']
+        app_id = request.GET['app_id']
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
+        payload = {'appid': app_id, 'secret': myConfig.appid_secret_dict[app_id], 'js_code': js_code,
+                    'grant_type': 'authorization_code'}
+        r = requests.get(url=url, params=payload)
+        r_json = json.loads(r.text)
+        openid = r_json['openid']
+        return {'openid':openid,'app_id':app_id}
+    except:
+        print(traceback.format_exc())
+        return None
 
+def wx_pay_success_get_openid(app_id,oid):
+    from . import tool
+    openid = db.query_openid_by_ding_can_jie_guo_oid(oid)
+    return {'openid':openid,'app_id':app_id}
 
 @deprecated_async
 def async_import_excel(mydata,flag,action):

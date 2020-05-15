@@ -10,6 +10,21 @@ myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.canteen_db]
 
 
+def query_openid_by_ding_can_jie_guo_oid(oid):
+    from bson.objectid import ObjectId 
+    r = mydb.订餐结果表.find({'_id' : ObjectId(oid) })
+    r = tool.objectid_to_json(r)
+    print('query_ding_can_jie_guo---',r)
+    if r == []:
+        return None
+    else:
+        手机号 = r[0]['手机号']
+        r = tool.objectid_to_json(mydb.订餐用户表.find({'手机号' : 手机号 })) 
+        if r == []:
+            return None
+        else:
+            return r[0]['openid']
+
 def 订餐主界面新增(d):
     if not '手机号' in d:
         return False
