@@ -86,9 +86,7 @@ def async_import_excel(mydata,flag,action):
     import time
     try:
         if action == '上传用餐人员清单':
-            for one in mydata:
-                db.订餐人员表新增(one)
-            res = db.创建订餐主界面表()
+            res = db.创建订餐主界面表(mydata)
             ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
             if ding_can_mongo1 == None:
                 if res:

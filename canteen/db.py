@@ -9,11 +9,6 @@ mongo_src = "mongodb://"+myConfig.canteen_username+":"+myConfig.canteen_password
 myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.canteen_db]
 
-def 订餐人员表新增(d):
-    r = tool.objectid_to_json( mydb.订餐人员表.find(d) )
-    if r == []:
-        mydb.订餐人员表.insert(d)
-    
 
 def 订餐主界面新增(d):
     if not '手机号' in d:
@@ -77,7 +72,10 @@ def 创建订餐提醒发货表(oid,name,d):
     else:
         qset1.update(d=d)
 
-def 创建订餐主界面表():
+def 创建订餐主界面表(mydata):
+    mydb.订餐人员表.drop()
+    for one in mydata:
+        mydb.订餐人员表.insert(one)
     手机号_list =  mydb.订餐人员表.distinct('手机号')
     for one in 手机号_list:
         mydb.订餐人员表手机号中间表.drop()
