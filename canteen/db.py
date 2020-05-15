@@ -12,13 +12,13 @@ mydb = myclient[myConfig.canteen_db]
 
 def query_openid_by_ding_can_jie_guo_oid(oid):
     from bson.objectid import ObjectId 
-    r = mydb.订餐结果表.find({'_id' : ObjectId(oid) })
+    r = mydb.订餐结果临时表.find_one({'_id' : ObjectId(oid) })
     r = tool.objectid_to_json(r)
-    print('query_ding_can_jie_guo---',r)
-    if r == []:
+    print('query_ding_can_jie_guo---',r,'oid----------',oid)
+    if r == {}:
         return None
     else:
-        手机号 = r[0]['手机号']
+        手机号 = r['手机号']
         r = tool.objectid_to_json(mydb.订餐用户表.find({'手机号' : 手机号 })) 
         if r == []:
             return None
