@@ -1683,7 +1683,7 @@ def 订餐评价初始化图片(request):
 #银联支付下订单
 def ding_can_chinaums_pay_order(totalAmount,goods,wx_login_get_openid_dict):
     try:
-        totalAmount = '1' #支付1分钱
+        # totalAmount = '1' #支付1分钱
         totalAmount = str(totalAmount)
         print('totalAmount----',totalAmount)
         totalAmount_list = totalAmount.split('.')
