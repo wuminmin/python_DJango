@@ -124,62 +124,15 @@ def get_my_basic_filter_list(data):
     return res_dict
 
 def get_my_basic_table_list(data):
-    my_table_list = [
-        {
-            'd':{
-                'main_id':'1',
-                'name':'',
-                'gender':'',
-                'birth_day':'',
-                'nation':'',
-                'identity_number':'341002222',
-                'birth_area':'birth_area',
-                'political_status':'',
-                'join_party_day':'',
-                'join_work_day':'',
-                'marital_status':'未婚',
-                'birth_place':'',
-                'hu_kou_location':'',
-                'work_phone':'',
-                'cell_phone':'',
-                'email':'',
-                'emergency_contact_name':'',
-                'emergency_contact_phone':'',
-            }
-        },
-        {
-            'd':{
-                'main_id':'2',
-                'name':'',
-                'gender':'',
-                'birth_day':'',
-                'nation':'',
-                'identity_number':'341003',
-                'birth_area':'birth_area',
-                'political_status':'',
-                'join_party_day':'',
-                'join_work_day':'',
-                'marital_status':'未婚',
-                'birth_place':'',
-                'hu_kou_location':'',
-                'work_phone':'',
-                'cell_phone':'',
-                'email':'',
-                'emergency_contact_name':'',
-                'emergency_contact_phone':'',
-            }
-        },
-    ]
     data = json.loads(data)
     debug_print(data)
-
-    if data == {} :
-        my_table_list = []
-    else:
+    if 'my_filter_list' in  data :
         my_filter_list = data['my_filter_list']
-
         my_table_list = db.teacher_base_info_query_list(my_filter_list)
-        total = len(my_table_list)
+    else:
+        my_filter_list = []
+        my_table_list = db.teacher_base_info_query_list(my_filter_list)
+    total = len(my_table_list)
     res_dict = {
         'code': 20000, 
         'data': {
@@ -191,8 +144,6 @@ def get_my_basic_table_list(data):
     return res_dict
 
 def create_row(data):
-
-    print(data)
     data = json.loads(data)
     my_temp = data['my_temp']
     my_temp['main_id'] = create_32_bit_main_id()
@@ -202,12 +153,17 @@ def create_row(data):
             pass
         else:
             my_temp[key] = ''
-    db.teacher_base_info_insert(my_temp)
-    res_dict = {
-        'code': 20000, 'data': {
-            
-        }, 'message': '新增成功'
-    }
+    if 'identity_number' in my_temp:
+        identity_number = my_temp['identity_number']
+        if identity_number == '':
+            return {'code':1,'data':{},'message':'身份证号码错误'}
+    else:
+        return {'code':2,'data':{},'message':'身份证号码必填'}
+    debug_print('create_row---my_temp---',my_temp)
+    if db.teacher_base_info_insert(my_temp,identity_number):
+        res_dict = {'code': 20000, 'data': {}, 'message': '新增成功'}
+    else:
+        res_dict = {'code': 3, 'data': {}, 'message': '身份证号码已存在'}
     return res_dict
 
 

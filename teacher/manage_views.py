@@ -8,10 +8,10 @@ def deprecated_async(f): # 异步函数
 
 def myHttpResponse(res):  # 合并跨域配置
     import json
-    from django.http import HttpResponse, FileResponse
+    from django.http import HttpResponse
     response = HttpResponse(json.dumps(res))
     response["Access-Control-Allow-Origin"] = "*"
-    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Allow-Methods"] = "POST, GET"
     response["Access-Control-Max-Age"] = "1000"
     response["Access-Control-Allow-Headers"] = "*"
     return response
@@ -405,17 +405,19 @@ def base_table_fetchList(request):
     import myConfig
     from . import tool
     try:
+        if request.method == 'OPTIONS':
+            return myHttpResponse({})
         code = request.GET['code']
-        if code == 1 or code == '1':
+        if code == 1 or code == '1': #查询筛选条件
             data = request.GET['data']
             message = request.GET['message']
             info = 'basic_info'
             res = tool.get_my_basic_filter_list(data)
-        elif code == 2 or code == '2':
+        elif code == 2 or code == '2': #查询基本信息表信息
             data = request.GET['data']
             message = request.GET['message']
             res = tool.get_my_basic_table_list(data)
-        elif code == 3 or code == '3':
+        elif code == 3 or code == '3': #新增一行
             data = request.GET['data']
             message = request.GET['message']
             res = tool.create_row(data)

@@ -7,8 +7,14 @@ mongo_src = "mongodb://"+myConfig.teacher_username+":"+myConfig.teacher_password
 myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.teacher_db]
 
-def teacher_base_info_insert(d):
-    mydb.teacher_base_info.insert(d)
+def teacher_base_info_insert(d,identity_number):
+    r = tool.objectid_to_json(mydb.teacher_base_info.find({'identity_number':identity_number}))
+    tool.debug_print('teacher_base_info_insert---',r)
+    if r == []:
+        mydb.teacher_base_info.insert(d)
+        return True
+    else:
+        return False
 
 def teacher_base_info_query_list(my_filter_list):
     pipeline = [ ]
@@ -37,7 +43,10 @@ def teacher_base_info_query_list(my_filter_list):
         '$match':match
     })
     tool.debug_print(pipeline)
-    r = mydb.teacher_base_info.aggregate(pipeline)
+    if pipeline == []:
+        r = mydb.teacher_base_info.aggregate(pipeline).limit(100)
+    else:
+        r = mydb.teacher_base_info.aggregate(pipeline)
     r_list = tool.objectid_to_json(r)
     tool.debug_print(r_list)
     return r_list
