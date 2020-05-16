@@ -7,7 +7,10 @@ mongo_src = "mongodb://"+myConfig.teacher_username+":"+myConfig.teacher_password
 myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.teacher_db]
 
-def teacher_base_info_insert(table_name,d):
+def teacher_base_info_insert(table_name,a):
+    d = {}
+    for k, v in sorted(a.items()):
+        d[k] = str(v)
     if table_name == '基本信息':
         mydb.基本信息.insert(d)
         return True
@@ -68,6 +71,7 @@ def teacher_base_info_query_list(table_name,my_filter_list):
     pipeline.append({
         '$match':match
     })
+    tool.debug_print('teacher_base_info_query_list---',pipeline)
     if pipeline == []:
         if table_name == '基本信息':
             r = mydb.基本信息.aggregate(pipeline).limit(100)
@@ -101,7 +105,7 @@ def teacher_base_info_query_list(table_name,my_filter_list):
         elif table_name == '考核信息':
             r = mydb.考核信息.aggregate(pipeline)
         elif table_name == '家庭信息':
-            r = mydb.基本信息.aggregate(pipeline)
+            r = mydb.家庭信息.aggregate(pipeline)
         elif table_name == '专业技术职务':
             r = mydb.专业技术职务.aggregate(pipeline)
         elif table_name == '职业资格名称':
@@ -144,9 +148,12 @@ def teacher_base_info_delete_by_key(table_name,key,value):
     else:
         return False
 
-def teacher_base_info_update_by_key(table_name,key,value,my_temp):
-    if '_id' in my_temp:
-        my_temp.pop('_id')
+def teacher_base_info_update_by_key(table_name,key,value,d):
+    if '_id' in d:
+        d.pop('_id')
+    my_temp = {}
+    for k, v in sorted(d.items()):
+        my_temp[k] = str(v)
     if table_name == '基本信息':
         r = mydb.基本信息.update(
             {key:value},
