@@ -42,7 +42,7 @@ class  微信预约验证码表(Document):
     手机号 = StringField()
 
 class 微信预约部门表(Document):
-    部门图标 = ImageField(default=open(myConfig.django_root_path+'/mysite/'+'404.png','rb'))
+    部门图标 = ImageField(default=open(myConfig.django_root_path+'/mysite/'+'404','rb'))
     部门名称 = StringField(default='')
     部门编号 = StringField(default='')
     部门信息 = DictField(default={})

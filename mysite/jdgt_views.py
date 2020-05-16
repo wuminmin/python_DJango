@@ -1370,7 +1370,7 @@ def 客户经理核实走访下载图片(request):
         dan_wei = request.GET['dan_wei']
         结对共拓部门主任走访客户结果表first = 结对共拓部门主任走访客户结果表.objects(走访日期=riqi, 部门主任姓名=zhu_ren, 单位名称=dan_wei).first()
         if 结对共拓部门主任走访客户结果表first == None:
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -1384,7 +1384,7 @@ def 客户经理核实走访下载图片(request):
             return response
     except:
         print(traceback.format_exc())
-        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
         outfile = open(path, 'rb')
         response = FileResponse(outfile)
         response['Content-Type'] = 'application/octet-stream'

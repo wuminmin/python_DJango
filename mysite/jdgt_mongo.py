@@ -20,7 +20,7 @@ connect(db=myConfig.db, host=myConfig.host, port=myConfig.port, username=myConfi
 录入积分 = '录入积分'
 审核积分 = '审核积分'
 
-path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
 outfile = open(path, 'rb')
 巡检机房 = '巡检机房'
 拜访客户 = '拜访客户'

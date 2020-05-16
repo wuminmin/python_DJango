@@ -17,7 +17,7 @@ def images(request):
         qset = models.tou_piao_image_col.objects(wxyl_id=id).first()
         print(qset)
         if qset == None:
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -31,7 +31,7 @@ def images(request):
             return response
     except:
         print(traceback.format_exc())
-        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
         outfile = open(path, 'rb')
         response = FileResponse(outfile)
         response['Content-Type'] = 'application/octet-stream'

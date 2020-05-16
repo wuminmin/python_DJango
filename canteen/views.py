@@ -1181,7 +1181,7 @@ def 订餐上传评价(request):
             if 订餐主界面表first == None:
                 return HttpResponse('用户未授权')
             ping_jia_txt = request.GET['ping_jia_txt']
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             订餐评论表(手机号=订餐主界面表first.手机号, 姓名=订餐主界面表first.姓名, 二级部门=订餐主界面表first.二级部门, 三级部门=订餐主界面表first.三级部门,
@@ -1217,7 +1217,7 @@ def 订餐评价初始化图片(request):
     try:
         obj_id = request.GET['obj_id']
         if obj_id == '404':
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -1225,7 +1225,7 @@ def 订餐评价初始化图片(request):
             return response
         采集模版表first = 订餐评论表.objects(id=obj_id).first()
         if 采集模版表first == None:
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -1239,7 +1239,7 @@ def 订餐评价初始化图片(request):
             return response
     except:
         print(traceback.format_exc())
-        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
         outfile = open(path, 'rb')
         response = FileResponse(outfile)
         response['Content-Type'] = 'application/octet-stream'

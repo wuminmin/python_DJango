@@ -334,7 +334,7 @@ def icon(request):
         部门编号 = request.GET['id']
         qset = models.微信预约部门表.objects(部门编号=部门编号).first()
         if qset == None:
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -348,7 +348,7 @@ def icon(request):
             return response
     except:
         print(traceback.format_exc())
-        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
         outfile = open(path, 'rb')
         response = FileResponse(outfile)
         response['Content-Type'] = 'application/octet-stream'

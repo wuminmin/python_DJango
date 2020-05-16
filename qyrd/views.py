@@ -128,7 +128,7 @@ def images(request):
         qset = models.qyrd_image_col.objects(col_id=id).first()
         print(qset)
         if qset == None:
-            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+            path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
             outfile = open(path, 'rb')
             response = FileResponse(outfile)
             response['Content-Type'] = 'application/octet-stream'
@@ -144,7 +144,7 @@ def images(request):
         import traceback
         import myConfig
         print(traceback.format_exc())
-        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404.png'
+        path = myConfig.django_root_path + '/' + 'mysite' + '/' + '404'
         outfile = open(path, 'rb')
         response = FileResponse(outfile)
         response['Content-Type'] = 'application/octet-stream'
