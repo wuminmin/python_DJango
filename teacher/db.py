@@ -7,15 +7,25 @@ mongo_src = "mongodb://"+myConfig.teacher_username+":"+myConfig.teacher_password
 myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.teacher_db]
 
-def teacher_base_info_insert(d,identity_number):
-    r = tool.objectid_to_json(mydb.teacher_base_info.find({'identity_number':identity_number}))
+def teacher_base_info_insert(table_name,d,identity_number):
+    if table_name == 'teacher_base_info':
+        r = mydb.teacher_base_info.find({'identity_number':identity_number})
+    else:
+        r = []
+    r = tool.objectid_to_json(r)
     if r == []:
-        mydb.teacher_base_info.insert(d)
-        return True
+        if table_name == 'teacher_base_info':
+            mydb.teacher_base_info.insert(d)
+            return False
+        elif table_name == 'teacher_work_info':
+            mydb.teacher_work_info.insert(d)
+            return True
+        else:
+            return False
     else:
         return False
 
-def teacher_base_info_query_list(my_filter_list):
+def teacher_base_info_query_list(table_name,my_filter_list):
     pipeline = []
     match = {}
     for one in my_filter_list:
@@ -38,7 +48,6 @@ def teacher_base_info_query_list(my_filter_list):
                  match[one['key']] = {
                     '$not':{
                         '$regex':".*"+one['input_value']+".*"
-
                      }
                 }
             else:
@@ -47,22 +56,38 @@ def teacher_base_info_query_list(my_filter_list):
         '$match':match
     })
     if pipeline == []:
-        r = mydb.teacher_base_info.aggregate(pipeline).limit(100)
+        if table_name == 'teacher_base_info':
+            r = mydb.teacher_base_info.aggregate(pipeline).limit(100)
+        else:
+            r = []
     else:
-        r = mydb.teacher_base_info.aggregate(pipeline)
+        if table_name == 'teacher_base_info':
+            r = mydb.teacher_base_info.aggregate(pipeline)
+        else:
+            r = []
     r_list = tool.objectid_to_json(r)
     return r_list
 
-def teacher_base_info_delete_by_key(key,value):
-    r = mydb.teacher_base_info.remove({key:value})
-    return True
+def teacher_base_info_delete_by_key(table_name,key,value):
+    print('teacher_base_info_delete_by_key',table_name)
+    if table_name == 'teacher_base_info':
+        r = mydb.teacher_base_info.remove({key:value})
+        return True
+    else:
+        return False
 
-def teacher_base_info_update_by_key(key,value,my_temp):
+def teacher_base_info_update_by_key(table_name,key,value,my_temp):
     if '_id' in my_temp:
         my_temp.pop('_id')
-    r = mydb.teacher_base_info.update(
-        {key:value},
-        {'$set':my_temp}
-    )
+    if table_name == 'teacher_base_info':
+        r = mydb.teacher_base_info.update(
+            {key:value},
+            {'$set':my_temp}
+        )
+    else:
+        r = {}
     tool.debug_print(key,value,my_temp,r)
-    return True
+    if 'updatedExisting' in r:
+        if r['updatedExisting']:
+            return True
+    return False

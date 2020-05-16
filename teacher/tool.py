@@ -41,7 +41,7 @@ def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
 #--------------------------------------------------
 
 table_header_dict = {
-    'basic_info':[
+    'teacher_base_info':[
         {'id':1,'name':'编号','key':'main_id'},
         {'id':2,'name':'姓名','key':'name'},
         {'id':3,'name':'性别','key':'gender'},
@@ -63,8 +63,8 @@ table_header_dict = {
     ]
 }
 
-def get_my_basic_filter_list(data,table_name):
-    my_table_header_list = table_header_dict[table_name]
+def get_my_basic_filter_list(data,method_dict):
+    my_table_header_list = table_header_dict[method_dict['table_name']]
     my_filter_list = []
     i = 0
     filter_dict = {}
@@ -98,7 +98,6 @@ def get_my_basic_filter_list(data,table_name):
             filter_dict['input_condition'+str(i%3)] = ''
         i = i +1
     my_filter_list.append(filter_dict)
-
     res_dict = {
         'code': 20000, 'data': {
             'export_excel_header_name_list':export_excel_header_name_list,
@@ -136,7 +135,7 @@ def handle_my_filter_list_tmp_key2(one):
     else:
         return None
 
-def get_my_basic_table_list(data,table_name):
+def get_my_basic_table_list(data,method_dict):
     data = json.loads(data)
     my_filter_list = []
     if 'my_filter_list' in  data :
@@ -151,7 +150,7 @@ def get_my_basic_table_list(data,table_name):
             r = handle_my_filter_list_tmp_key2(one)
             if not r == None:
                 my_filter_list.append(r)
-    my_table_list = db.teacher_base_info_query_list(my_filter_list)
+    my_table_list = db.teacher_base_info_query_list(method_dict['table_name'],my_filter_list)
     total = len(my_table_list)
     res_dict = {
         'code': 20000, 
@@ -163,11 +162,11 @@ def get_my_basic_table_list(data,table_name):
     }
     return res_dict
 
-def create_row(data,table_name):
+def create_row(data,method_dict):
     data = json.loads(data)
     my_temp = data['my_temp']
     my_temp['main_id'] = create_32_bit_main_id()
-    for one in table_header_dict[table_name]:
+    for one in table_header_dict[method_dict['table_name']]:
         key = one['key']
         if key in my_temp:
             pass
@@ -179,28 +178,28 @@ def create_row(data,table_name):
             return {'code':1,'data':{},'message':'身份证号码错误'}
     else:
         return {'code':2,'data':{},'message':'身份证号码必填'}
-    if db.teacher_base_info_insert(my_temp,identity_number):
+    if db.teacher_base_info_insert(method_dict['table_name'],my_temp,identity_number):
         res_dict = {'code': 20000, 'data': {}, 'message': '新增成功'}
     else:
         res_dict = {'code': 3, 'data': {}, 'message': '身份证号码已存在'}
     return res_dict
 
-def delete_row(data,table_name):
+def delete_row(data,method_dict):
     data = json.loads(data)
     my_temp = data['my_temp']
     if not 'main_id' in my_temp:
         return {'code': 1, 'data': {}, 'message': '编号不存在!'}
     main_id = my_temp['main_id']
-    if not db.teacher_base_info_delete_by_key('main_id',main_id):
+    if not db.teacher_base_info_delete_by_key(method_dict['table_name'],'main_id',main_id):
         return {'code': 2, 'data': {}, 'message': '删除失败'}
     return {'code': 20000, 'data': {}, 'message': '删除成功'}
 
-def update_row(data,table_name):
+def update_row(data,method_dict):
     data = json.loads(data)
     my_temp = data['my_temp']
     if not 'main_id' in my_temp:
         return {'code': 1, 'data': {}, 'message': '编号不存在!'}
     main_id = my_temp['main_id']
-    if not db.teacher_base_info_update_by_key('main_id',main_id,my_temp):
+    if not db.teacher_base_info_update_by_key(method_dict['table_name'],'main_id',main_id,my_temp):
         return {'code': 2, 'data': {}, 'message': '修改失败'}
     return {'code': 20000, 'data': {}, 'message': '修改成功'}

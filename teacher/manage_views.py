@@ -273,29 +273,37 @@ def base_table_fetchList(request):
     try:
         if request.method == 'OPTIONS':
             return myHttpResponse({})
-        code = request.GET['code']
-        table_name = 'basic_info'
+        code = 0
+        
+        if request.method == 'GET':
+            code = request.GET['code']
+        if request.method == 'POST':
+            code = request.POST['code']
+        method_dict = {'table_name':'teacher_base_info'}
         if code == 1 or code == '1': #查询筛选条件
             data = request.GET['data']
             message = request.GET['message']
-            info = 'basic_info'
-            res = tool.get_my_basic_filter_list(data,table_name)
+            res = tool.get_my_basic_filter_list(data,method_dict)
         elif code == 2 or code == '2': #查询基本信息
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.get_my_basic_table_list(data,table_name)
+            res = tool.get_my_basic_table_list(data,method_dict)
         elif code == 3 or code == '3': #新增一行基本信息数据
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.create_row(data,table_name)
+            res = tool.create_row(data,method_dict)
         elif code == 4 or code == '4': #删除一行基本信息数据
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.delete_row(data,table_name) 
+            res = tool.delete_row(data,method_dict) 
         elif code == 5 or code == '5': #修改一行基本信息数据
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.update_row(data,table_name) 
+            res = tool.update_row(data,method_dict) 
+        elif code == 6 or code == '6': #修改一行基本信息数据
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.import_excel(data,method_dict) 
         else:
             res = {'code': 0, 'data': {}, 'message': '参数错误'}
         return myHttpResponse(res)
