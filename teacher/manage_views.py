@@ -112,115 +112,19 @@ def logout(request):
 def async_import_excel(mydata,flag,action):
     # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
     from . import models as ding_can_mongo  #新版订餐后台
-    print(mydata)
     import pandas
     import time
     try:
         if action == '上传用餐人员清单':
-            df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
-            手机号_list = []
-            主菜单id_list = []
-            for row_main in df_main.iterrows():
-                手机号 = str(row_main[1]['手机号'])
-                主菜单id = row_main[1]['主菜单id']
-                if 手机号 in 手机号_list:
-                    pass
-                else:
-                    手机号_list.append(手机号)
-                if 主菜单id in 主菜单id_list:
-                    pass
-                else:
-                    主菜单id_list.append(主菜单id)
-            for 手机号 in 手机号_list:
-                主界内容 = []
-                df_手机号 = df_main.loc[(df_main['手机号'] == int(手机号))]
-                for row in df_手机号.iterrows():
-                    创建时间 = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                    描述 = str(row[1]['描述'])
-                    主页标题 = str(row[1]['主页标题'])
-                    主页描述 = str(row[1]['主页描述'])
-                    验证码标题 = str(row[1]['验证码标题'])
-                    验证码描述 = str(row[1]['验证码描述'])
-                    二级部门 = str(row[1]['二级部门'])
-                    三级部门 = str(row[1]['三级部门'])
-                    四级部门 = str(row[1]['四级部门'])
-                    姓名 = str(row[1]['姓名'])
-                    主菜单name = str(row[1]['主菜单name'])
-                    主菜单id = str(row[1]['主菜单id'])
-                    df_手机号_主菜单name = df_main.loc[(df_main['手机号'] == int(手机号)) & (df_main['主菜单name'] == 主菜单name)]
-                    pages = []
-                    for index, row in df_手机号_主菜单name.iterrows():
-                        子菜单page_name = row['子菜单page_name']
-                        子菜单page_desc = row['子菜单page_desc']
-                        子菜单url = row['子菜单url']
-                        page = {}
-                        page['url'] = 子菜单url
-                        page['page_name'] = 子菜单page_name
-                        page['page_desc'] = 子菜单page_desc
-                        if page in pages:
-                            pass
-                        else:
-                            pages.append(page)
-                    主菜单id_dict = {
-                        'id': 主菜单id,
-                        'name': 主菜单name,
-                        'open': False,
-                        'pages': pages
-                    }
-                    if 主菜单id_dict in 主界内容:
-                        pass
-                    else:
-                        主界内容.append(主菜单id_dict)
-                    主界面表_one = ding_can_mongo.订餐主界面表.objects(手机号=str(手机号)).first()
-                    if 主界面表_one == None:
-                        ding_can_mongo.订餐主界面表(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
-                            , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容).save()
-                    else:
-                        主界面表_one.update(手机号=str(手机号), 描述=str(描述), 创建时间=str(创建时间), 主页标题=str(主页标题), 主页描述=str(主页描述), 验证码标题=str(验证码标题)
-                            , 验证码描述=str(验证码描述),二级部门=二级部门,三级部门=三级部门,四级部门=四级部门,姓名=姓名, 主界内容=主界内容)
-            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-            if ding_can_mongo1 == None:
-                ding_can_mongo.订餐导入时间戳表(
-                    flag=flag,
-                    isOk=True
-                ).save()
-            else:
-                ding_can_mongo1.update(isOk=True)
+            pass
         elif action == '上传充值清单':
-            df_main = pandas.read_json(mydata,encoding="utf-8", orient='records')
-            for row_main in df_main.iterrows():
-                手机号 = str(row_main[1]['手机号'])
-                充值金额 = row_main[1]['充值金额']
-                备注 = row_main[1]['备注']
-                ding_can_mongo.订餐钱包充值表(
-                    手机号=手机号,
-                    充值金额 = int(充值金额),
-                    充值时间=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())),
-                    备注 = 备注
-                ).save()
-            ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-            if ding_can_mongo1 == None:
-                ding_can_mongo.订餐导入时间戳表(
-                    flag=flag,
-                    isOk=True
-                ).save()
-            else:
-                ding_can_mongo1.update(isOk=True)
+            pass
         else:
             print('无效请求')
     except:
         import traceback
         r = traceback.format_exc()
         print(r)
-        ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-        if ding_can_mongo1 == None:
-            ding_can_mongo.订餐导入时间戳表(
-                flag=flag,
-                isOk=False,
-                eLog={'log':r}
-            ).save()
-        else:
-            ding_can_mongo1.update(isOk=False,eLog={'log':r})
 
 def upload_canteen_list(request):
     import json
@@ -231,56 +135,18 @@ def upload_canteen_list(request):
     from . import models as ding_can_mongo  #新版订餐后台
     try:
         req_body = request.body.decode('utf-8')
-        # print(req_body)
         req_json = json.loads(req_body)
         mydata = req_json['data']
         mydata = json.dumps(mydata)
         print('mydata---',mydata)
-
         flag =  req_json['flag']
         action = req_json['key']
-        token = req_json['token']
-        q1 = manage_models.my_user.objects(__raw__ = {'d.token':token}).first()
-        if q1 == None:
-            code = 50008
-            data = {}
-            message = '已超时，请重新登录'
-            res = {'code':code,'data':data,'message':message}
-            return myHttpResponse(res)
-        else:
-            if action == '上传用餐人员清单':
-                async_import_excel(mydata,flag,action)
-                code = 20000
-                data = 'success'
-                message = '正在处理'
-                res = {'code': code, 'data': data, 'message': message}
-                return myHttpResponse(res)
-            elif action == '上传充值清单':
-                async_import_excel(mydata,flag,action)
-                code = 20000
-                data = 'success'
-                message = '正在处理'
-                res = {'code': code, 'data': data, 'message': message}
-                return myHttpResponse(res)
-            elif action == '查询结果':
-                ding_can_mongo1 = ding_can_mongo.订餐导入时间戳表.objects(flag=flag).first()
-                if ding_can_mongo1 == None:
-                    message = '正在处理'
-                else:
-                    if ding_can_mongo1.isOk :
-                        message = '成功'
-                    else:
-                        message = '失败'
-                code = 20000
-                data = 'success'
-                res = {'code': code, 'data': data, 'message': message}
-                return myHttpResponse(res)
-            else:
-                code = 20000
-                data = 'success'
-                message = '退出成功'
-                res = {'code': code, 'data': data, 'message': message}
-                return myHttpResponse(res)
+        
+        code = 20000
+        data = 'success'
+        message = '退出成功'
+        res = {'code': code, 'data': {}, 'message': message}
+        return myHttpResponse(res)
     except:
         print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'message': '系统故障'}
@@ -408,19 +274,28 @@ def base_table_fetchList(request):
         if request.method == 'OPTIONS':
             return myHttpResponse({})
         code = request.GET['code']
+        table_name = 'basic_info'
         if code == 1 or code == '1': #查询筛选条件
             data = request.GET['data']
             message = request.GET['message']
             info = 'basic_info'
-            res = tool.get_my_basic_filter_list(data)
-        elif code == 2 or code == '2': #查询基本信息表信息
+            res = tool.get_my_basic_filter_list(data,table_name)
+        elif code == 2 or code == '2': #查询基本信息
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.get_my_basic_table_list(data)
-        elif code == 3 or code == '3': #新增一行
+            res = tool.get_my_basic_table_list(data,table_name)
+        elif code == 3 or code == '3': #新增一行基本信息数据
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.create_row(data)
+            res = tool.create_row(data,table_name)
+        elif code == 4 or code == '4': #删除一行基本信息数据
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.delete_row(data,table_name) 
+        elif code == 5 or code == '5': #修改一行基本信息数据
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.update_row(data,table_name) 
         else:
             res = {'code': 0, 'data': {}, 'message': '参数错误'}
         return myHttpResponse(res)

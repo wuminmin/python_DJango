@@ -30,6 +30,8 @@ def create_32_bit_main_id():
 def debug_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
     flag = True
     if flag:
+        import sys
+        print('函数名称:',sys._getframe().f_code.co_name)
         print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
 
 def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
@@ -61,34 +63,16 @@ table_header_dict = {
     ]
 }
 
-my_basic_table_header_list = [
-    {'id':1,'name':'编号','key':'main_id'},
-    {'id':2,'name':'姓名','key':'name'},
-    {'id':3,'name':'性别','key':'gender'},
-    {'id':4,'name':'出生日期','key':'birth_day'},
-    {'id':5,'name':'民族','key':'nation'},
-    {'id':6,'name':'身份证','key':'identity_number'},
-    {'id':7,'name':'籍贯','key':'birth_area'},
-    {'id':8,'name':'政治面貌','key':'political_status'},
-    {'id':9,'name':'入党日期','key':'join_party_day'},
-    {'id':10,'name':'参加工作日期','key':'join_work_day'},
-    {'id':11,'name':'婚姻状况','key':'marital_status'},
-    {'id':12,'name':'出生地','key':'birth_place'},
-    {'id':13,'name':'户口所在地','key':'hu_kou_location'},
-    {'id':14,'name':'办公电话','key':'work_phone'},
-    {'id':15,'name':'手机号码','key':'cell_phone'},
-    {'id':16,'name':'电子邮件','key':'email'},
-    {'id':17,'name':'紧急联系人姓名','key':'emergency_contact_name'},
-    {'id':18,'name':'紧急联系人电话','key':'emergency_contact_phone'},
-]
-
-
-def get_my_basic_filter_list(data):
-    my_table_header_list = my_basic_table_header_list
+def get_my_basic_filter_list(data,table_name):
+    my_table_header_list = table_header_dict[table_name]
     my_filter_list = []
     i = 0
     filter_dict = {}
+    export_excel_header_name_list = []
+    export_excel_header_key_list = []
     for one in my_table_header_list:
+        export_excel_header_name_list.append(one['name'])
+        export_excel_header_key_list.append(one['key'])
         if i == 0:
             name = one['name']
             key = one['key']
@@ -117,8 +101,10 @@ def get_my_basic_filter_list(data):
 
     res_dict = {
         'code': 20000, 'data': {
+            'export_excel_header_name_list':export_excel_header_name_list,
+            'export_excel_header_key_list':export_excel_header_key_list,
             'my_table_header_list':my_table_header_list,
-            'my_filter_list':my_filter_list
+            'my_filter_list':my_filter_list,
         }, 'message': 'message'
     }
     return res_dict
@@ -150,9 +136,8 @@ def handle_my_filter_list_tmp_key2(one):
     else:
         return None
 
-def get_my_basic_table_list(data):
+def get_my_basic_table_list(data,table_name):
     data = json.loads(data)
-    debug_print(data)
     my_filter_list = []
     if 'my_filter_list' in  data :
         my_filter_list_tmp = data['my_filter_list']
@@ -178,11 +163,11 @@ def get_my_basic_table_list(data):
     }
     return res_dict
 
-def create_row(data):
+def create_row(data,table_name):
     data = json.loads(data)
     my_temp = data['my_temp']
     my_temp['main_id'] = create_32_bit_main_id()
-    for one in my_basic_table_header_list:
+    for one in table_header_dict[table_name]:
         key = one['key']
         if key in my_temp:
             pass
@@ -194,11 +179,28 @@ def create_row(data):
             return {'code':1,'data':{},'message':'身份证号码错误'}
     else:
         return {'code':2,'data':{},'message':'身份证号码必填'}
-    debug_print('create_row---my_temp---',my_temp)
     if db.teacher_base_info_insert(my_temp,identity_number):
         res_dict = {'code': 20000, 'data': {}, 'message': '新增成功'}
     else:
         res_dict = {'code': 3, 'data': {}, 'message': '身份证号码已存在'}
     return res_dict
 
+def delete_row(data,table_name):
+    data = json.loads(data)
+    my_temp = data['my_temp']
+    if not 'main_id' in my_temp:
+        return {'code': 1, 'data': {}, 'message': '编号不存在!'}
+    main_id = my_temp['main_id']
+    if not db.teacher_base_info_delete_by_key('main_id',main_id):
+        return {'code': 2, 'data': {}, 'message': '删除失败'}
+    return {'code': 20000, 'data': {}, 'message': '删除成功'}
 
+def update_row(data,table_name):
+    data = json.loads(data)
+    my_temp = data['my_temp']
+    if not 'main_id' in my_temp:
+        return {'code': 1, 'data': {}, 'message': '编号不存在!'}
+    main_id = my_temp['main_id']
+    if not db.teacher_base_info_update_by_key('main_id',main_id,my_temp):
+        return {'code': 2, 'data': {}, 'message': '修改失败'}
+    return {'code': 20000, 'data': {}, 'message': '修改成功'}
