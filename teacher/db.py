@@ -20,29 +20,46 @@ def teacher_base_info_query_list(my_filter_list):
     pipeline = [ ]
     match = {}
     for one in my_filter_list:
-        if 'input_condition0' in one:
-            if one['input_condition0'] == '包含':
-                match[one['key0']] = one['input_value0']
-            elif one['input_condition0'] == '不包含':
-                match[one['key0']] = {
-                    '$not':{
-                        '$regex': ".*"+one['input_value0']+".*"
-                    }
+        if 'input_condition' in one:
+            if one['input_condition'] == '等于':
+                match[one['key']] = one['input_value']
+            elif one['input_condition'] == '大于':
+                match[one['key']] = {
+                    '$gte':one['input_value']
                 }
-        if 'input_condition1' in one:
-            if one['input_condition1'] == '包含':
-                match[one['key1']] = one['input_value1']
-            elif one['input_condition1'] == '不包含':
-                match[one['key1']] = one['input_value1']
-        if 'input_condition2' in one:
-            if one['input_condition2'] == '包含':
-                match[one['key2']] = one['input_value2']
-            elif one['input_condition2'] == '不包含':
-                match[one['key2']] = one['input_value2']
+                # match['$gte'] = {
+                #     one['key']:one['input_value']
+                # }
+            elif one['input_condition'] == '小于':
+                match[one['key']] = {
+                    '$lte':one['input_value']
+                }
+                # match['$lte'] = {
+                #     one['key']:one['input_value']
+                # }
+            elif one['input_condition'] == '包含':
+                match[one['key']] = {
+                    '$regex':".*"+one['input_value']+".*"
+                }
+                # match['$regex'] = {one['key']:".*"+one['input_value']+".*"}
+            elif one['input_condition'] == '不包含':
+                 match[one['key']] = {
+                    '$not':{
+                        '$regex':".*"+one['input_value']+".*"
+
+                     }
+                }
+                # match['$not'] = {
+                #     '$regex':{
+                #         one['key']: ".*"+one['input_value']+".*"
+                #     }
+                # }
+            else:
+                pass
     pipeline.append({
         '$match':match
     })
-    tool.debug_print(pipeline)
+    tool.debug_print('teacher_base_info_query_list---pipeline---',pipeline)
     if pipeline == []:
         r = mydb.teacher_base_info.aggregate(pipeline).limit(100)
     else:

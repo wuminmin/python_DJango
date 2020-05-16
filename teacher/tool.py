@@ -123,15 +123,50 @@ def get_my_basic_filter_list(data):
     }
     return res_dict
 
+def handle_my_filter_list_tmp_key0(one):
+    if 'key0' in one and 'input_value0' in one and 'input_condition0' in one:
+        key = one['key0']
+        input_value = one['input_value0']
+        input_condition = one['input_condition0']
+        return {'key':key,'input_value':input_value,'input_condition':input_condition}
+    else:
+        return None
+
+def handle_my_filter_list_tmp_key1(one):
+    if 'key1' in one and 'input_value1' in one and 'input_condition1' in one:
+        key = one['key1']
+        input_value = one['input_value1']
+        input_condition = one['input_condition1']
+        return {'key':key,'input_value':input_value,'input_condition':input_condition}
+    else:
+        return None
+
+def handle_my_filter_list_tmp_key2(one):
+    if 'key2' in one and 'input_value2' in one and 'input_condition2' in one:
+        key = one['key2']
+        input_value = one['input_value2']
+        input_condition = one['input_condition2']
+        return {'key':key,'input_value':input_value,'input_condition':input_condition}
+    else:
+        return None
+
 def get_my_basic_table_list(data):
     data = json.loads(data)
     debug_print(data)
+    my_filter_list = []
     if 'my_filter_list' in  data :
-        my_filter_list = data['my_filter_list']
-        my_table_list = db.teacher_base_info_query_list(my_filter_list)
-    else:
-        my_filter_list = []
-        my_table_list = db.teacher_base_info_query_list(my_filter_list)
+        my_filter_list_tmp = data['my_filter_list']
+        for one in my_filter_list_tmp:
+            r = handle_my_filter_list_tmp_key0(one)
+            if not r == None:
+                my_filter_list.append(r)
+            r = handle_my_filter_list_tmp_key1(one)
+            if not r == None:
+                my_filter_list.append(r)
+            r = handle_my_filter_list_tmp_key2(one)
+            if not r == None:
+                my_filter_list.append(r)
+    my_table_list = db.teacher_base_info_query_list(my_filter_list)
     total = len(my_table_list)
     res_dict = {
         'code': 20000, 
