@@ -30,8 +30,6 @@ def create_32_bit_main_id():
 def debug_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
     flag = True
     if flag:
-        import sys
-        print('函数名称:',sys._getframe().f_code.co_name)
         print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
 
 def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
@@ -39,6 +37,17 @@ def traceback_print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False):
     if flag:
         print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
 #--------------------------------------------------
+table_info_list = [
+    {'id':1,'name':'基本信息','table_name':'teacher_base_info'},
+    {'id':2,'name':'工作信息','table_name':'teacher_work_info'},
+    {'id':3,'name':'学历信息','table_name':'teacher_education_info'},
+    {'id':4,'name':'工作履历','table_name':'teacher_resume_info'},
+    {'id':5,'name':'考核信息','table_name':'teacher_assessment_info'},
+    {'id':6,'name':'家庭信息','table_name':'teacher_family_info'},
+    {'id':7,'name':'专业技术职务','table_name':'teacher_profession_info'},
+    {'id':8,'name':'职业资格名称','table_name':'teacher_occupation_info'},
+    {'id':9,'name':'奖励情况','table_name':'teacher_reward_info'},
+]
 
 table_header_dict = {
     'teacher_base_info':[
@@ -172,13 +181,7 @@ def create_row(data,method_dict):
             pass
         else:
             my_temp[key] = ''
-    if 'identity_number' in my_temp:
-        identity_number = my_temp['identity_number']
-        if identity_number == '':
-            return {'code':1,'data':{},'message':'身份证号码错误'}
-    else:
-        return {'code':2,'data':{},'message':'身份证号码必填'}
-    if db.teacher_base_info_insert(method_dict['table_name'],my_temp,identity_number):
+    if db.teacher_base_info_insert(method_dict['table_name'],my_temp):
         res_dict = {'code': 20000, 'data': {}, 'message': '新增成功'}
     else:
         res_dict = {'code': 3, 'data': {}, 'message': '身份证号码已存在'}
@@ -203,3 +206,19 @@ def update_row(data,method_dict):
     if not db.teacher_base_info_update_by_key(method_dict['table_name'],'main_id',main_id,my_temp):
         return {'code': 2, 'data': {}, 'message': '修改失败'}
     return {'code': 20000, 'data': {}, 'message': '修改成功'}
+
+def import_excel_init(data,method_dict):
+    data = json.loads(data)
+    table_name_list = []
+    for one in table_info_list:
+        table_name_list.append({'key':one['table_name'],'name':one['name']})
+    return {'code':20000,'data':{'table_name_list':table_name_list},'message':'上传excel初始化'}
+
+def import_excel_data(data,method_dict):
+    data = json.loads(data)
+    tableData = data['tableData']
+    for one in tableData:
+        one['main_id'] = create_32_bit_main_id()
+        db.teacher_base_info_insert(method_dict['table_name'],one)
+    return {'code':20000,'data':{},'message':method_dict['table_name']+'导入成功'}
+

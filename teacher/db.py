@@ -7,21 +7,14 @@ mongo_src = "mongodb://"+myConfig.teacher_username+":"+myConfig.teacher_password
 myclient = pymongo.MongoClient(mongo_src)
 mydb = myclient[myConfig.teacher_db]
 
-def teacher_base_info_insert(table_name,d,identity_number):
+def teacher_base_info_insert(table_name,d):
+    tool.debug_print('teacher_base_info_insert--',d)
     if table_name == 'teacher_base_info':
-        r = mydb.teacher_base_info.find({'identity_number':identity_number})
-    else:
-        r = []
-    r = tool.objectid_to_json(r)
-    if r == []:
-        if table_name == 'teacher_base_info':
-            mydb.teacher_base_info.insert(d)
-            return False
-        elif table_name == 'teacher_work_info':
-            mydb.teacher_work_info.insert(d)
-            return True
-        else:
-            return False
+        mydb.teacher_base_info.insert(d)
+        return True
+    elif table_name == 'teacher_work_info':
+        mydb.teacher_work_info.insert(d)
+        return True
     else:
         return False
 

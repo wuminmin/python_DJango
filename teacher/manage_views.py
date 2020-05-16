@@ -24,6 +24,8 @@ def login(request):  # vue管理后台登录
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
+        # if request.method == 'OPTIONS':
+        #     return myHttpResponse({})
         req_body = request.body.decode('utf-8')
         req_json = json.loads(req_body)
         username = req_json['username']
@@ -65,6 +67,8 @@ def info(request):  # vue后台获取用户信息
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
+        if request.method == 'OPTIONS':
+            return myHttpResponse({})
         token = request.GET['token']
         print(token)
         q1 = manage_models.my_user.objects(__raw__ = {'d.token':token}).first()
@@ -96,6 +100,8 @@ def logout(request):
     from django.http import HttpResponse, FileResponse
     from django.http import JsonResponse
     try:
+        if request.method == 'OPTIONS':
+            return myHttpResponse({})
         req_body = request.body.decode('utf-8')
         print(req_body)
         code = 20000
@@ -103,158 +109,6 @@ def logout(request):
         message = '退出成功'
         res = {'code': code, 'data': data, 'message': message}
         return myHttpResponse(res)
-    except:
-        print(traceback.format_exc())
-        res = {'code': 500, 'data': {}, 'message': '系统故障'}
-        return myHttpResponse(res)
-
-@deprecated_async
-def async_import_excel(mydata,flag,action):
-    # from mysite import ding_can_mongo as ding_can_mongo #老版订餐后台
-    from . import models as ding_can_mongo  #新版订餐后台
-    import pandas
-    import time
-    try:
-        if action == '上传用餐人员清单':
-            pass
-        elif action == '上传充值清单':
-            pass
-        else:
-            print('无效请求')
-    except:
-        import traceback
-        r = traceback.format_exc()
-        print(r)
-
-def upload_canteen_list(request):
-    import json
-    import traceback
-    from . import manage_models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
-    from . import models as ding_can_mongo  #新版订餐后台
-    try:
-        req_body = request.body.decode('utf-8')
-        req_json = json.loads(req_body)
-        mydata = req_json['data']
-        mydata = json.dumps(mydata)
-        print('mydata---',mydata)
-        flag =  req_json['flag']
-        action = req_json['key']
-        
-        code = 20000
-        data = 'success'
-        message = '退出成功'
-        res = {'code': code, 'data': {}, 'message': message}
-        return myHttpResponse(res)
-    except:
-        print(traceback.format_exc())
-        res = {'code': 500, 'data': {}, 'message': '系统故障'}
-        return myHttpResponse(res)
-
-def export_canteen_data(request):
-    import json
-    import traceback
-    from . import manage_models
-    from . import models
-    from django.http import HttpResponse, FileResponse
-    from django.http import JsonResponse
-    from . import models as ding_can_mongo  #新版订餐后台
-    import myConfig
-    try:
-        req_body = request.body.decode('utf-8')
-        print(req_body)
-        req_json = json.loads(req_body)
-        token = req_json['token']
-        q1 = manage_models.my_user.objects(__raw__ = {'d.token':token}).first()
-        if q1 == None:
-            code = 50008
-            data = {}
-            message = '已超时，请重新登录'
-            res = {'code':code,'data':data,'message':message}
-        key =  req_json['key']
-        if key == '导出充值清单':
-            value_start = req_json['value_start']
-            value_end = req_json['value_end']
-            ql2 = models.订餐钱包充值表.objects(
-                充值时间__gte = value_start + ' 00:00:00',
-                充值时间__lte = value_end + ' 23:59:59' 
-            )
-            code = 20000
-            data = { 
-                'total':len(ql2),
-                'items': json.loads(ql2.to_json().encode('utf-8').decode('unicode_escape'))
-            }
-            message = '成功'
-            res = {'code': code, 'data': data, 'message': message}
-            return myHttpResponse(res)
-        elif key == '导出消费清单':
-            value_start = req_json['value_start']
-            value_end = req_json['value_end']
-            ql2 = models.订餐结果表.objects(用餐日期__gte = value_start,用餐日期__lte = value_end )
-            产品全局字典 = ding_can_mongo.产品全局字典
-            产品名称列表 = 产品全局字典[myConfig.wx_app_id]['产品名称列表']
-            items = []
-            for o in ql2:
-                手机号 = o.手机号
-                用餐日期 = o.用餐日期
-                产品 = ','
-                for o2 in 产品名称列表:
-                    名称 = o2
-                    if 名称 in o.产品:
-                        预定数量 = o.产品[o2]['预定数量']
-                        签到 = o.产品[o2]['签到']
-                        项目 = 名称+','+str(预定数量)+','+签到
-                        产品 = 产品+项目+','
-                items.append({
-                    '手机号':手机号,
-                    '用餐日期':用餐日期,
-                    '产品':产品
-                })
-                产品 = ','
-            code = 20000
-            data = {
-                'total':len(ql2),
-                'items':items,
-            }
-            message = '成功'
-            res = {'code': code, 'data': data, 'message': message}
-            return myHttpResponse(res)
-        elif key == '导出员工清单':
-            ql2 = models.订餐主界面表.objects()
-            items = []
-            for one in ql2:
-                items.append({
-                            '手机号':one.手机号,
-                            '描述':one.描述,
-                            '创建时间':one.创建时间,
-                            '主页标题':one.主页标题,
-                            '主页描述':one.主页描述,
-                            '验证码标题':one.验证码标题,
-                            '验证码描述':one.验证码描述,
-                            '二级部门':one.二级部门,
-                            '三级部门':one.三级部门,
-                            '四级部门':one.四级部门,
-                            '姓名':one.姓名,
-                            '主界内容':one.主界内容
-                        })
-            code = 20000
-            data = {
-                'total':len(ql2),
-                'items': items
-            }
-            message = '成功'
-            res = {'code': code, 'data': data, 'message': message}
-            return myHttpResponse(res)
-        else:
-            code = 20000
-            data = {
-                'total':0,
-                'items':[]
-            }
-            message = '成功'
-            res = {'code': code, 'data': data, 'message': message}
-            return myHttpResponse(res)
     except:
         print(traceback.format_exc())
         res = {'code': 500, 'data': {}, 'message': '系统故障'}
@@ -274,12 +128,13 @@ def base_table_fetchList(request):
         if request.method == 'OPTIONS':
             return myHttpResponse({})
         code = 0
-        
+        method_dict = {'table_name':'teacher_base_info'}
         if request.method == 'GET':
             code = request.GET['code']
+            method_dict = json.loads(request.GET['method_dict'])
         if request.method == 'POST':
             code = request.POST['code']
-        method_dict = {'table_name':'teacher_base_info'}
+            method_dict = json.loads(request.POST['method_dict'])
         if code == 1 or code == '1': #查询筛选条件
             data = request.GET['data']
             message = request.GET['message']
@@ -300,10 +155,14 @@ def base_table_fetchList(request):
             data = request.GET['data']
             message = request.GET['message']
             res = tool.update_row(data,method_dict) 
-        elif code == 6 or code == '6': #修改一行基本信息数据
+        elif code == 6 or code == '6': 
             data = request.GET['data']
             message = request.GET['message']
-            res = tool.import_excel(data,method_dict) 
+            res = tool.import_excel_init(data,method_dict) 
+        elif code == 7 or code == '7': 
+            data = request.GET['data']
+            message = request.GET['message']
+            res = tool.import_excel_data(data,method_dict) 
         else:
             res = {'code': 0, 'data': {}, 'message': '参数错误'}
         return myHttpResponse(res)
