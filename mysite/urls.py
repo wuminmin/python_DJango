@@ -16,8 +16,8 @@ Including another URLconf
 from django.conf.urls import url
 from django.urls import path,include
 
-from qyrd import urls
+# from qyrd import urls
 
 urlpatterns = [
-    path('qyrd/', include(urls)),
+    path('qyrd/', include('qyrd.urls')),
 ]

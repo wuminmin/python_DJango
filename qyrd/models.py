@@ -16,7 +16,7 @@ root_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(root_path)
 
 # disconnenect()
-connect(db=myConfig.db_qyrd, host=myConfig.host, port=myConfig.port,username=myConfig.name_qyrd, password=myConfig.pwd_qyrd)
+connect(db=myConfig.db, host=myConfig.host, port=myConfig.port,username=myConfig.username, password=myConfig.password)
 
 react_url = 'https://oa.wuminmin.top/'
 

@@ -1,10 +1,10 @@
 
 import pymongo
 import myConfig
-mongo_src = "mongodb://"+myConfig.name_qyrd+":"+myConfig.pwd_qyrd + \
-    "@"+myConfig.host+":"+myConfig.port_str+"/?authSource="+myConfig.db_qyrd
+mongo_src = "mongodb://"+myConfig.username+":"+myConfig.password + \
+    "@"+myConfig.host+":"+myConfig.port_str+"/?authSource="+myConfig.db
 myclient = pymongo.MongoClient(mongo_src)
-mydb = myclient[myConfig.name_qyrd]
+mydb = myclient[myConfig.username]
 def 根据栏目查询文章列表(lan_mu):
     pipeline = [
          {
