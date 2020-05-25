@@ -361,10 +361,10 @@ def 根据板块下载表格(request):
             myVar4.append({
                 '图片名称': one2.tittle,
                 '网页地址': '/#/myimggrid?ban_kuai='+myVar+'&lan_mu='+one+'&tittle=默认',
-                '图片地址': 'https://wx.wuminmin.top/qyrd/image?id='+one+'-'+one2.tittle,
+                '图片地址': 'http://223.247.193.223:18005/qyrd/image?id='+one+'-'+one2.tittle,
                 'key': one2.tittle,
                 'key2': str(one2.my_date.year)+'-'+str(one2.my_date.month)+'-'+str(one2.my_date.day),
-                'img_src': 'https://wx.wuminmin.top/qyrd/image?id=新闻图片1',
+                'img_src': 'http://223.247.193.223:18005/qyrd/image?id=新闻图片1',
                 'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle
             })
         myVar3.append({
@@ -399,10 +399,10 @@ def rd_xia_zai_tabs_by_ban_kuai2(request):
             myVar4.append({
                 '图片名称': one2.tittle,
                 '网页地址': '/#/myimggrid?ban_kuai='+myVar+'&lan_mu='+one+'&tittle=默认',
-                '图片地址': 'https://wx.wuminmin.top/qyrd/image?id='+one+'-'+one2.tittle,
+                '图片地址': 'http://223.247.193.223:18005/qyrd/image?id='+one+'-'+one2.tittle,
                 'key': one2.tittle,
                 'key2': str(one2.my_date.year)+'-'+str(one2.my_date.month)+'-'+str(one2.my_date.day),
-                'img_src': 'https://wx.wuminmin.top/qyrd/image?id=新闻图片1',
+                'img_src': 'http://223.247.193.223:18005/qyrd/image?id=新闻图片1',
                 'url': '/mynews?ban_kuai='+myVar+'&lan_mu='+one+'&tittle='+one2.tittle
             })
             if len(myVar4) == 3:
